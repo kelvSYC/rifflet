@@ -1,0 +1,23 @@
+[versions]
+kotlin = "2.2.21"
+
+[libraries]
+# BOMs
+kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
+kotest-bom = "io.kotest:kotest-bom:6.0.4"
+
+# Internal
+foojay-resolver-plugin = "org.gradle.toolchains.foojay-resolver:org.gradle.toolchains.foojay-resolver.gradle.plugin:1.0.0"
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" } # version from BOM 'kotlin-gradle-plugins-bom'
+
+# API Dependencies
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" } # version from BOM 'kotest-bom'
+kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared" } # version from BOM 'kotest-bom'
+kotest-framework-engine = { module = "io.kotest:kotest-framework-engine" } # version from BOM 'kotest-bom'
+kotest-property = { module = "io.kotest:kotest-property" } # version from BOM 'kotest-bom'
+kotest-runner = { module = "io.kotest:kotest-runner-junit5" } # version from BOM 'kotest-bom'
+mockk = "io.mockk:mockk:1.14.6"
+okio = "com.squareup.okio:okio:3.16.2"
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
