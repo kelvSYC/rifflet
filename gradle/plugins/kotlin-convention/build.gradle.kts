@@ -5,7 +5,7 @@ plugins {
 group = "com.kelvsyc.internal.rifflet"
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 dependencies {
