@@ -34,3 +34,30 @@ kotlin {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
+
+// Catch platform-specific imports that sneak into commonMain source sets.
+// Any import of java.*, javax.*, android.*, or sun.* breaks non-JVM targets.
+val checkCommonMainPlatformImports by tasks.registering {
+    description = "Fails if any commonMain Kotlin source contains platform-specific imports."
+    group = "verification"
+    val sources = fileTree("src/commonMain") { include("**/*.kt") }
+    inputs.files(sources).withPathSensitivity(PathSensitivity.RELATIVE)
+    doLast {
+        val platformPrefixes = listOf("import java.", "import javax.", "import android.", "import sun.")
+        val violations = sources.files.flatMap { file ->
+            file.readLines().mapIndexedNotNull { index, line ->
+                val trimmed = line.trimStart()
+                if (platformPrefixes.any { trimmed.startsWith(it) }) {
+                    "  ${file.relativeTo(projectDir)}:${index + 1}: ${line.trim()}"
+                } else null
+            }
+        }
+        if (violations.isNotEmpty()) {
+            error("Platform-specific imports found in commonMain:\n${violations.joinToString("\n")}")
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn(checkCommonMainPlatformImports)
+}
