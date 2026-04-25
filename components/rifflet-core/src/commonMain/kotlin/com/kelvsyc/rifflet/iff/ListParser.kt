@@ -16,6 +16,8 @@ class ListParser<T>(private val core: IffParserCore, private val assembler: (Lis
     override fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>>): T {
         val parsed = buildList {
             chunks.forEach {
+                // Dispatch uses the inner content-type/hint field, not the outer FORM/FOR1/… wrapper —
+                // one registration covers all variant IDs for the same content type.
                 when (it) {
                     is FormChunk -> {
                         val parser = core.formParsers[it.type]

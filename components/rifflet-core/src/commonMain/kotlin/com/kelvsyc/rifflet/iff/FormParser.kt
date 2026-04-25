@@ -19,6 +19,8 @@ class FormParser<T>(private val core: IffParserCore, private val assembler: (Lis
     override fun parse(chunks: ListMultimap<ChunkId, IffChunk>, properties: ListMultimap<ChunkId, LocalChunk>): T {
         val parsedChunks: ListMultimap<ChunkId, Any> = chunks.mapValues { chunk ->
             when (chunk) {
+                // chunkId is the inner content-type field, not the outer FORM/FOR1/… wrapper —
+                // one registration covers all variant IDs for the same content type.
                 is FormChunk -> core.formParsers[chunk.chunkId]?.parse(chunk.chunks) ?: chunk
                 is ListChunk -> core.listParsers[chunk.chunkId]?.parse(chunk.items, chunk.properties) ?: chunk
                 is CatChunk -> core.catParsers[chunk.chunkId]?.parse(chunk.chunks) ?: chunk

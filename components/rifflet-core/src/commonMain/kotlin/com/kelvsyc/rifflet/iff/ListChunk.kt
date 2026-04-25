@@ -13,6 +13,6 @@ import com.kelvsyc.rifflet.core.ChunkId
  * of a specific form type within the list. A `PROP` applies only to `FORM` chunks whose type matches the `PROP`'s own
  * form-type field. All `PROP` chunks must appear before any group chunk items.
  */
-data class ListChunk(val type: ChunkId, val properties: Map<ChunkId, List<LocalChunk>>, val items: List<GroupChunk>) : GroupChunk {
+data class ListChunk(val outerChunkId: ChunkId, val type: ChunkId, val properties: Map<ChunkId, List<LocalChunk>>, val items: List<GroupChunk>) : GroupChunk {
     override val chunkId: ChunkId get() = type
 }

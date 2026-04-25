@@ -17,19 +17,19 @@ import com.kelvsyc.rifflet.internal.core.BufferedRawChunk
 
 object RawIffChunkParser {
     fun parse(raw: BufferedRawChunk): IffChunk {
-        return when (raw.type) {
-            IffChunkIds.FORM -> {
-                if (raw.declaredSize < 4u) throw RiffletParseException("FORM chunk declared size ${raw.declaredSize} is too small to contain a content type ID")
+        return when {
+            raw.type in IffChunkIds.formIds -> {
+                if (raw.declaredSize < 4u) throw RiffletParseException("${raw.type.name} chunk declared size ${raw.declaredSize} is too small to contain a content type ID")
                 val type = raw.data.readChunkId()
                 val chunks = buildList<IffChunk> {
                     while (!raw.data.exhausted()) {
                         add(parse(IffBufferedChunkParser.parse(raw.data)))
                     }
                 }.map { it.chunkId to it }.toListMultimap()
-                FormChunk(type, chunks)
+                FormChunk(raw.type, type, chunks)
             }
-            IffChunkIds.LIST -> {
-                if (raw.declaredSize < 4u) throw RiffletParseException("LIST chunk declared size ${raw.declaredSize} is too small to contain a content type ID")
+            raw.type in IffChunkIds.listIds -> {
+                if (raw.declaredSize < 4u) throw RiffletParseException("${raw.type.name} chunk declared size ${raw.declaredSize} is too small to contain a content type ID")
                 var propsFinished = false
                 val type = raw.data.readChunkId()
                 val properties = mutableMapOf<ChunkId, List<LocalChunk>>()
@@ -37,7 +37,7 @@ object RawIffChunkParser {
                 while (!raw.data.exhausted()) {
                     val chunk = IffBufferedChunkParser.parse(raw.data)
                     if (chunk.type == IffChunkIds.PROP) {
-                        if (propsFinished) throw RiffletParseException("PROP chunk found after group chunk in LIST chunk")
+                        if (propsFinished) throw RiffletParseException("PROP chunk found after group chunk in ${raw.type.name} chunk")
                         if (chunk.declaredSize < 4u) throw RiffletParseException("PROP chunk declared size ${chunk.declaredSize} is too small to contain a content type ID")
                         val formType = chunk.data.readChunkId()
                         val propertyChunks = buildList {
@@ -57,14 +57,14 @@ object RawIffChunkParser {
                         if (parsed is GroupChunk) {
                             items.add(parsed)
                         } else {
-                            throw RiffletParseException("non-property local chunk found in LIST chunk")
+                            throw RiffletParseException("non-property local chunk found in ${raw.type.name} chunk")
                         }
                     }
                 }
-                ListChunk(type, properties, items)
+                ListChunk(raw.type, type, properties, items)
             }
-            IffChunkIds.CAT -> {
-                if (raw.declaredSize < 4u) throw RiffletParseException("CAT chunk declared size ${raw.declaredSize} is too small to contain a hint ID")
+            raw.type in IffChunkIds.catIds -> {
+                if (raw.declaredSize < 4u) throw RiffletParseException("${raw.type.name} chunk declared size ${raw.declaredSize} is too small to contain a hint ID")
                 var propsFinished = false
                 val type = raw.data.readChunkId()
                 val properties = mutableMapOf<ChunkId, List<LocalChunk>>()
@@ -72,7 +72,7 @@ object RawIffChunkParser {
                     while (!raw.data.exhausted()) {
                         val chunk = IffBufferedChunkParser.parse(raw.data)
                         if (chunk.type == IffChunkIds.PROP) {
-                            if (propsFinished) throw RiffletParseException("PROP chunk found after group chunk in CAT chunk")
+                            if (propsFinished) throw RiffletParseException("PROP chunk found after group chunk in ${raw.type.name} chunk")
                             if (chunk.declaredSize < 4u) throw RiffletParseException("PROP chunk declared size ${chunk.declaredSize} is too small to contain a content type ID")
                             val formType = chunk.data.readChunkId()
                             val propertyChunks = buildList {
@@ -92,14 +92,14 @@ object RawIffChunkParser {
                             if (parsed is GroupChunk) {
                                 add(parsed)
                             } else {
-                                throw RiffletParseException("Non-Group child chunk found in CAT chunk")
+                                throw RiffletParseException("Non-Group child chunk found in ${raw.type.name} chunk")
                             }
                         }
                     }
                 }
-                CatChunk(type, properties, chunks)
+                CatChunk(raw.type, type, properties, chunks)
             }
-            IffChunkIds.blank -> {
+            raw.type == IffChunkIds.blank -> {
                 BlankChunk(raw.declaredSize)
             }
             else -> {

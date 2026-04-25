@@ -42,6 +42,8 @@ internal class IffRootParserImpl<T>(
                 is FormChunk -> {
                     val r = root as? IffRootParser.Root.FormRoot
                         ?: throw RiffletParseException("Expected FORM root but got '${raw.type.name}'")
+                    if (rootChunk.outerChunkId != r.variantId)
+                        throw RiffletParseException("Expected '${r.variantId.name}' root but got '${rootChunk.outerChunkId.name}'")
                     if (rootChunk.type != r.type)
                         throw RiffletParseException("Expected FORM type '${r.type.name}' but got '${rootChunk.type.name}'")
                     val parser = core.formParsers[r.type] as? FormChunkParser<T>
@@ -51,6 +53,8 @@ internal class IffRootParserImpl<T>(
                 is ListChunk -> {
                     val r = root as? IffRootParser.Root.ListRoot
                         ?: throw RiffletParseException("Expected LIST root but got '${raw.type.name}'")
+                    if (rootChunk.outerChunkId != r.variantId)
+                        throw RiffletParseException("Expected '${r.variantId.name}' root but got '${rootChunk.outerChunkId.name}'")
                     if (rootChunk.type != r.type)
                         throw RiffletParseException("Expected LIST type '${r.type.name}' but got '${rootChunk.type.name}'")
                     val parser = core.listParsers[r.type] as? ListChunkParser<T>
@@ -60,6 +64,8 @@ internal class IffRootParserImpl<T>(
                 is CatChunk -> {
                     val r = root as? IffRootParser.Root.CatRoot
                         ?: throw RiffletParseException("Expected CAT root but got '${raw.type.name}'")
+                    if (rootChunk.outerChunkId != r.variantId)
+                        throw RiffletParseException("Expected '${r.variantId.name}' root but got '${rootChunk.outerChunkId.name}'")
                     if (rootChunk.hint != r.hint)
                         throw RiffletParseException("Expected CAT hint '${r.hint.name}' but got '${rootChunk.hint.name}'")
                     val parser = core.catParsers[r.hint] as? CatChunkParser<T>

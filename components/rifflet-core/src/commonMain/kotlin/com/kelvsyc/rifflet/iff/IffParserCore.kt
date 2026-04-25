@@ -44,44 +44,53 @@ interface IffParserCore {
          */
         fun <T> addLocalParser(type: ChunkId, parser: (ByteString) -> T)
 
-        /** Registers [parser] for `FORM` chunks whose form-type field matches [type]. */
+        /**
+         * Registers [parser] for `FORM` (and variant `FOR1`–`FOR9`) chunks whose form-type field matches [type].
+         * Dispatch is keyed on the inner content-type field, so a single registration covers all outer variant IDs.
+         */
         fun addFormParser(type: ChunkId, parser: FormChunkParser<*>)
 
         /**
-         * Registers a [FormParser] for `FORM` chunks whose form-type field matches [type].
-         * The parser is wired to this core so nested chunks are dispatched through the same
-         * registered parsers.
+         * Registers a [FormParser] for `FORM` (and variant `FOR1`–`FOR9`) chunks whose form-type field matches [type].
+         * Dispatch is keyed on the inner content-type field, so a single registration covers all outer variant IDs.
+         * The parser is wired to this core so nested chunks are dispatched through the same registered parsers.
          */
         fun <T> addFormParser(type: ChunkId, assembler: (ListMultimap<ChunkId, Any>) -> T)
 
-        /** Registers [parser] for `LIST` chunks whose list-type field matches [type]. */
+        /**
+         * Registers [parser] for `LIST` (and variant `LIS1`–`LIS9`) chunks whose list-type field matches [type].
+         * Dispatch is keyed on the inner content-type field, so a single registration covers all outer variant IDs.
+         */
         fun addListParser(type: ChunkId, parser: ListChunkParser<*>)
 
         /**
-         * Registers a [ListParser] for `LIST` chunks whose list-type field matches [type].
-         * The parser is wired to this core so nested chunks are dispatched through the same
-         * registered parsers.
+         * Registers a [ListParser] for `LIST` (and variant `LIS1`–`LIS9`) chunks whose list-type field matches [type].
+         * Dispatch is keyed on the inner content-type field, so a single registration covers all outer variant IDs.
+         * The parser is wired to this core so nested chunks are dispatched through the same registered parsers.
          */
         fun <T> addListParser(type: ChunkId, assembler: (List<Any>) -> T)
 
-        /** Registers [parser] for `CAT ` chunks whose hint field matches [type]. */
+        /**
+         * Registers [parser] for `CAT ` (and variant `CAT1`–`CAT9`) chunks whose hint field matches [type].
+         * Dispatch is keyed on the inner hint field, so a single registration covers all outer variant IDs.
+         */
         fun addCatParser(type: ChunkId, parser: CatChunkParser<*>)
 
         /**
-         * Registers a [CatParser] for `CAT ` chunks whose hint field matches [type].
-         * The parser is wired to this core so nested chunks are dispatched through the same
-         * registered parsers.
+         * Registers a [CatParser] for `CAT ` (and variant `CAT1`–`CAT9`) chunks whose hint field matches [type].
+         * Dispatch is keyed on the inner hint field, so a single registration covers all outer variant IDs.
+         * The parser is wired to this core so nested chunks are dispatched through the same registered parsers.
          */
         fun <T> addCatParser(type: ChunkId, assembler: (List<Any>) -> T)
     }
 
-    /** Parsers for `FORM` chunks, keyed by form-type field. */
+    /** Parsers for `FORM` (and variant `FOR1`–`FOR9`) chunks, keyed by inner form-type field. */
     val formParsers: Map<ChunkId, FormChunkParser<*>>
 
-    /** Parsers for `LIST` chunks, keyed by list-type field. */
+    /** Parsers for `LIST` (and variant `LIS1`–`LIS9`) chunks, keyed by inner list-type field. */
     val listParsers: Map<ChunkId, ListChunkParser<*>>
 
-    /** Parsers for `CAT ` chunks, keyed by hint field. */
+    /** Parsers for `CAT ` (and variant `CAT1`–`CAT9`) chunks, keyed by inner hint field. */
     val catParsers: Map<ChunkId, CatChunkParser<*>>
 
     /** Parsers for local (non-group) chunks, keyed by chunk type ID. */

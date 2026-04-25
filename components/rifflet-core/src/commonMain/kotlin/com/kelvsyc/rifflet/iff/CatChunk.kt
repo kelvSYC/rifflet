@@ -15,6 +15,6 @@ import com.kelvsyc.rifflet.core.ChunkId
  * serving the same role as they do in `LIST` chunks: supplying default sub-chunks to `FORM` chunks of a matching form
  * type within the `CAT `. All `PROP` chunks must appear before any group chunk items.
  */
-data class CatChunk(val hint: ChunkId, val properties: Map<ChunkId, List<LocalChunk>>, val chunks: List<GroupChunk>) : GroupChunk {
+data class CatChunk(val outerChunkId: ChunkId, val hint: ChunkId, val properties: Map<ChunkId, List<LocalChunk>>, val chunks: List<GroupChunk>) : GroupChunk {
     override val chunkId: ChunkId get() = hint
 }

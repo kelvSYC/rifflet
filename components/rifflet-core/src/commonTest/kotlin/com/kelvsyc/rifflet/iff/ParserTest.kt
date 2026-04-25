@@ -16,7 +16,7 @@ private fun id(name: String) = ChunkId(name)
 private fun local(name: String) = LocalChunk(RawChunk(id(name), ByteString.EMPTY))
 private fun form(name: String, vararg chunks: IffChunk): FormChunk {
     val multimap = chunks.map { it.chunkId to it }.toListMultimap()
-    return FormChunk(id(name), multimap)
+    return FormChunk(IffChunkIds.FORM, id(name), multimap)
 }
 
 private fun localParser(block: (ByteString) -> Any) = object : LocalChunkParser<Any> {
@@ -86,7 +86,7 @@ class FormParserTest : FunSpec({
         }
 
         test("nested ListChunk is parsed by its registered listParser") {
-            val inner = ListChunk(id("COMP"), emptyMap(), emptyList())
+            val inner = ListChunk(IffChunkIds.LIST, id("COMP"), emptyMap(), emptyList())
             val core = core(listParsers = mapOf(id("COMP") to listParser { _, _ -> listOf("parsed-list") }))
             val parser = FormParser(core) { it }
             val result = parser.parse(listMultimapOf(inner.chunkId to inner))
@@ -94,7 +94,7 @@ class FormParserTest : FunSpec({
         }
 
         test("nested CatChunk is parsed by its registered catParser") {
-            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
+            val inner = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed-cat" }))
             val parser = FormParser(core) { it }
             val result = parser.parse(listMultimapOf(inner.chunkId to inner))
@@ -208,7 +208,7 @@ class ListParserTest : FunSpec({
 
     context("ListChunk items") {
         test("ListChunk is parsed using listParser") {
-            val inner = ListChunk(id("COMP"), emptyMap(), emptyList())
+            val inner = ListChunk(IffChunkIds.LIST, id("COMP"), emptyMap(), emptyList())
             val core = core(listParsers = mapOf(id("COMP") to listParser { _, _ -> listOf("parsed") }))
             val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
@@ -218,7 +218,7 @@ class ListParserTest : FunSpec({
         test("inner LIST PROP overrides outer for the same form type") {
             val outerProp = local("OATR")
             val innerProp = local("IATR")
-            val inner = ListChunk(id("COMP"), mapOf(id("BODY") to listOf(innerProp)), emptyList())
+            val inner = ListChunk(IffChunkIds.LIST, id("COMP"), mapOf(id("BODY") to listOf(innerProp)), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
             val core = core(listParsers = mapOf(id("COMP") to listParser<List<Nothing>> { _, props ->
                 receivedProps = props
@@ -233,7 +233,7 @@ class ListParserTest : FunSpec({
 
     context("CatChunk items") {
         test("CatChunk is parsed using catParser") {
-            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
+            val inner = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed" }))
             val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
@@ -242,7 +242,7 @@ class ListParserTest : FunSpec({
 
         test("outer properties are forwarded to catParser") {
             val prop = local("AUTH")
-            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
+            val inner = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, props ->
                 receivedProps = props
@@ -341,7 +341,7 @@ class CatParserTest : FunSpec({
 
     context("ListChunk items") {
         test("ListChunk is parsed using listParser") {
-            val inner = ListChunk(id("COMP"), emptyMap(), emptyList())
+            val inner = ListChunk(IffChunkIds.LIST, id("COMP"), emptyMap(), emptyList())
             val core = core(listParsers = mapOf(id("COMP") to listParser { _, _ -> listOf("parsed") }))
             val parser = CatParser(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
@@ -351,7 +351,7 @@ class CatParserTest : FunSpec({
         test("inner LIST PROP overrides outer for the same form type") {
             val outerProp = local("OATR")
             val innerProp = local("IATR")
-            val inner = ListChunk(id("COMP"), mapOf(id("BODY") to listOf(innerProp)), emptyList())
+            val inner = ListChunk(IffChunkIds.LIST, id("COMP"), mapOf(id("BODY") to listOf(innerProp)), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
             val core = core(listParsers = mapOf(id("COMP") to listParser<List<Nothing>> { _, props ->
                 receivedProps = props
@@ -366,7 +366,7 @@ class CatParserTest : FunSpec({
 
     context("CatChunk items") {
         test("CatChunk is parsed using catParser") {
-            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
+            val inner = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed" }))
             val parser = CatParser(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
@@ -375,7 +375,7 @@ class CatParserTest : FunSpec({
 
         test("outer properties are forwarded to nested catParser") {
             val prop = local("AUTH")
-            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
+            val inner = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, props ->
                 receivedProps = props

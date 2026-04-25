@@ -21,14 +21,14 @@ interface IffRootParser<out T> {
      * Identifies which group chunk at the top level of an IFF file this parser handles.
      */
     sealed interface Root {
-        /** The root is a `FORM` chunk whose form-type field matches [type]. */
-        data class FormRoot(val type: ChunkId) : Root
+        /** The root is a `FORM` (or variant `FOR1`–`FOR9`) chunk whose form-type field matches [type]. */
+        data class FormRoot(val type: ChunkId, val variantId: ChunkId = IffChunkIds.FORM) : Root
 
-        /** The root is a `LIST` chunk whose list-type field matches [type]. */
-        data class ListRoot(val type: ChunkId) : Root
+        /** The root is a `LIST` (or variant `LIS1`–`LIS9`) chunk whose list-type field matches [type]. */
+        data class ListRoot(val type: ChunkId, val variantId: ChunkId = IffChunkIds.LIST) : Root
 
-        /** The root is a `CAT ` chunk whose hint field matches [hint]. */
-        data class CatRoot(val hint: ChunkId) : Root
+        /** The root is a `CAT ` (or variant `CAT1`–`CAT9`) chunk whose hint field matches [hint]. */
+        data class CatRoot(val hint: ChunkId, val variantId: ChunkId = IffChunkIds.CAT) : Root
     }
 
     companion object {

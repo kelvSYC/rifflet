@@ -14,7 +14,7 @@ import okio.ByteString.Companion.encodeUtf8
 private fun id(name: String) = ChunkId(name)
 private fun local(name: String, data: ByteString = ByteString.EMPTY) = LocalChunk(RawChunk(id(name), data))
 private fun form(name: String, vararg chunks: IffChunk): FormChunk {
-    return FormChunk(id(name), chunks.map { it.chunkId to it }.toListMultimap())
+    return FormChunk(IffChunkIds.FORM, id(name), chunks.map { it.chunkId to it }.toListMultimap())
 }
 
 class IffParserCoreTest : FunSpec({
