@@ -4,7 +4,7 @@ import com.kelvsyc.rifflet.core.ChunkId
 
 /**
  * The `CatChunkParser` interface is used to translate a [CatChunk] into a domain object. A `CatChunkParser` is only
- * required to process a chunk based on a specific [CatChunk] based on a specific type hint.
+ * required to process a [CatChunk] with a specific type hint.
  */
 interface CatChunkParser<T> {
     /**

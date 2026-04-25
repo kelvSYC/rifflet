@@ -3,11 +3,11 @@ package com.kelvsyc.rifflet.iff
 import okio.ByteString
 
 /**
- * The `LocalChunkParser` interface is used to translate a user-defined chunk type ([LocalChunk]) into a domain object.
+ * The `LocalChunkParser` interface is used to translate a local chunk ([LocalChunk]) into a domain object.
  */
 interface LocalChunkParser<T> {
     /**
-     * Parses the data from the user-defined chunk.
+     * Parses the data from a local chunk.
      *
      * @param data The raw binary data of the chunk.
      */

@@ -12,4 +12,6 @@ import com.kelvsyc.rifflet.core.ChunkId
  * for it. However, in practice, nested `CAT ` chunks are often flattened out (and the inner hint values discarded) so
  * that the chunk collection consists of `FORM` and `LIST` chunks.
  */
-data class CatChunk(val hint: ChunkId, val chunks: List<GroupChunk>) : GroupChunk
+data class CatChunk(val hint: ChunkId, val chunks: List<GroupChunk>) : GroupChunk {
+    override val chunkId: ChunkId get() = hint
+}

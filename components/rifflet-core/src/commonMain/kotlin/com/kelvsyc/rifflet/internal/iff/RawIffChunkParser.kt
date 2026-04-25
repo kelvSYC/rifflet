@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.iff
 
+import com.kelvsyc.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.RawChunk
 import com.kelvsyc.rifflet.core.readChunkId
@@ -22,11 +23,11 @@ object RawIffChunkParser {
                     write(raw.data)
                 }
                 val type = source.readChunkId()
-                val chunks = buildList {
+                val chunks = buildList<IffChunk> {
                     while (!source.exhausted()) {
                         add(parse(IffRawChunkParser.parse(source)))
                     }
-                }
+                }.map { it.chunkId to it }.toListMultimap()
                 FormChunk(type, chunks)
             }
             IffChunkIds.LIST -> {

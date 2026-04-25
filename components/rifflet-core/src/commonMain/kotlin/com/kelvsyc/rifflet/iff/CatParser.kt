@@ -1,10 +1,11 @@
 package com.kelvsyc.rifflet.iff
 
+import com.kelvsyc.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 
 /**
- * `CatParser` is a simple implementation of [CatChunkParser] that parses its nested using its supplied [core] in a
- * context-free manner, before assembling the parsed chunks using an [assembler].
+ * `CatParser` is a simple implementation of [CatChunkParser] that parses its nested chunks using its supplied [core]
+ * in a context-free manner, before assembling the parsed chunks using an [assembler].
  *
  * @param core A parser core that can be used to parse nested chunks. Nested chunks that cannot be parsed by the core
  *             will be left unparsed.
@@ -12,16 +13,15 @@ import com.kelvsyc.rifflet.core.ChunkId
  */
 class CatParser<T>(private val core: IffParserCore, private val assembler: (List<Any>) -> T) : CatChunkParser<T> {
     // TODO is it possible to integrate a "flattening CAT" feature?
+    @Suppress("UNCHECKED_CAST")
     override fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>>): T {
-        val chunks = buildList {
+        val parsed = buildList {
             chunks.forEach {
                 when (it) {
                     is FormChunk -> {
                         val parser = core.formParsers[it.type]
-                        val innerProperties = properties[it.type].orEmpty()
-
-                        val parsed = parser?.parse(it.chunks, innerProperties) ?: it
-                        add(parsed)
+                        val innerProperties = properties[it.type].orEmpty().map { prop -> prop.chunkId to prop }.toListMultimap()
+                        add(parser?.parse(it.chunks, innerProperties) ?: it)
                     }
                     is ListChunk -> {
                         val parser = core.listParsers[it.type]
@@ -29,19 +29,15 @@ class CatParser<T>(private val core: IffParserCore, private val assembler: (List
                             putAll(properties)
                             putAll(it.properties)
                         }
-
-                        val parsed = parser?.parse(it.items, innerProperties) ?: it
-                        add(parsed)
+                        add(parser?.parse(it.items, innerProperties) ?: it)
                     }
                     is CatChunk -> {
                         val parser = core.catParsers[it.hint]
-
-                        val parsed = parser?.parse(it.chunks, properties) ?: it
-                        add(parsed)
+                        add(parser?.parse(it.chunks, properties) ?: it)
                     }
                 }
             }
         }
-        return assembler(chunks)
+        return assembler(parsed)
     }
 }

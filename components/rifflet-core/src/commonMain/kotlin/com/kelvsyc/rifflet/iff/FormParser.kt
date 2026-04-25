@@ -1,5 +1,10 @@
 package com.kelvsyc.rifflet.iff
 
+import com.kelvsyc.collections.ListMultimap
+import com.kelvsyc.collections.contains
+import com.kelvsyc.collections.filterKeys
+import com.kelvsyc.collections.mapValues
+import com.kelvsyc.collections.plus
 import com.kelvsyc.rifflet.core.ChunkId
 
 /**
@@ -10,50 +15,25 @@ import com.kelvsyc.rifflet.core.ChunkId
  *             will be left unparsed.
  * @param assembler A function that assembles parsed chunk data to the final object.
  */
-class FormParser<T>(private val core: IffParserCore, private val assembler: (Map<ChunkId, Any>) -> T) : FormChunkParser<T> {
-    override fun parse(chunks: List<IffChunk>, properties: List<LocalChunk>): T {
-        // Combine the properties with the chunks
-        // TODO Multimap?
-        val combined = buildMap {
-            properties.forEach {
-                put(it.data.type, it)
-            }
-            chunks.forEach {
-                when (it) {
-                    is FormChunk -> put(it.type, it)
-                    is ListChunk -> put(it.type, it)
-                    is CatChunk -> put(it.hint, it)
-                    is LocalChunk -> put(it.data.type, it)
-                    else -> Unit // Ignore blank Chunks
-                }
+class FormParser<T>(private val core: IffParserCore, private val assembler: (ListMultimap<ChunkId, Any>) -> T) : FormChunkParser<T> {
+    override fun parse(chunks: ListMultimap<ChunkId, IffChunk>, properties: ListMultimap<ChunkId, LocalChunk>): T {
+        val parsedChunks: ListMultimap<ChunkId, Any> = chunks.mapValues { chunk ->
+            when (chunk) {
+                is FormChunk -> core.formParsers[chunk.chunkId]?.parse(chunk.chunks) ?: chunk
+                is ListChunk -> core.listParsers[chunk.chunkId]?.parse(chunk.items, chunk.properties) ?: chunk
+                is CatChunk -> core.catParsers[chunk.chunkId]?.parse(chunk.chunks) ?: chunk
+                is LocalChunk -> core.localParsers[chunk.chunkId]?.parse(chunk.data.data) ?: chunk
+                is BlankChunk -> chunk
             }
         }
 
-        // Now, we parse the inner chunks, if we have a parser for it
-        val parsed = combined.mapValues { (type, chunk) ->
-            when (chunk) {
-                is FormChunk -> {
-                    val parser = core.formParsers[type]
-                    parser?.parse(chunk.chunks) ?: chunk
-                }
-                is ListChunk -> {
-                    val parser = core.listParsers[type]
-                    parser?.parse(chunk.items, chunk.properties) ?: chunk
-                }
-                is CatChunk -> {
-                    val parser = core.catParsers[type]
-                    parser?.parse(chunk.chunks) ?: chunk
-                }
-                is LocalChunk -> {
-                    val parser = core.localParsers[type]
-                    parser?.parse(chunk.data.data) ?: chunk
-                }
-                else -> {
-                    // Unreachable
-                    throw IllegalStateException("Blank chunk encountered in combined map")
-                }
-            }
+        val parsedProperties: ListMultimap<ChunkId, Any> = properties.mapValues { prop ->
+            core.localParsers[prop.chunkId]?.parse(prop.data.data) ?: prop
         }
-        return assembler(parsed)
+
+        // Chunks take precedence; properties fill in for keys absent from chunks.
+        val combined = parsedChunks + parsedProperties.filterKeys { it !in parsedChunks }
+
+        return assembler(combined)
     }
 }
