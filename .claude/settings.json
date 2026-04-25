@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh *)",
+      "Bash(./gradlew:*)",
+      "Bash(find . *)",
+      "Bash(find ~/.gradle *)",
+      "Bash(jar tf *)",
+      "Bash(grep *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git status)",
+      "Bash(wc *)",
+      "Bash(tail *)",
+      "Bash(xxd *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [[ \"$f\" == *.kt ]] || exit 0; tail -c1 \"$f\" | xxd | grep -q '0a' || printf '\\n' >> \"$f\"; wc=$(grep -nE '^import .*\\.\\*' \"$f\" | grep -v 'java\\.util\\.\\*' | head -3); fc=$(grep -nE '(TODO|FIXME|STOPSHIP):' \"$f\" | head -3); ec=$(grep -nE 'catch[[:space:]]*\\([^)]+:[[:space:]]*(Exception|RuntimeException|Error|Throwable|NullPointerException|IndexOutOfBoundsException|IllegalMonitorStateException)[[:space:]]*\\)|throw[[:space:]]+(Exception|RuntimeException|Error|Throwable)[^A-Za-z0-9_]' \"$f\" | head -3); [[ -z \"$wc$fc$ec\" ]] && exit 0; msg=\"Code quality issues in $f --\"; [[ -n \"$wc\" ]] && msg=\"$msg WildcardImport: $wc;\"; [[ -n \"$fc\" ]] && msg=\"$msg ForbiddenComment: $fc;\"; [[ -n \"$ec\" ]] && msg=\"$msg GenericException: $ec;\"; jq -n --arg c \"$msg\" '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":$c}}'; } 2>/dev/null || true",
+            "statusMessage": "Checking .kt file for code quality issues"
+          }
+        ]
+      }
+    ]
+  }
+}
