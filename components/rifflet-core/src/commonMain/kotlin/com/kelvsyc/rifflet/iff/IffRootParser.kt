@@ -4,17 +4,17 @@ import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.internal.iff.IffRootParserImpl
 import okio.Source
 
-interface IffRootParser {
+interface IffRootParser<out T> {
     companion object {
-        fun newParser(fn: Builder.() -> Unit): IffRootParser {
-            val builder = IffRootParserImpl.Builder().apply(fn)
+        fun <T> newParser(fn: Builder<T>.() -> Unit): IffRootParser<T> {
+            val builder = IffRootParserImpl.Builder<T>().apply(fn)
             return IffRootParserImpl(builder.parsers)
         }
     }
 
-    interface Builder {
-        fun addFormParser(type: ChunkId, parser: FormChunkParser<*>)
+    interface Builder<T> {
+        fun addFormParser(type: ChunkId, parser: FormChunkParser<out T>)
     }
 
-    fun parse(source: Source): GroupChunk
+    fun parse(source: Source): T
 }
