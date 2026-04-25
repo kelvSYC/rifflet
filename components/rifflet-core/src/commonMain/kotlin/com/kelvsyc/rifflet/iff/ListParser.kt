@@ -33,8 +33,12 @@ class ListParser<T>(private val core: IffParserCore, private val assembler: (Lis
                     }
                     is CatChunk -> {
                         val parser = core.catParsers[it.hint]
-                        // Outer properties are forwarded so nested FORMs inside the CAT can inherit them.
-                        add(parser?.parse(it.chunks, properties) ?: it)
+                        // CAT PROP properties override outer ones for matching form types.
+                        val innerProperties = buildMap {
+                            putAll(properties)
+                            putAll(it.properties)
+                        }
+                        add(parser?.parse(it.chunks, innerProperties) ?: it)
                     }
                 }
             }

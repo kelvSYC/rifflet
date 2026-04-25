@@ -10,7 +10,11 @@ import com.kelvsyc.rifflet.core.ChunkId
  *
  * Under the IFF standard, it is not an error to have nested `CAT ` chunks, and as such the design of `CatChunk` allows
  * for it.
+ *
+ * Although it may not be obvious from a casual reading of the IFF spec, `CAT ` chunks may also contain `PROP` chunks,
+ * serving the same role as they do in `LIST` chunks: supplying default sub-chunks to `FORM` chunks of a matching form
+ * type within the `CAT `. All `PROP` chunks must appear before any group chunk items.
  */
-data class CatChunk(val hint: ChunkId, val chunks: List<GroupChunk>) : GroupChunk {
+data class CatChunk(val hint: ChunkId, val properties: Map<ChunkId, List<LocalChunk>>, val chunks: List<GroupChunk>) : GroupChunk {
     override val chunkId: ChunkId get() = hint
 }

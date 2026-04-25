@@ -32,7 +32,12 @@ class CatParser<T>(private val core: IffParserCore, private val assembler: (List
                     }
                     is CatChunk -> {
                         val parser = core.catParsers[it.hint]
-                        add(parser?.parse(it.chunks, properties) ?: it)
+                        // CAT PROP properties override outer ones for matching form types.
+                        val innerProperties = buildMap {
+                            putAll(properties)
+                            putAll(it.properties)
+                        }
+                        add(parser?.parse(it.chunks, innerProperties) ?: it)
                     }
                 }
             }

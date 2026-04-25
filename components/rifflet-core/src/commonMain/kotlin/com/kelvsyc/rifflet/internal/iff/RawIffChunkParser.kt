@@ -60,18 +60,38 @@ object RawIffChunkParser {
                 ListChunk(type, properties, items)
             }
             IffChunkIds.CAT -> {
+                var propsFinished = false
                 val type = raw.data.readChunkId()
+                val properties = mutableMapOf<ChunkId, List<LocalChunk>>()
                 val chunks = buildList {
                     while (!raw.data.exhausted()) {
-                        val chunk = parse(IffBufferedChunkParser.parse(raw.data))
-                        if (chunk is GroupChunk) {
-                            add(chunk)
+                        val chunk = IffBufferedChunkParser.parse(raw.data)
+                        if (chunk.type == IffChunkIds.PROP) {
+                            if (propsFinished) throw IllegalStateException("PROP chunk found after group chunk in CAT chunk")
+                            val formType = chunk.data.readChunkId()
+                            val propertyChunks = buildList {
+                                while (!chunk.data.exhausted()) {
+                                    val inner = IffBufferedChunkParser.parse(chunk.data)
+                                    if (IffChunkIds.reservedIds.contains(inner.type)) {
+                                        throw IllegalStateException("group chunk found in PROP chunk")
+                                    } else {
+                                        add(LocalChunk(RawChunk(inner.type, inner.data.readByteString())))
+                                    }
+                                }
+                            }
+                            properties[formType] = propertyChunks
                         } else {
-                            throw IllegalStateException("Non-Group child chunk found in CAT chunk")
+                            propsFinished = true
+                            val parsed = parse(chunk)
+                            if (parsed is GroupChunk) {
+                                add(parsed)
+                            } else {
+                                throw IllegalStateException("Non-Group child chunk found in CAT chunk")
+                            }
                         }
                     }
                 }
-                CatChunk(type, chunks)
+                CatChunk(type, properties, chunks)
             }
             IffChunkIds.blank -> {
                 BlankChunk(raw.declaredSize)

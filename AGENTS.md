@@ -4,7 +4,7 @@ Critical gotchas and quick reference for automated agents working in this Gradle
 
 ## Requirements for All Agents
 
-- **Tests must pass.** All code changes must pass `./gradlew :test` before completing a task.
+- **Tests must pass.** All code changes must pass `./gradlew :check` before completing a task.
 - **Be concise.** Avoid unnecessary explanation or narrative.
 - **No unsolicited explanations.** Only explain what you're doing if explicitly asked.
 
@@ -13,14 +13,14 @@ Critical gotchas and quick reference for automated agents working in this Gradle
 Root commands (aggregate across all components):
 ```bash
 ./gradlew :build          # Full build
-./gradlew :test           # Tests only
+./gradlew :check          # Tests only
 ./gradlew :publish        # Publish to GitHub Packages
 ```
 
 Single component (included build form, from repository root):
 ```bash
 ./gradlew :rifflet-core:build
-./gradlew :rifflet-core:test
+./gradlew :rifflet-core:allTests
 ```
 
 ## Kotlin File Rules (avoid failures before validation)

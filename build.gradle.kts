@@ -21,6 +21,12 @@ tasks.assemble {
     }
 }
 
+tasks.check {
+    components.forEach {
+        dependsOn(gradle.includedBuild(it).task(":$name"))
+    }
+}
+
 tasks.build {
     components.forEach {
         dependsOn(gradle.includedBuild(it).task(":$name"))

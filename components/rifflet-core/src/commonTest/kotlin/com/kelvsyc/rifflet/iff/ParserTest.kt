@@ -94,7 +94,7 @@ class FormParserTest : FunSpec({
         }
 
         test("nested CatChunk is parsed by its registered catParser") {
-            val inner = CatChunk(id("HINT"), emptyList())
+            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed-cat" }))
             val parser = FormParser(core) { it }
             val result = parser.parse(listMultimapOf(inner.chunkId to inner))
@@ -233,7 +233,7 @@ class ListParserTest : FunSpec({
 
     context("CatChunk items") {
         test("CatChunk is parsed using catParser") {
-            val inner = CatChunk(id("HINT"), emptyList())
+            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed" }))
             val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
@@ -242,7 +242,7 @@ class ListParserTest : FunSpec({
 
         test("outer properties are forwarded to catParser") {
             val prop = local("AUTH")
-            val inner = CatChunk(id("HINT"), emptyList())
+            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, props ->
                 receivedProps = props
@@ -366,7 +366,7 @@ class CatParserTest : FunSpec({
 
     context("CatChunk items") {
         test("CatChunk is parsed using catParser") {
-            val inner = CatChunk(id("HINT"), emptyList())
+            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed" }))
             val parser = CatParser(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
@@ -375,7 +375,7 @@ class CatParserTest : FunSpec({
 
         test("outer properties are forwarded to nested catParser") {
             val prop = local("AUTH")
-            val inner = CatChunk(id("HINT"), emptyList())
+            val inner = CatChunk(id("HINT"), emptyMap(), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, props ->
                 receivedProps = props

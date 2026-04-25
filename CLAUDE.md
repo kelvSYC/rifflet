@@ -4,21 +4,21 @@ Architectural reference for this Gradle composite build. See `AGENTS.md` for bui
 
 ## Requirements
 
-- **Tests must pass** before any task is complete: `./gradlew :test`.
+- **Tests must pass** before any task is complete: `./gradlew :check`.
 - No detekt is configured yet.
 
 ## Build Commands
 
 ```bash
 ./gradlew :build          # Build all components
-./gradlew :test           # Run tests across all components
+./gradlew :check          # Run tests across all components
 ./gradlew :publish        # Publish to GitHub Packages (requires GITHUB_ACTOR, GITHUB_TOKEN)
 ```
 
 Single component (from repo root):
 ```bash
 ./gradlew :rifflet-core:build
-./gradlew :rifflet-core:test
+./gradlew :rifflet-core:allTests
 ```
 
 ## Architecture
