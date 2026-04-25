@@ -16,4 +16,4 @@ import okio.Buffer
  *
  * This type is format-agnostic and can be used by any chunk-based format parser (IFF, RIFF, etc.).
  */
-class BufferedRawChunk(val type: ChunkId, val data: Buffer, val declaredSize: Int)
+class BufferedRawChunk(val type: ChunkId, val data: Buffer, val declaredSize: UInt)

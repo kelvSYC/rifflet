@@ -102,7 +102,7 @@ class FormParserTest : FunSpec({
         }
 
         test("BlankChunk is passed through unchanged") {
-            val blank = BlankChunk(4)
+            val blank = BlankChunk(4u)
             val parser = FormParser(core()) { it }
             val result = parser.parse(listMultimapOf(blank.chunkId to blank))
             result[IffChunkIds.blank].single().shouldBeInstanceOf<BlankChunk>()

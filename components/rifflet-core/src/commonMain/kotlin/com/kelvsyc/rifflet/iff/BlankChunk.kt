@@ -9,6 +9,6 @@ import com.kelvsyc.rifflet.core.ChunkId
  * Because the IFF standard requires a padding byte if a chunk is of odd length, an odd-[size] blank chunk is
  * functionally identical to a blank chunk of 1 additional byte.
  */
-data class BlankChunk(val size: Int) : StandardIffChunk {
+data class BlankChunk(val size: UInt) : StandardIffChunk {
     override val chunkId: ChunkId get() = IffChunkIds.blank
 }

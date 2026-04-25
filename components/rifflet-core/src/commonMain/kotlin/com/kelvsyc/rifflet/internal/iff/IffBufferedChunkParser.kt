@@ -18,14 +18,14 @@ object IffBufferedChunkParser : BufferedRawChunkParser {
      */
     override fun parse(source: BufferedSource): BufferedRawChunk {
         val type = source.readChunkId()
-        val size = source.readInt()
+        val size = source.readInt().toUInt()
         val data = Buffer()
         if (type != IffChunkIds.blank) {
             source.readFully(data, size.toLong())
         } else {
             source.skip(size.toLong())
         }
-        if (size and 1 != 0) source.skip(1)
+        if (size and 1u != 0u) source.skip(1)
         return BufferedRawChunk(type, data, size)
     }
 }
