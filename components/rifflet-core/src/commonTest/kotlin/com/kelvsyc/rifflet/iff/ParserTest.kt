@@ -27,7 +27,7 @@ private fun <T> formParser(block: (ListMultimap<ChunkId, IffChunk>, ListMultimap
         override fun parse(chunks: ListMultimap<ChunkId, IffChunk>, properties: ListMultimap<ChunkId, LocalChunk>) =
             block(chunks, properties)
     }
-private fun <T> listParser(block: (List<GroupChunk>, Map<ChunkId, List<LocalChunk>>) -> List<T>) =
+private fun <T> listParser(block: (List<GroupChunk>, Map<ChunkId, List<LocalChunk>>) -> T) =
     object : ListChunkParser<T> {
         override fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>>) =
             block(chunks, properties)
@@ -168,14 +168,14 @@ class ListParserTest : FunSpec({
         test("FormChunk is parsed using formParser") {
             val inner = form("BODY")
             val core = core(formParsers = mapOf(id("BODY") to formParser { _, _ -> "parsed" }))
-            val parser = ListParser<String>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
             result shouldContainExactly listOf("parsed")
         }
 
         test("FormChunk with no parser is left as FormChunk") {
             val inner = form("BODY")
-            val parser = ListParser<Any>(core())
+            val parser = ListParser<List<Any>>(core()) { it }
             val result = parser.parse(listOf(inner), emptyMap())
             result shouldContainExactly listOf(inner)
         }
@@ -188,7 +188,7 @@ class ListParserTest : FunSpec({
                 receivedProps = props
                 "parsed"
             }))
-            val parser = ListParser<String>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             parser.parse(listOf(inner), mapOf(id("BODY") to listOf(prop)))
             receivedProps?.get(id("AUTH")) shouldBe listOf(prop)
         }
@@ -200,7 +200,7 @@ class ListParserTest : FunSpec({
                 receivedProps = props
                 "parsed"
             }))
-            val parser = ListParser<String>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             parser.parse(listOf(inner), mapOf(id("OTHR") to listOf(local("AUTH"))))
             receivedProps shouldBe emptyListMultimap()
         }
@@ -210,7 +210,7 @@ class ListParserTest : FunSpec({
         test("ListChunk is parsed using listParser") {
             val inner = ListChunk(id("COMP"), emptyMap(), emptyList())
             val core = core(listParsers = mapOf(id("COMP") to listParser { _, _ -> listOf("parsed") }))
-            val parser = ListParser<Any>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
             result shouldContainExactly listOf(listOf("parsed"))
         }
@@ -220,11 +220,11 @@ class ListParserTest : FunSpec({
             val innerProp = local("IATR")
             val inner = ListChunk(id("COMP"), mapOf(id("BODY") to listOf(innerProp)), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
-            val core = core(listParsers = mapOf(id("COMP") to listParser<Nothing> { _, props ->
+            val core = core(listParsers = mapOf(id("COMP") to listParser<List<Nothing>> { _, props ->
                 receivedProps = props
                 emptyList()
             }))
-            val parser = ListParser<Any>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             parser.parse(listOf(inner), mapOf(id("BODY") to listOf(outerProp), id("OTHR") to listOf(local("XATR"))))
             receivedProps?.get(id("BODY")) shouldBe listOf(innerProp)
             receivedProps?.get(id("OTHR")) shouldBe listOf(local("XATR"))
@@ -235,7 +235,7 @@ class ListParserTest : FunSpec({
         test("CatChunk is parsed using catParser") {
             val inner = CatChunk(id("HINT"), emptyList())
             val core = core(catParsers = mapOf(id("HINT") to catParser { _, _ -> "parsed" }))
-            val parser = ListParser<Any>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(inner), emptyMap())
             result shouldContainExactly listOf("parsed")
         }
@@ -248,7 +248,7 @@ class ListParserTest : FunSpec({
                 receivedProps = props
                 "parsed"
             }))
-            val parser = ListParser<Any>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             parser.parse(listOf(inner), mapOf(id("BODY") to listOf(prop)))
             receivedProps?.get(id("BODY")) shouldBe listOf(prop)
         }
@@ -262,13 +262,35 @@ class ListParserTest : FunSpec({
                 id("AFRM") to formParser { _, _ -> "a" },
                 id("BFRM") to formParser { _, _ -> "b" },
             ))
-            val parser = ListParser<String>(core)
+            val parser = ListParser<List<Any>>(core) { it }
             val result = parser.parse(listOf(a, b), emptyMap())
             result shouldContainExactly listOf("a", "b")
         }
 
         test("empty input returns empty list") {
-            ListParser<Any>(core()).parse(emptyList(), emptyMap()) shouldBe emptyList()
+            ListParser<List<Any>>(core()) { it }.parse(emptyList(), emptyMap()) shouldBe emptyList()
+        }
+    }
+
+    context("assembler") {
+        test("assembler receives all parsed items in order") {
+            val a = form("AFRM")
+            val b = form("BFRM")
+            val core = core(formParsers = mapOf(
+                id("AFRM") to formParser { _, _ -> "a" },
+                id("BFRM") to formParser { _, _ -> "b" },
+            ))
+            var received: List<Any>? = null
+            val parser = ListParser(core) { items: List<Any> -> received = items; items }
+            parser.parse(listOf(a, b), emptyMap())
+            received shouldContainExactly listOf("a", "b")
+        }
+
+        test("assembler is called with empty list for empty input") {
+            var received: List<Any>? = null
+            val parser = ListParser(core()) { items: List<Any> -> received = items; items }
+            parser.parse(emptyList(), emptyMap())
+            received shouldBe emptyList()
         }
     }
 })
@@ -331,7 +353,7 @@ class CatParserTest : FunSpec({
             val innerProp = local("IATR")
             val inner = ListChunk(id("COMP"), mapOf(id("BODY") to listOf(innerProp)), emptyList())
             var receivedProps: Map<ChunkId, List<LocalChunk>>? = null
-            val core = core(listParsers = mapOf(id("COMP") to listParser<Nothing> { _, props ->
+            val core = core(listParsers = mapOf(id("COMP") to listParser<List<Nothing>> { _, props ->
                 receivedProps = props
                 emptyList()
             }))

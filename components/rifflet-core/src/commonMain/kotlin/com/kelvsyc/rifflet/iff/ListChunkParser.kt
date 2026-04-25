@@ -8,10 +8,11 @@ import com.kelvsyc.rifflet.core.ChunkId
  */
 interface ListChunkParser<T> {
     /**
-     * Parses the chunks from a `LIST` chunk into a domain object.
+     * Parses the items of a `LIST` chunk into a domain object.
      *
-     * @param chunks The group chunk items of the supplied `LIST` chunk
-     * @param properties Any local properties passed in from outer `LIST` chunks
+     * @param chunks The group chunk items of the supplied `LIST` chunk.
+     * @param properties Local properties passed in from an outer `LIST` chunk, keyed by form type.
+     * @return The assembled domain object of type [T].
      */
-    fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>> = emptyMap()): List<T>
+    fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>> = emptyMap()): T
 }
