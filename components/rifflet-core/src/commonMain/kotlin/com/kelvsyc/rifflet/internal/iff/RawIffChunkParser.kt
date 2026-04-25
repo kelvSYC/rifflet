@@ -43,6 +43,7 @@ object RawIffChunkParser {
                         if (propsFinished) throw RiffletParseException("PROP chunk found after group chunk in ${raw.type.name} chunk")
                         if (chunk.declaredSize < 4u) throw RiffletParseException("PROP chunk declared size ${chunk.declaredSize} is too small to contain a content type ID")
                         val formType = chunk.data.readChunkId()
+                        if (properties.containsKey(formType)) throw RiffletParseException("duplicate PROP for form type '${formType.name}' in ${raw.type.name} chunk")
                         val propertyChunks = buildList {
                             while (!chunk.data.exhausted()) {
                                 val inner = IffBufferedChunkParser.parse(chunk.data)
@@ -79,6 +80,7 @@ object RawIffChunkParser {
                             if (propsFinished) throw RiffletParseException("PROP chunk found after group chunk in ${raw.type.name} chunk")
                             if (chunk.declaredSize < 4u) throw RiffletParseException("PROP chunk declared size ${chunk.declaredSize} is too small to contain a content type ID")
                             val formType = chunk.data.readChunkId()
+                            if (properties.containsKey(formType)) throw RiffletParseException("duplicate PROP for form type '${formType.name}' in ${raw.type.name} chunk")
                             val propertyChunks = buildList {
                                 while (!chunk.data.exhausted()) {
                                     val inner = IffBufferedChunkParser.parse(chunk.data)
