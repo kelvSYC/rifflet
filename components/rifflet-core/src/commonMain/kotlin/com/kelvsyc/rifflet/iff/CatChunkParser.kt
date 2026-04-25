@@ -11,7 +11,7 @@ interface CatChunkParser<T> {
      * Parses the chunks from a `CAT ` chunk into a domain object.
      *
      * @param chunks The sub-chunks of the supplied `CAT ` chunk
-     * @param properties Any local properties passed in from outer `LIST` chunks
+     * @param properties Any local properties passed in from outer `LIST` or `CAT ` chunks
      */
     fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>> = emptyMap()): T
 }

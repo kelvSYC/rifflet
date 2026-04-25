@@ -4,6 +4,7 @@
       "Bash(gh *)",
       "Bash(./gradlew *)",
       "Bash(find . *)",
+      "Bash(find ./ *)",
       "Bash(find ~/.gradle *)",
       "Bash(jar tf *)",
       "Bash(grep *)",

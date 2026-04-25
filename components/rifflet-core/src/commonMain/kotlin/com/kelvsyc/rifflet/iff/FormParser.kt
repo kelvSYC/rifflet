@@ -25,6 +25,8 @@ class FormParser<T>(private val core: IffParserCore, private val assembler: (Lis
                 is ListChunk -> core.listParsers[chunk.chunkId]?.parse(chunk.items, chunk.properties) ?: chunk
                 is CatChunk -> core.catParsers[chunk.chunkId]?.parse(chunk.chunks) ?: chunk
                 is LocalChunk -> core.localParsers[chunk.chunkId]?.parse(chunk.data.data) ?: chunk
+                // RawIffChunkParser drops blank chunks before FormChunk.chunks is populated,
+                // so this branch is unreachable in practice; retained for sealed-type exhaustiveness.
                 is BlankChunk -> chunk
             }
         }
