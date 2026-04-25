@@ -7,54 +7,64 @@ import okio.Source
 /**
  * Parses a binary IFF source into a domain object of type [T].
  *
- * Use [newParser] to construct an instance, registering a parser for each root chunk type the parser
- * should handle via the [Builder]. The root chunk type determines which registered parser is invoked:
- * [FormChunkParser] for `FORM` roots, [ListChunkParser] for `LIST` roots, and [CatChunkParser] for
- * `CAT ` roots. If the root chunk has no registered parser, [parse] throws [IllegalStateException].
+ * Use [newParser] to construct an instance. The [Builder] requires two things:
+ * - A [Root] declaration identifying which group chunk kind and type ID to expect at the top level.
+ * - An [IffParserCore] supplying the parser for that root chunk and all nested chunks.
+ *
+ * If the root chunk does not match the declared [Root], or if the core has no parser registered
+ * for the root type, [parse] throws [IllegalStateException].
  */
 interface IffRootParser<out T> {
+
+    /**
+     * Identifies which group chunk at the top level of an IFF file this parser handles.
+     */
+    sealed interface Root {
+        /** The root is a `FORM` chunk whose form-type field matches [type]. */
+        data class FormRoot(val type: ChunkId) : Root
+
+        /** The root is a `LIST` chunk whose list-type field matches [type]. */
+        data class ListRoot(val type: ChunkId) : Root
+
+        /** The root is a `CAT ` chunk whose hint field matches [hint]. */
+        data class CatRoot(val hint: ChunkId) : Root
+    }
+
     companion object {
         /**
          * Creates a new [IffRootParser] configured by [fn].
-         *
-         * @param fn A lambda that registers parsers on the [Builder].
          */
-        fun <T> newParser(fn: Builder<T>.() -> Unit): IffRootParser<T> {
-            val builder = IffRootParserImpl.Builder<T>().apply(fn)
-            return IffRootParserImpl(builder.formParsers, builder.listParsers, builder.catParsers)
-        }
+        fun <T> newParser(fn: Builder<T>.() -> Unit): IffRootParser<T> =
+            IffRootParserImpl.Builder<T>().apply(fn).build()
     }
 
     /**
-     * Builder for [IffRootParser]. Register parsers for each root chunk type that the parser should handle.
-     * At most one parser may be registered per chunk type identifier.
+     * Builder for [IffRootParser].
+     *
+     * Set [root] to declare the expected root chunk, then supply a parser registry via [core].
      */
     interface Builder<T> {
         /**
-         * Registers [parser] for `FORM` chunks whose form-type field matches [type].
+         * Declares the expected root chunk identity. Must be set before the builder completes.
          */
-        fun addFormParser(type: ChunkId, parser: FormChunkParser<out T>)
+        var root: Root
 
         /**
-         * Registers [parser] for `LIST` chunks whose type field matches [type].
-         *
-         * Because [ListChunkParser] returns [T] directly, [T] is the assembled result of the entire
-         * `LIST` chunk — not the element type of an intermediate list. Use the [assembler] in
-         * [ListParser] (or a custom implementation) to convert the sequence of parsed items into [T].
+         * Uses [core] as the parser registry for this root parser.
          */
-        fun addListParser(type: ChunkId, parser: ListChunkParser<out T>)
+        fun core(core: IffParserCore)
 
         /**
-         * Registers [parser] for `CAT ` chunks whose hint field matches [type].
+         * Builds a new [IffParserCore] inline and uses it as the parser registry.
          */
-        fun addCatParser(type: ChunkId, parser: CatChunkParser<out T>)
+        fun core(fn: IffParserCore.Builder.() -> Unit)
     }
 
     /**
      * Reads [source] as a single IFF chunk tree and dispatches the root chunk to its registered parser.
      *
-     * @throws IllegalStateException if the root chunk is not a group chunk, or if no parser has been
-     *   registered for the root chunk's type identifier.
+     * @throws IllegalStateException if the root chunk does not match the declared [Root], or if the
+     *   core has no parser registered for the root type.
      */
     fun parse(source: Source): T
 }

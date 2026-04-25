@@ -12,7 +12,6 @@ import com.kelvsyc.rifflet.core.ChunkId
  * @param assembler A function that assembles parsed chunk data to the final object.
  */
 class CatParser<T>(private val core: IffParserCore, private val assembler: (List<Any>) -> T) : CatChunkParser<T> {
-    // TODO is it possible to integrate a "flattening CAT" feature?
     @Suppress("UNCHECKED_CAST")
     override fun parse(chunks: List<GroupChunk>, properties: Map<ChunkId, List<LocalChunk>>): T {
         val parsed = buildList {

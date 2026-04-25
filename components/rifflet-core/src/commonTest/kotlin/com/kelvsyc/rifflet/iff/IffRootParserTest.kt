@@ -66,7 +66,8 @@ class IffRootParserTest : FunSpec({
     context("FORM root") {
         test("is dispatched to its registered parser") {
             val parser = IffRootParser.newParser<String> {
-                addFormParser(id("TEST"), formParser { _, _ -> "parsed" })
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
             }
             parser.parse(formBinary("TEST")) shouldBe "parsed"
         }
@@ -87,22 +88,35 @@ class IffRootParserTest : FunSpec({
             }
             var receivedChunks: ListMultimap<ChunkId, IffChunk>? = null
             val parser = IffRootParser.newParser<Unit> {
-                addFormParser(id("TEST"), formParser { chunks, _ -> receivedChunks = chunks })
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core { addFormParser(id("TEST"), formParser { chunks, _ -> receivedChunks = chunks }) }
             }
             parser.parse(source)
             receivedChunks?.keys shouldBe setOf(id("NAME"))
         }
 
         test("throws when no parser is registered for the form type") {
-            val parser = IffRootParser.newParser<String> {}
-            shouldThrow<IllegalStateException> { parser.parse(formBinary("UNKN")) }
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core {}
+            }
+            shouldThrow<IllegalStateException> { parser.parse(formBinary("TEST")) }
+        }
+
+        test("throws when root chunk kind does not match declared root") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
+            }
+            shouldThrow<IllegalStateException> { parser.parse(listBinary("TEST")) }
         }
     }
 
     context("LIST root") {
         test("is dispatched to its registered parser") {
             val parser = IffRootParser.newParser<String> {
-                addListParser(id("COMP"), listParser { _, _ -> "parsed" })
+                root = IffRootParser.Root.ListRoot(id("COMP"))
+                core { addListParser(id("COMP"), listParser { _, _ -> "parsed" }) }
             }
             parser.parse(listBinary("COMP")) shouldBe "parsed"
         }
@@ -111,11 +125,14 @@ class IffRootParserTest : FunSpec({
             var receivedItems: List<GroupChunk>? = null
             var receivedProperties: Map<ChunkId, List<LocalChunk>>? = null
             val parser = IffRootParser.newParser<String> {
-                addListParser(id("COMP"), listParser { items, props ->
-                    receivedItems = items
-                    receivedProperties = props
-                    "parsed"
-                })
+                root = IffRootParser.Root.ListRoot(id("COMP"))
+                core {
+                    addListParser(id("COMP"), listParser { items, props ->
+                        receivedItems = items
+                        receivedProperties = props
+                        "parsed"
+                    })
+                }
             }
             parser.parse(listBinary("COMP"))
             receivedItems shouldBe emptyList()
@@ -123,15 +140,27 @@ class IffRootParserTest : FunSpec({
         }
 
         test("throws when no parser is registered for the list type") {
-            val parser = IffRootParser.newParser<String> {}
-            shouldThrow<IllegalStateException> { parser.parse(listBinary("UNKN")) }
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.ListRoot(id("COMP"))
+                core {}
+            }
+            shouldThrow<IllegalStateException> { parser.parse(listBinary("COMP")) }
+        }
+
+        test("throws when root chunk kind does not match declared root") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.ListRoot(id("COMP"))
+                core { addListParser(id("COMP"), listParser { _, _ -> "parsed" }) }
+            }
+            shouldThrow<IllegalStateException> { parser.parse(formBinary("COMP")) }
         }
     }
 
     context("CAT root") {
         test("is dispatched to its registered parser") {
             val parser = IffRootParser.newParser<String> {
-                addCatParser(id("HINT"), catParser { _, _ -> "parsed" })
+                root = IffRootParser.Root.CatRoot(id("HINT"))
+                core { addCatParser(id("HINT"), catParser { _, _ -> "parsed" }) }
             }
             parser.parse(catBinary("HINT")) shouldBe "parsed"
         }
@@ -139,21 +168,36 @@ class IffRootParserTest : FunSpec({
         test("passes chunks to the registered parser") {
             var receivedChunks: List<GroupChunk>? = null
             val parser = IffRootParser.newParser<Unit> {
-                addCatParser(id("HINT"), catParser { chunks, _ -> receivedChunks = chunks })
+                root = IffRootParser.Root.CatRoot(id("HINT"))
+                core { addCatParser(id("HINT"), catParser { chunks, _ -> receivedChunks = chunks }) }
             }
             parser.parse(catBinary("HINT"))
             receivedChunks shouldBe emptyList()
         }
 
         test("throws when no parser is registered for the cat hint") {
-            val parser = IffRootParser.newParser<String> {}
-            shouldThrow<IllegalStateException> { parser.parse(catBinary("UNKN")) }
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.CatRoot(id("HINT"))
+                core {}
+            }
+            shouldThrow<IllegalStateException> { parser.parse(catBinary("HINT")) }
+        }
+
+        test("throws when root chunk kind does not match declared root") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.CatRoot(id("HINT"))
+                core { addCatParser(id("HINT"), catParser { _, _ -> "parsed" }) }
+            }
+            shouldThrow<IllegalStateException> { parser.parse(formBinary("HINT")) }
         }
     }
 
     context("invalid root") {
         test("throws for a non-group root chunk") {
-            val parser = IffRootParser.newParser<String> {}
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("NAME"))
+                core {}
+            }
             shouldThrow<IllegalStateException> { parser.parse(localChunkBinary("NAME")) }
         }
     }

@@ -9,8 +9,7 @@ import com.kelvsyc.rifflet.core.ChunkId
  * other group chunks. A "hint" value is also provided, and is often used to hint at the contents of the chunks therein.
  *
  * Under the IFF standard, it is not an error to have nested `CAT ` chunks, and as such the design of `CatChunk` allows
- * for it. However, in practice, nested `CAT ` chunks are often flattened out (and the inner hint values discarded) so
- * that the chunk collection consists of `FORM` and `LIST` chunks.
+ * for it.
  */
 data class CatChunk(val hint: ChunkId, val chunks: List<GroupChunk>) : GroupChunk {
     override val chunkId: ChunkId get() = hint
