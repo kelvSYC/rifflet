@@ -58,7 +58,7 @@ class IffParserCoreTest : FunSpec({
 
             val result = parser.parse(listMultimapOf(chunk.chunkId to chunk))
 
-            result[id("NAME")]!!.single().shouldBeInstanceOf<LocalChunk>()
+            result[id("NAME")].single().shouldBeInstanceOf<LocalChunk>()
         }
     }
 

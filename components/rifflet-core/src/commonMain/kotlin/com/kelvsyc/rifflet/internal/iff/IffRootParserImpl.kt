@@ -5,10 +5,10 @@ import com.kelvsyc.rifflet.iff.CatChunk
 import com.kelvsyc.rifflet.iff.CatChunkParser
 import com.kelvsyc.rifflet.iff.FormChunk
 import com.kelvsyc.rifflet.iff.FormChunkParser
-import com.kelvsyc.rifflet.iff.IffRawChunkParser
 import com.kelvsyc.rifflet.iff.IffRootParser
 import com.kelvsyc.rifflet.iff.ListChunk
 import com.kelvsyc.rifflet.iff.ListChunkParser
+import okio.BufferedSource
 import okio.Source
 import okio.buffer
 
@@ -40,8 +40,10 @@ class IffRootParserImpl<T>(
     }
 
     override fun parse(source: Source): T {
-        return source.buffer().use { buffered ->
-            val raw = IffRawChunkParser.parse(buffered)
+        // Avoid wrapping an already-buffered source; an extra layer adds a redundant segment-move per read.
+        val buffered = (source as? BufferedSource) ?: source.buffer()
+        return buffered.use {
+            val raw = IffBufferedChunkParser.parse(buffered)
             when (val rootChunk = RawIffChunkParser.parse(raw)) {
                 is FormChunk -> {
                     val parser = formParsers[rootChunk.type]

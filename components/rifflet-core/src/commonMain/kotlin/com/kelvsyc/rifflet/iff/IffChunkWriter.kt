@@ -21,7 +21,7 @@ object IffChunkWriter : ChunkWriter {
 
     override fun writeChunk(chunk: RawChunk, size: Int, destination: Sink) {
         val out = destination.buffer()
-        out.write(chunk.type.data)
+        out.writeInt(chunk.type.data)
         val baseSize = chunk.data.size
         val ckSize = max(size, baseSize)
         out.writeInt(ckSize)
