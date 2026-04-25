@@ -2,22 +2,21 @@ package com.kelvsyc.collections.internal
 
 import com.kelvsyc.collections.ListMultimap
 
-class ImmutableListMultimap<K, out V>(private val map: Map<K, List<V>>) : ListMultimap<K, V> {
+internal class ImmutableListMultimap<K, out V>(map: Map<K, List<V>>) : ListMultimap<K, V> {
+    private val map: Map<K, List<V>> = map.mapValues { (_, v) -> v.toList() }.filterValues { it.isNotEmpty() }
+
     override val asMap: Map<K, List<V>> by this::map
 
     override val size: Int
         get() = map.values.sumOf { it.size }
 
-    override val keys: Set<K>
-        get() = map.keys
+    override val keys: Set<K> by lazy { map.keys.toSet() }
 
-    override val values: Collection<V>
-        get() = map.values.flatMap { it }
+    override val values: Collection<V> by lazy { map.values.flatMap { it } }
 
-    override val entries: Set<Pair<K, V>>
-        get() = map.entries.flatMap { (key, values) ->
-            values.map { key to it }
-        }.toSet()
+    override val entries: Collection<Pair<K, V>> by lazy {
+        map.entries.flatMap { (key, values) -> values.map { key to it } }
+    }
 
     override fun containsKey(key: K): Boolean = map.containsKey(key)
 
@@ -34,4 +33,6 @@ class ImmutableListMultimap<K, out V>(private val map: Map<K, List<V>>) : ListMu
     }
 
     override fun hashCode(): Int = map.hashCode()
+
+    override fun toString(): String = entries.toString()
 }

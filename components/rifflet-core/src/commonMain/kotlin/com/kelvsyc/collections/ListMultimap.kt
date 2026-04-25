@@ -11,9 +11,9 @@ interface ListMultimap<K, out V> {
     val size: Int
 
     /**
-     * Returns a read-only [Set] of all key-value pairs in this multimap.
+     * Returns a read-only [Collection] of all key-value pairs in this multimap.
      */
-    val entries: Set<Pair<K, V>>
+    val entries: Collection<Pair<K, V>>
 
     /**
      * Returns a read-only [Set] of all distinct keys in this multimap.
@@ -33,7 +33,7 @@ interface ListMultimap<K, out V> {
     /**
      * Returns `true` if the map contains no key-value pairs, `false` otherwise.
      */
-    fun isEmpty(): Boolean = asMap.isEmpty()
+    fun isEmpty(): Boolean = size == 0
 
     /**
      * Returns `true` if this multimap contains the specified key.
@@ -56,7 +56,7 @@ interface ListMultimap<K, out V> {
      *
      * The resulting values are ordered following the order of insertion.
      */
-    fun get(key: K): List<V>
+    operator fun get(key: K): List<V>
 
     /**
      * Compares the specified object with this multimap for equality. Two multimaps are equal if and only if [asMap]
