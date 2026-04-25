@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.iff
 
+import com.kelvsyc.rifflet.core.RiffletParseException
 import com.kelvsyc.rifflet.iff.CatChunk
 import com.kelvsyc.rifflet.iff.CatChunkParser
 import com.kelvsyc.rifflet.iff.FormChunk
@@ -40,32 +41,32 @@ internal class IffRootParserImpl<T>(
             when (val rootChunk = RawIffChunkParser.parse(raw)) {
                 is FormChunk -> {
                     val r = root as? IffRootParser.Root.FormRoot
-                        ?: throw IllegalStateException("Expected FORM root but got '${raw.type.name}'")
+                        ?: throw RiffletParseException("Expected FORM root but got '${raw.type.name}'")
                     if (rootChunk.type != r.type)
-                        throw IllegalStateException("Expected FORM type '${r.type.name}' but got '${rootChunk.type.name}'")
+                        throw RiffletParseException("Expected FORM type '${r.type.name}' but got '${rootChunk.type.name}'")
                     val parser = core.formParsers[r.type] as? FormChunkParser<T>
-                        ?: throw IllegalStateException("No registered parser for FORM type '${r.type.name}'")
+                        ?: throw RiffletParseException("No registered parser for FORM type '${r.type.name}'")
                     parser.parse(rootChunk.chunks)
                 }
                 is ListChunk -> {
                     val r = root as? IffRootParser.Root.ListRoot
-                        ?: throw IllegalStateException("Expected LIST root but got '${raw.type.name}'")
+                        ?: throw RiffletParseException("Expected LIST root but got '${raw.type.name}'")
                     if (rootChunk.type != r.type)
-                        throw IllegalStateException("Expected LIST type '${r.type.name}' but got '${rootChunk.type.name}'")
+                        throw RiffletParseException("Expected LIST type '${r.type.name}' but got '${rootChunk.type.name}'")
                     val parser = core.listParsers[r.type] as? ListChunkParser<T>
-                        ?: throw IllegalStateException("No registered parser for LIST type '${r.type.name}'")
+                        ?: throw RiffletParseException("No registered parser for LIST type '${r.type.name}'")
                     parser.parse(rootChunk.items, rootChunk.properties)
                 }
                 is CatChunk -> {
                     val r = root as? IffRootParser.Root.CatRoot
-                        ?: throw IllegalStateException("Expected CAT root but got '${raw.type.name}'")
+                        ?: throw RiffletParseException("Expected CAT root but got '${raw.type.name}'")
                     if (rootChunk.hint != r.hint)
-                        throw IllegalStateException("Expected CAT hint '${r.hint.name}' but got '${rootChunk.hint.name}'")
+                        throw RiffletParseException("Expected CAT hint '${r.hint.name}' but got '${rootChunk.hint.name}'")
                     val parser = core.catParsers[r.hint] as? CatChunkParser<T>
-                        ?: throw IllegalStateException("No registered parser for CAT hint '${r.hint.name}'")
+                        ?: throw RiffletParseException("No registered parser for CAT hint '${r.hint.name}'")
                     parser.parse(rootChunk.chunks)
                 }
-                else -> throw IllegalStateException("Illegal root chunk type '${raw.type.name}'")
+                else -> throw RiffletParseException("Illegal root chunk type '${raw.type.name}'")
             }
         }
     }

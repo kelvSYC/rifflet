@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.iff
 
 import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.core.RiffletParseException
 import com.kelvsyc.rifflet.internal.iff.IffRootParserImpl
 import okio.Source
 
@@ -12,7 +13,7 @@ import okio.Source
  * - An [IffParserCore] supplying the parser for that root chunk and all nested chunks.
  *
  * If the root chunk does not match the declared [Root], or if the core has no parser registered
- * for the root type, [parse] throws [IllegalStateException].
+ * for the root type, [parse] throws [RiffletParseException].
  */
 interface IffRootParser<out T> {
 
@@ -63,7 +64,7 @@ interface IffRootParser<out T> {
     /**
      * Reads [source] as a single IFF chunk tree and dispatches the root chunk to its registered parser.
      *
-     * @throws IllegalStateException if the root chunk does not match the declared [Root], or if the
+     * @throws RiffletParseException if the root chunk does not match the declared [Root], or if the
      *   core has no parser registered for the root type.
      */
     fun parse(source: Source): T

@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.iff
 
 import com.kelvsyc.collections.ListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -100,7 +101,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.FormRoot(id("TEST"))
                 core {}
             }
-            shouldThrow<IllegalStateException> { parser.parse(formBinary("TEST")) }
+            shouldThrow<RiffletParseException> { parser.parse(formBinary("TEST")) }
         }
 
         test("throws when root chunk kind does not match declared root") {
@@ -108,7 +109,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.FormRoot(id("TEST"))
                 core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
             }
-            shouldThrow<IllegalStateException> { parser.parse(listBinary("TEST")) }
+            shouldThrow<RiffletParseException> { parser.parse(listBinary("TEST")) }
         }
     }
 
@@ -144,7 +145,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.ListRoot(id("COMP"))
                 core {}
             }
-            shouldThrow<IllegalStateException> { parser.parse(listBinary("COMP")) }
+            shouldThrow<RiffletParseException> { parser.parse(listBinary("COMP")) }
         }
 
         test("throws when root chunk kind does not match declared root") {
@@ -152,7 +153,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.ListRoot(id("COMP"))
                 core { addListParser(id("COMP"), listParser { _, _ -> "parsed" }) }
             }
-            shouldThrow<IllegalStateException> { parser.parse(formBinary("COMP")) }
+            shouldThrow<RiffletParseException> { parser.parse(formBinary("COMP")) }
         }
     }
 
@@ -180,7 +181,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.CatRoot(id("HINT"))
                 core {}
             }
-            shouldThrow<IllegalStateException> { parser.parse(catBinary("HINT")) }
+            shouldThrow<RiffletParseException> { parser.parse(catBinary("HINT")) }
         }
 
         test("throws when root chunk kind does not match declared root") {
@@ -188,7 +189,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.CatRoot(id("HINT"))
                 core { addCatParser(id("HINT"), catParser { _, _ -> "parsed" }) }
             }
-            shouldThrow<IllegalStateException> { parser.parse(formBinary("HINT")) }
+            shouldThrow<RiffletParseException> { parser.parse(formBinary("HINT")) }
         }
     }
 
@@ -198,7 +199,7 @@ class IffRootParserTest : FunSpec({
                 root = IffRootParser.Root.FormRoot(id("NAME"))
                 core {}
             }
-            shouldThrow<IllegalStateException> { parser.parse(localChunkBinary("NAME")) }
+            shouldThrow<RiffletParseException> { parser.parse(localChunkBinary("NAME")) }
         }
     }
 })
