@@ -27,15 +27,16 @@ kotlin {
 val checkCommonMainPlatformImports by tasks.registering {
     description = "Fails if any commonMain Kotlin source contains platform-specific imports."
     group = "verification"
-    val sources = fileTree("src/commonMain") { include("**/*.kt") }
-    inputs.files(sources).withPathSensitivity(PathSensitivity.RELATIVE)
+    val rootDir: File = projectDir
+    inputs.files(fileTree("src/commonMain") { include("**/*.kt") })
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     doLast {
         val platformPrefixes = listOf("import java.", "import javax.", "import android.", "import sun.")
-        val violations = sources.files.flatMap { file ->
+        val violations = inputs.files.flatMap { file ->
             file.readLines().mapIndexedNotNull { index, line ->
                 val trimmed = line.trimStart()
                 if (platformPrefixes.any { trimmed.startsWith(it) }) {
-                    "  ${file.relativeTo(projectDir)}:${index + 1}: ${line.trim()}"
+                    "  ${file.relativeTo(rootDir)}:${index + 1}: ${line.trim()}"
                 } else null
             }
         }

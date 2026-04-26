@@ -11,4 +11,5 @@ kotlin {
 dependencies {
     implementation(platform("com.kelvsyc.internal.rifflet:platform"))
     implementation(libs.foojay.resolver.plugin)
+    implementation(libs.semver.plugin)
 }
