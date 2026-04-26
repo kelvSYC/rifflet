@@ -13,6 +13,11 @@ import okio.Buffer
  * type can be dispatched to the appropriate registered encoder. The core is format-aware: it handles
  * big-endian chunk headers and even-alignment padding when serializing children.
  *
+ * **Variant outer IDs are not supported.** Encoders are registered and dispatched by the inner type or
+ * hint field only. All group chunks are written with their standard outer IDs (`FORM`, `LIST`, `CAT `);
+ * there is no mechanism to select a variant outer ID (`FOR1`–`FOR9`, `LIS1`–`LIS9`, `CAT1`–`CAT9`) when
+ * encoding. This is intentional until a concrete format requiring variant outer IDs is identified.
+ *
  * Use [newCore] to construct an instance, registering encoders via the [Builder].
  */
 interface IffEncoderCore {
@@ -42,46 +47,52 @@ interface IffEncoderCore {
         fun <T> addLocalEncoder(type: ChunkId, encoder: (T, Buffer) -> Unit)
 
         /**
-         * Registers [encoder] for `FORM` (and variant `FOR1`–`FOR9`) chunks whose form-type field matches [type].
+         * Registers [encoder] for `FORM` chunks whose form-type field matches [type].
+         * The chunk is always written with outer ID `FORM`; variant outer IDs are not supported.
          */
         fun addFormEncoder(type: ChunkId, encoder: FormChunkEncoder<*>)
 
         /**
-         * Registers a [FormEncoder] for `FORM` (and variant `FOR1`–`FOR9`) chunks whose form-type field matches [type],
+         * Registers a [FormEncoder] for `FORM` chunks whose form-type field matches [type],
          * constructed from the given disassembler lambda.
+         * The chunk is always written with outer ID `FORM`; variant outer IDs are not supported.
          */
         fun <T> addFormEncoder(type: ChunkId, disassembler: (T) -> ListMultimap<ChunkId, Any>)
 
         /**
-         * Registers [encoder] for `LIST` (and variant `LIS1`–`LIS9`) chunks whose list-type field matches [type].
+         * Registers [encoder] for `LIST` chunks whose list-type field matches [type].
+         * The chunk is always written with outer ID `LIST`; variant outer IDs are not supported.
          */
         fun addListEncoder(type: ChunkId, encoder: ListChunkEncoder<*>)
 
         /**
-         * Registers a [ListEncoder] for `LIST` (and variant `LIS1`–`LIS9`) chunks whose list-type field matches [type],
+         * Registers a [ListEncoder] for `LIST` chunks whose list-type field matches [type],
          * constructed from the given disassembler lambda.
+         * The chunk is always written with outer ID `LIST`; variant outer IDs are not supported.
          */
-        fun <T> addListEncoder(type: ChunkId, disassembler: (T) -> List<Any>)
+        fun <T> addListEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>)
 
         /**
-         * Registers [encoder] for `CAT ` (and variant `CAT1`–`CAT9`) chunks whose hint field matches [type].
+         * Registers [encoder] for `CAT ` chunks whose hint field matches [type].
+         * The chunk is always written with outer ID `CAT `; variant outer IDs are not supported.
          */
         fun addCatEncoder(type: ChunkId, encoder: CatChunkEncoder<*>)
 
         /**
-         * Registers a [CatEncoder] for `CAT ` (and variant `CAT1`–`CAT9`) chunks whose hint field matches [type],
+         * Registers a [CatEncoder] for `CAT ` chunks whose hint field matches [type],
          * constructed from the given disassembler lambda.
+         * The chunk is always written with outer ID `CAT `; variant outer IDs are not supported.
          */
-        fun <T> addCatEncoder(type: ChunkId, disassembler: (T) -> List<Any>)
+        fun <T> addCatEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>)
     }
 
-    /** Encoders for `FORM` (and variant `FOR1`–`FOR9`) chunks, keyed by inner form-type field. */
+    /** Encoders for `FORM` chunks, keyed by inner form-type field. */
     val formEncoders: Map<ChunkId, FormChunkEncoder<*>>
 
-    /** Encoders for `LIST` (and variant `LIS1`–`LIS9`) chunks, keyed by inner list-type field. */
+    /** Encoders for `LIST` chunks, keyed by inner list-type field. */
     val listEncoders: Map<ChunkId, ListChunkEncoder<*>>
 
-    /** Encoders for `CAT ` (and variant `CAT1`–`CAT9`) chunks, keyed by inner hint field. */
+    /** Encoders for `CAT ` chunks, keyed by inner hint field. */
     val catEncoders: Map<ChunkId, CatChunkEncoder<*>>
 
     /** Encoders for local (non-group) chunks, keyed by chunk type ID. */

@@ -45,7 +45,7 @@ internal class IffEncoderCoreImpl(
             core.listEncoders[type] = encoder
         }
 
-        override fun <T> addListEncoder(type: ChunkId, disassembler: (T) -> List<Any>) {
+        override fun <T> addListEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>) {
             core.listEncoders[type] = ListEncoder(disassembler)
         }
 
@@ -53,7 +53,7 @@ internal class IffEncoderCoreImpl(
             core.catEncoders[type] = encoder
         }
 
-        override fun <T> addCatEncoder(type: ChunkId, disassembler: (T) -> List<Any>) {
+        override fun <T> addCatEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>) {
             core.catEncoders[type] = CatEncoder(disassembler)
         }
 
