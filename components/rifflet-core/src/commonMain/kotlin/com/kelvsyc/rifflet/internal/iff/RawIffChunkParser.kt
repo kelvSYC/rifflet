@@ -86,6 +86,7 @@ object RawIffChunkParser {
                             val propertyChunks = buildList {
                                 while (!chunk.data.exhausted()) {
                                     val inner = IffBufferedChunkParser.parse(chunk.data)
+                                    if (inner.type == IffChunkIds.blank) continue
                                     if (IffChunkIds.reservedIds.contains(inner.type)) {
                                         throw RiffletParseException("group chunk found in PROP chunk")
                                     } else {

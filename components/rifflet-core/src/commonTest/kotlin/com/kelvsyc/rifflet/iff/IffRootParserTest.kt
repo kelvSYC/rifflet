@@ -62,6 +62,45 @@ private fun localChunkBinary(type: String): Buffer {
     }
 }
 
+/** Encodes a PROP sub-chunk: "PROP" + size + formType + zero or more local chunks. */
+private fun propBinary(formType: String, vararg localChunks: Buffer): Buffer {
+    val inner = Buffer().apply {
+        writeString(formType, Charsets.ISO_8859_1)
+        localChunks.forEach { writeAll(it) }
+    }
+    val size = inner.size.toInt()
+    return Buffer().apply {
+        writeString("PROP", Charsets.ISO_8859_1)
+        writeInt(size)
+        writeAll(inner)
+        if (size % 2 != 0) writeByte(0)
+    }
+}
+
+private fun listBinaryWithProp(listType: String, formType: String, vararg localChunks: Buffer): Buffer {
+    val body = Buffer().apply {
+        writeString(listType, Charsets.ISO_8859_1)
+        writeAll(propBinary(formType, *localChunks))
+    }
+    return Buffer().apply {
+        writeString("LIST", Charsets.ISO_8859_1)
+        writeInt(body.size.toInt())
+        writeAll(body)
+    }
+}
+
+private fun catBinaryWithProp(hint: String, formType: String, vararg localChunks: Buffer): Buffer {
+    val body = Buffer().apply {
+        writeString(hint, Charsets.ISO_8859_1)
+        writeAll(propBinary(formType, *localChunks))
+    }
+    return Buffer().apply {
+        writeString("CAT ", Charsets.ISO_8859_1)
+        writeInt(body.size.toInt())
+        writeAll(body)
+    }
+}
+
 class IffRootParserTest : FunSpec({
 
     context("FORM root") {
@@ -200,6 +239,38 @@ class IffRootParserTest : FunSpec({
                 core {}
             }
             shouldThrow<RiffletParseException> { parser.parse(localChunkBinary("NAME")) }
+        }
+    }
+
+    context("PROP forwarding at root") {
+        test("root LIST PROP properties are forwarded to the registered list parser") {
+            var receivedProperties: Map<ChunkId, List<LocalChunk>>? = null
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.ListRoot(id("COMP"))
+                core {
+                    addListParser(id("COMP"), listParser { _, props ->
+                        receivedProperties = props
+                        "parsed"
+                    })
+                }
+            }
+            parser.parse(listBinaryWithProp("COMP", "BODY", localChunkBinary("AUTH")))
+            receivedProperties?.keys shouldBe setOf(id("BODY"))
+        }
+
+        test("root CAT PROP properties are forwarded to the registered cat parser") {
+            var receivedProperties: Map<ChunkId, List<LocalChunk>>? = null
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.CatRoot(id("HINT"))
+                core {
+                    addCatParser(id("HINT"), catParser { _, props ->
+                        receivedProperties = props
+                        "parsed"
+                    })
+                }
+            }
+            parser.parse(catBinaryWithProp("HINT", "BODY", localChunkBinary("AUTH")))
+            receivedProperties?.keys shouldBe setOf(id("BODY"))
         }
     }
 

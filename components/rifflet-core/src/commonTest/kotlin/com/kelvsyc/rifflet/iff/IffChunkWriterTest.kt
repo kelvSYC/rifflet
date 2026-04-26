@@ -66,6 +66,19 @@ class IffChunkWriterTest : FunSpec({
             out.exhausted() shouldBe true
         }
 
+        test("odd declared size produces zero-fill and then a pad byte") {
+            val chunk = RawChunk(ChunkId("TEST"), byteArrayOf(0x01, 0x02).toByteString())
+            val out = Buffer()
+            IffChunkWriter.writeChunk(chunk, 3, out) // ckSize = max(3, 2) = 3 (odd)
+            out.readChunkId() shouldBe ChunkId("TEST")
+            out.readInt() shouldBe 3
+            out.readByte() shouldBe 0x01
+            out.readByte() shouldBe 0x02
+            out.readByte() shouldBe 0x00 // zero-fill
+            out.readByte() shouldBe 0x00 // pad byte for odd ckSize
+            out.exhausted() shouldBe true
+        }
+
         test("declared size smaller than actual data is ignored and actual size is used") {
             val data = byteArrayOf(0x01, 0x02, 0x03, 0x04)
             val chunk = RawChunk(ChunkId("TEST"), data.toByteString())

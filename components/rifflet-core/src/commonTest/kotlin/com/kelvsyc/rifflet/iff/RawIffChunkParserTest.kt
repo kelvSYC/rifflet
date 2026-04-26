@@ -193,6 +193,14 @@ class RawIffChunkParserTest : FunSpec({
             shouldThrow<RiffletParseException> { RawIffChunkParser.parse(raw) }
         }
 
+        test("blank chunk inside LIST PROP is silently dropped and does not appear in properties") {
+            val raw = groupRaw(IffChunkIds.LIST, "TEST",
+                propChunk("BODY", subChunk("    ", byteArrayOf(0, 0)), subChunk("AUTH"))
+            )
+            val result = RawIffChunkParser.parse(raw) as ListChunk
+            result.properties[ChunkId("BODY")]!!.map { it.chunkId } shouldBe listOf(ChunkId("AUTH"))
+        }
+
         test("group chunk inside PROP throws") {
             val raw = groupRaw(IffChunkIds.LIST, "TEST",
                 propChunk("BODY", subChunk("FORM", "ATYP".toByteArray(Charsets.ISO_8859_1)))
@@ -227,6 +235,14 @@ class RawIffChunkParserTest : FunSpec({
         test("non-group local chunk in CAT throws") {
             val raw = groupRaw(IffChunkIds.CAT, "HINT", subChunk("NAME"))
             shouldThrow<RiffletParseException> { RawIffChunkParser.parse(raw) }
+        }
+
+        test("blank chunk inside CAT PROP is silently dropped and does not appear in properties") {
+            val raw = groupRaw(IffChunkIds.CAT, "HINT",
+                propChunk("BODY", subChunk("    ", byteArrayOf(0, 0)), subChunk("AUTH"))
+            )
+            val result = RawIffChunkParser.parse(raw) as CatChunk
+            result.properties[ChunkId("BODY")]!!.map { it.chunkId } shouldBe listOf(ChunkId("AUTH"))
         }
 
         test("group chunk inside PROP in CAT throws") {

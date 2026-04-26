@@ -71,7 +71,7 @@ internal class IffRootParserImpl<T>(
                             throw RiffletParseException("Expected CAT hint '${r.hint.name}' but got '${rootChunk.hint.name}'")
                         val parser = core.catParsers[r.hint] as? CatChunkParser<T>
                             ?: throw RiffletParseException("No registered parser for CAT hint '${r.hint.name}'")
-                        parser.parse(rootChunk.chunks)
+                        parser.parse(rootChunk.chunks, rootChunk.properties)
                     }
                     else -> throw RiffletParseException("Illegal root chunk type '${raw.type.name}'")
                 }
