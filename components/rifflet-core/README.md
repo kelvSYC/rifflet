@@ -202,3 +202,139 @@ The parser is intentionally strict in most respects but departs from the spec in
 - The root chunk kind or content type does not match the declared `Root`.
 - No parser is registered for the root content type.
 - The binary data violates the IFF structure rules (e.g. `PROP` after a group item, a group chunk inside a `PROP`, a duplicate `PROP` for the same form type, or `PROP` inside a `FORM`).
+
+## Encoding
+
+### Overview
+
+Encoding mirrors the parsing pipeline in reverse:
+
+1. **`IffRootEncoder`** frames the root group chunk and delegates to a body encoder.
+2. **`IffEncoderCore`** holds the registry of body encoders, keyed by inner type or hint field.
+
+Three body encoder interfaces map to the three group chunk types:
+
+- `FormBodyEncoder<T>` — receives a domain object and writes its child local and group chunks.
+- `ListBodyEncoder<T>` — receives a domain object and writes its child group chunks in order.
+- `CatBodyEncoder<T>` — same as `ListBodyEncoder`, for `CAT ` chunks.
+
+Body encoders are not `ChunkEncoder` instances — they write only the body content, not the outer framing. The outer header (type ID, size, and for group chunks the inner type field) is written by the caller.
+
+The values produced by a disassembler should be domain objects — strings, data classes, or other application types — not `IffChunk` subtypes. The encoder operates entirely at the domain level; constructing `LocalChunk`, `FormChunk`, or any other chunk representation manually in a disassembler bypasses the encoding pipeline and is not a supported use case. The only legitimate exception is preserving the raw body bytes of a chunk whose type the application does not model, as described in [Round-trip limitations](#round-trip-limitations).
+
+### Worked example
+
+Using the same hypothetical **SMPL** format as the parsing section:
+
+```kotlin
+import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.iff.IffRootEncoder
+
+data class Sample(val name: String, val rate: UInt)
+
+val smplEncoder: IffRootEncoder<Sample> = IffRootEncoder.newEncoder {
+    root = IffRootEncoder.Root.FormRoot(ChunkId("SMPL"))
+    encoder(FormBodyEncoder(IffEncoderCore.newCore {
+        addLocalEncoder(ChunkId("NAME")) { value: String, dest -> dest.writeUtf8(value) }
+        addLocalEncoder(ChunkId("RATE")) { value: UInt, dest -> dest.writeInt(value.toInt()) }
+    }) { sample ->
+        listMultimapOf(
+            ChunkId("NAME") to sample.name,
+            ChunkId("RATE") to sample.rate,
+        )
+    })
+}
+
+smplEncoder.encode(sample, sink)
+```
+
+The core supplied to `FormBodyEncoder` only needs to know how to encode the child chunks (`NAME` and `RATE`). The root encoder calls the `FormBodyEncoder` directly — it does not look up `SMPL` in any core — so there is no need to register the `SMPL` disassembler in the core.
+
+The disassembler lambda returns a `ListMultimap<ChunkId, Any>` — the multimap preserves insertion order, which becomes the chunk order in the encoded output. Each `(typeId, value)` pair is dispatched through the core's registered encoders.
+
+The `sink` argument is an `okio.Sink`. The encoder writes exactly one root chunk to it.
+
+### LIST and CAT encoders
+
+`addListEncoder` and `addCatEncoder` work the same way as `addFormEncoder`. Their disassembler lambdas return a `List<Pair<ChunkId, Any>>` rather than a multimap, because `LIST` and `CAT ` contain only group chunks (no local chunks):
+
+```kotlin
+addListEncoder(ChunkId("ALBM")) { album: Album ->
+    album.tracks.map { ChunkId("SMPL") to it as Any }
+}
+```
+
+For the common case of a homogeneous sequence, `ListBodyEncoder.uniform` and `CatBodyEncoder.uniform` avoid the need to build a core manually:
+
+```kotlin
+addListEncoder(
+    ChunkId("ALBM"),
+    ListBodyEncoder.uniform(ChunkId("SMPL"), smplFormBodyEncoder),
+)
+```
+
+### Cross-type dispatch
+
+When a group chunk contains children of a different group chunk type — for example, a `LIST ALBM` whose items are `FORM SMPL` chunks — the list disassembler must be able to reach the `SMPL` form encoder. Because each body encoder dispatches only through its own `IffEncoderCore`, both encoders must share the same core instance.
+
+The lambda overloads (`addFormEncoder(type) { disassembler }`, `addListEncoder`, `addCatEncoder`) wire the created encoder to the core being built, which makes this possible: register all participating encoders in a single `newCore` block using the lambda overloads, then pass that core to any body encoders constructed directly.
+
+Pre-built encoders supplied via the direct overloads (`addFormEncoder(type, preBuiltEncoder)`) bring their own private core; registrations in the outer core are not visible to them and they cannot participate in shared dispatch.
+
+Building on the `SMPL` example, an album format (`LIST ALBM`) containing multiple `FORM SMPL` items:
+
+```kotlin
+data class Album(val tracks: List<Sample>)
+
+val core = IffEncoderCore.newCore {
+    addLocalEncoder(ChunkId("NAME")) { value: String, dest -> dest.writeUtf8(value) }
+    addLocalEncoder(ChunkId("RATE")) { value: UInt, dest -> dest.writeInt(value.toInt()) }
+    // Wired to `core` via lambda overload, so NAME and RATE dispatch works.
+    addFormEncoder(ChunkId("SMPL")) { sample: Sample ->
+        listMultimapOf(
+            ChunkId("NAME") to sample.name,
+            ChunkId("RATE") to sample.rate,
+        )
+    }
+}
+
+val albumEncoder: IffRootEncoder<Album> = IffRootEncoder.newEncoder {
+    root = IffRootEncoder.Root.ListRoot(ChunkId("ALBM"))
+    encoder(ListBodyEncoder(core) { album ->
+        album.tracks.map { ChunkId("SMPL") to it as Any }
+    })
+}
+```
+
+The `ListBodyEncoder` is constructed with `core` directly and finds the `SMPL` form encoder there when the disassembler emits it.
+
+### Error handling
+
+`IffRootEncoder.encode` throws `RiffletEncodeException` (unchecked) when:
+
+- No encoder is registered in the core for a chunk type produced by a disassembler.
+- The encoder kind supplied to the builder does not match the declared `Root` kind.
+
+### Round-trip limitations
+
+The encoder and parser do not form a lossless round-trip. The following data is preserved by the parser but has no encoding counterpart:
+
+**Unparsed local chunks.** When the parser encounters a local chunk with no registered `LocalChunkParser`, it retains the raw bytes as a `LocalChunk` in the parsed chunk tree. The encoder has no corresponding passthrough — every value produced by a disassembler must correspond to a registered encoder. To preserve unparsed chunks across a round-trip, the domain type must explicitly store the raw data (e.g. as a `ByteString`) and the disassembler must return it under the correct chunk ID with a registered raw-byte encoder:
+
+```kotlin
+// Domain type explicitly carries the raw body of an unrecognised chunk.
+data class Sample(val name: String, val rate: UInt, val unknownChunks: List<Pair<ChunkId, ByteString>>)
+
+// Encoder side: register a raw-byte encoder for each unrecognised chunk ID encountered.
+sample.unknownChunks.forEach { (id, _) ->
+    addLocalEncoder(id) { value: ByteString, dest -> dest.write(value) }
+}
+```
+
+Because `ChunkEncoder` is not a functional interface, the lambda overload `addLocalEncoder(type) { value, dest -> ... }` is the only way to register an encoder without providing a full `ChunkEncoder` implementation.
+
+**PROP chunks.** `PROP` chunks inside a `LIST` or `CAT ` are parsed and their sub-chunks are merged into the relevant `FORM` assemblers. The encoder has no mechanism to write `PROP` chunks. If the source file relied on `PROP` for property inheritance, re-encoding will inline all sub-chunks directly into each `FORM` — the structural sharing is lost, and the output will be larger.
+
+**Variant outer IDs.** The parser accepts `FOR1`–`FOR9`, `LIS1`–`LIS9`, and `CAT1`–`CAT9` and preserves the original outer ID in `FormChunk.outerChunkId`, `ListChunk.outerChunkId`, and `CatChunk.outerChunkId`. The encoder always writes the canonical outer ID (`FORM`, `LIST`, or `CAT `). There is no mechanism to select a variant.
+
+**Blank chunks.** Blank (`    `) chunks are silently discarded during parsing and cannot be produced by the encoder.

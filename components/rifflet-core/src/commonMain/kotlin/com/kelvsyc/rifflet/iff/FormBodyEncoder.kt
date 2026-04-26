@@ -38,9 +38,7 @@ interface FormBodyEncoder<T> {
          * dispatches each child through [core].
          *
          * Child dispatch checks [core]'s local, form, list, and cat encoder maps (in that order).
-         * Values of type [LocalChunk] in the disassembler output are written through directly without
-         * a registry lookup, preserving round-tripped local chunks whose type has no registered
-         * encoder in this core (the private-core pattern).
+         * If no encoder is registered for a chunk type, a [RiffletEncodeException] is thrown.
          *
          * @param core Private encoder core used to dispatch child chunks.
          * @param disassembler Breaks a domain object of type [T] into a multimap of `(typeId, value)`
@@ -62,16 +60,6 @@ private class FormBodyEncoderImpl<T>(
     override fun encode(value: T, destination: Buffer) {
         for ((key, childValue) in disassembler(value).entries) {
             when {
-                childValue is LocalChunk -> {
-                    // Passthrough: the disassembler returned an already-parsed LocalChunk whose
-                    // type has no registered encoder in this core. Write the raw bytes directly
-                    // so round-tripped local chunks survive encoding unchanged.
-                    val body = childValue.data.data
-                    destination.writeInt(childValue.chunkId.data)
-                    destination.writeInt(body.size)
-                    destination.write(body)
-                    if (body.size % 2 == 1) destination.writeByte(0)
-                }
                 key in core.localEncoders -> {
                     val encoder = core.localEncoders.getValue(key) as ChunkEncoder<Any>
                     val body = Buffer()
