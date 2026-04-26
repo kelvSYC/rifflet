@@ -232,6 +232,30 @@ class IffRootParserTest : FunSpec({
         }
     }
 
+    context("truncated input") {
+        test("source ending before the size field throws RiffletParseException") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core {}
+            }
+            val truncated = Buffer().apply { writeString("FORM", Charsets.ISO_8859_1) } // no size field
+            shouldThrow<RiffletParseException> { parser.parse(truncated) }
+        }
+
+        test("source ending before all declared data bytes throws RiffletParseException") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
+            }
+            val truncated = Buffer().apply {
+                writeString("FORM", Charsets.ISO_8859_1)
+                writeInt(100)              // declares 100 bytes
+                writeString("TEST", Charsets.ISO_8859_1) // only 4 bytes follow
+            }
+            shouldThrow<RiffletParseException> { parser.parse(truncated) }
+        }
+    }
+
     context("invalid root") {
         test("throws for a non-group root chunk") {
             val parser = IffRootParser.newParser<String> {

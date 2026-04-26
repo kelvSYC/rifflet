@@ -254,6 +254,22 @@ class ListParserTest : FunSpec({
         }
     }
 
+    context("mixed item types") {
+        test("FormChunk, ListChunk, and CatChunk items in the same list are all dispatched and ordered correctly") {
+            val a = form("AFRM")
+            val b = ListChunk(IffChunkIds.LIST, id("COMP"), emptyMap(), emptyList())
+            val c = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
+            val core = core(
+                formParsers = mapOf(id("AFRM") to formParser { _, _ -> "form" }),
+                listParsers = mapOf(id("COMP") to listParser { _, _ -> "list" }),
+                catParsers  = mapOf(id("HINT") to catParser  { _, _ -> "cat"  }),
+            )
+            val parser = ListParser<List<Any>>(core) { it }
+            val result = parser.parse(listOf(a, b, c), emptyMap())
+            result shouldContainExactly listOf("form", "list", "cat")
+        }
+    }
+
     context("result ordering") {
         test("items are returned in the same order as input") {
             val a = form("AFRM")
@@ -384,6 +400,22 @@ class CatParserTest : FunSpec({
             val parser = CatParser(core) { it }
             parser.parse(listOf(inner), mapOf(id("BODY") to listOf(prop)))
             receivedProps?.get(id("BODY")) shouldBe listOf(prop)
+        }
+    }
+
+    context("mixed item types") {
+        test("FormChunk, ListChunk, and CatChunk items in the same CAT are all dispatched and ordered correctly") {
+            val a = form("AFRM")
+            val b = ListChunk(IffChunkIds.LIST, id("COMP"), emptyMap(), emptyList())
+            val c = CatChunk(IffChunkIds.CAT, id("HINT"), emptyMap(), emptyList())
+            val core = core(
+                formParsers = mapOf(id("AFRM") to formParser { _, _ -> "form" }),
+                listParsers = mapOf(id("COMP") to listParser { _, _ -> "list" }),
+                catParsers  = mapOf(id("HINT") to catParser  { _, _ -> "cat"  }),
+            )
+            val parser = CatParser(core) { it }
+            val result = parser.parse(listOf(a, b, c), emptyMap())
+            result shouldContainExactly listOf("form", "list", "cat")
         }
     }
 

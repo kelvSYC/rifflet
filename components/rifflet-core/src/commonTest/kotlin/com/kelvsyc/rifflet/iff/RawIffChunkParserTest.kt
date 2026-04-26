@@ -175,6 +175,12 @@ class RawIffChunkParserTest : FunSpec({
             result.items.size shouldBe 1
         }
 
+        test("PROP with no local chunks stores an empty property list for the form-type") {
+            val raw = groupRaw(IffChunkIds.LIST, "TEST", propChunk("BODY"))
+            val result = RawIffChunkParser.parse(raw) as ListChunk
+            result.properties[ChunkId("BODY")] shouldBe emptyList()
+        }
+
         test("PROP after a group chunk throws") {
             val raw = groupRaw(IffChunkIds.LIST, "TEST",
                 subChunk("FORM", "ATYP".toByteArray(Charsets.ISO_8859_1)),
@@ -217,6 +223,12 @@ class RawIffChunkParserTest : FunSpec({
             result.hint shouldBe ChunkId("HINT")
             result.properties shouldBe emptyMap()
             result.chunks shouldBe emptyList()
+        }
+
+        test("PROP with no local chunks in CAT stores an empty property list for the form-type") {
+            val raw = groupRaw(IffChunkIds.CAT, "HINT", propChunk("BODY"))
+            val result = RawIffChunkParser.parse(raw) as CatChunk
+            result.properties[ChunkId("BODY")] shouldBe emptyList()
         }
 
         test("PROP after a group chunk in CAT throws") {
@@ -285,6 +297,21 @@ class RawIffChunkParserTest : FunSpec({
         test("CAT1 is parsed as a CAT variant with outerChunkId = CAT1") {
             val raw = groupRaw(ChunkId("CAT1"), "HINT")
             RawIffChunkParser.parse(raw).shouldBeInstanceOf<CatChunk>().outerChunkId shouldBe ChunkId("CAT1")
+        }
+
+        test("FOR9 is parsed as a FORM variant (far end of the variant range)") {
+            val raw = groupRaw(ChunkId("FOR9"), "TEST")
+            RawIffChunkParser.parse(raw).shouldBeInstanceOf<FormChunk>().outerChunkId shouldBe ChunkId("FOR9")
+        }
+
+        test("LIS9 is parsed as a LIST variant (far end of the variant range)") {
+            val raw = groupRaw(ChunkId("LIS9"), "TEST")
+            RawIffChunkParser.parse(raw).shouldBeInstanceOf<ListChunk>().outerChunkId shouldBe ChunkId("LIS9")
+        }
+
+        test("CAT9 is parsed as a CAT variant (far end of the variant range)") {
+            val raw = groupRaw(ChunkId("CAT9"), "HINT")
+            RawIffChunkParser.parse(raw).shouldBeInstanceOf<CatChunk>().outerChunkId shouldBe ChunkId("CAT9")
         }
     }
 })

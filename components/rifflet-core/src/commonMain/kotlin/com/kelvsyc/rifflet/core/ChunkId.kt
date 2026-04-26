@@ -27,6 +27,8 @@ data class ChunkId(val data: Int) {
             append((data and 0xFF).toChar())
         }
 
+    override fun toString() = "ChunkId($name)"
+
     companion object {
         private fun pack(name: String): Int {
             check(name.length == 4) { "Chunk IDs must have 4 characters." }
