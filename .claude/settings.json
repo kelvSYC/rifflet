@@ -11,7 +11,7 @@
       "Bash(git log *)",
       "Bash(git diff *)",
       "Bash(git show *)",
-      "Bash(git status)",
+      "Bash(git status *)",
       "Bash(wc *)",
       "Bash(tail *)",
       "Bash(xxd *)"
