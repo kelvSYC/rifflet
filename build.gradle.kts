@@ -5,9 +5,7 @@ plugins {
 
 group = "com.kelvsyc"
 
-val components = buildList {
-    add("rifflet-core")
-}
+val components = file("components").list { dir, _ -> dir.isDirectory }?.toList().orEmpty()
 
 tasks.clean {
     components.forEach {

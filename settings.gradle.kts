@@ -1,4 +1,6 @@
 rootProject.name = "rifflet"
 
 // Components
-includeBuild("components/rifflet-core")
+file("components").list { dir, _ -> dir.isDirectory }?.forEach {
+    includeBuild("components/$it")
+}

@@ -23,36 +23,16 @@ Single component (included build form, from repository root):
 ./gradlew :rifflet-core:allTests
 ```
 
-## Kotlin File Rules (avoid failures before validation)
+## Kotlin Style Guidelines
 
-- **`NewLineAtEndOfFile`** — every `.kt` file must end with a newline character. **This is the single most common cause of build failures on generated files.** See the mandatory procedure below.
-- **`WildcardImport`** — no wildcard imports (only `java.util.*` is allowed).
-- **`TooGenericExceptionCaught`** — do not catch `Exception`, `RuntimeException`, `Error`, `Throwable`, `NullPointerException`, `IndexOutOfBoundsException`, or `IllegalMonitorStateException`.
-- **`TooGenericExceptionThrown`** — do not throw `Exception`, `RuntimeException`, `Error`, or `Throwable`.
-- **`ForbiddenComment`** — do not write `TODO:`, `FIXME:`, or `STOPSHIP:` markers.
-- **`MagicNumber`** — no unexplained numeric literals in non-test, non-`.kts` source; extract to named constants.
-- **`UnusedPrivateMember` / `UnusedPrivateProperty` / `UnusedPrivateClass`** — remove unused private declarations.
+No detekt is configured yet, so these are not enforced by the build. Follow them as conventions:
 
-### Trailing newline: mandatory procedure ⚠️
-
-**File-writing tools strip trailing newlines.** A content string ending with `\n` does NOT produce a file ending with `\n`. Fix immediately after every Write call on a `.kt` file:
-
-```bash
-echo "" >> path/to/File.kt
-```
-
-Verify with `tail -c1 <file> | xxd` — output must be `0a`.
-
-### Pre-completion checklist for Kotlin file changes
-
-Before declaring any task done, for every `.kt` file created or modified:
-
-1. **Trailing newline** — `tail -c1 <file> | xxd` outputs `0a`. Fix with `echo "" >> <file>`.
-2. **No wildcard imports** — no `import foo.bar.*` (except `java.util.*`).
-3. **No magic numbers** in non-test, non-`.kts` source.
-4. **No generic exception types** caught or thrown.
-5. **No unused private members**.
-6. **No TODO/FIXME/STOPSHIP comments**.
+- No wildcard imports (only `java.util.*` is allowed).
+- Do not catch `Exception`, `RuntimeException`, `Error`, `Throwable`, `NullPointerException`, `IndexOutOfBoundsException`, or `IllegalMonitorStateException`.
+- Do not throw `Exception`, `RuntimeException`, `Error`, or `Throwable`.
+- No `TODO:`, `FIXME:`, or `STOPSHIP:` markers.
+- No unexplained numeric literals in non-test, non-`.kts` source; extract to named constants.
+- Remove unused private declarations.
 
 ## Critical Gotchas
 
@@ -74,6 +54,6 @@ Do not modify these — they wire up the composite build correctly.
 
 - **Architecture & build hierarchy**: See `CLAUDE.md`
 - **Version catalog**: `gradle/libs.versions.toml`
-- **Convention plugins**: `gradle/plugins/kotlin-convention/src/main/kotlin/`
+- **Convention plugins**: `gradle/plugins/*/src/main/kotlin/`
 - **Source code**: `components/*/src/commonMain/kotlin/`
 - **Tests**: `components/*/src/commonTest/kotlin/`
