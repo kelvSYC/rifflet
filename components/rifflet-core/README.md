@@ -273,6 +273,44 @@ addListEncoder(
 )
 ```
 
+### PROP chunks
+
+`LIST` and `CAT ` chunks may include `PROP` chunks to supply shared default local chunks for enclosed `FORM` chunks of a given content type. Use `ListBodyEncoder.withProperties` (or `CatBodyEncoder.withProperties`, or the three-argument `addListEncoder`/`addCatEncoder` overloads) to opt in.
+
+`withProperties` takes a second lambda, `propertiesDisassembler`, that returns a `Map<ChunkId, Any>` keyed by form-type. For each entry, a `PROP` chunk is written — using the `PropBodyEncoder` registered for that form-type in `core.propEncoders` — before any group chunks, as required by the IFF spec.
+
+`PropBodyEncoder` encodes only local chunks and is registered in the core via `addPropEncoder`. It is otherwise identical in shape to `FormBodyEncoder`.
+
+Building on the album example: if all `FORM SMPL` items share the same sample rate, it can be factored into a `PROP`:
+
+```kotlin
+data class Album(val sharedRate: UInt, val tracks: List<Sample>)
+
+val core = IffEncoderCore.newCore {
+    addLocalEncoder(ChunkId("NAME")) { value: String, dest -> dest.writeUtf8(value) }
+    addLocalEncoder(ChunkId("RATE")) { value: UInt, dest -> dest.writeInt(value.toInt()) }
+    addFormEncoder(ChunkId("SMPL")) { sample: Sample ->
+        // RATE is omitted here; it will be supplied by the PROP default.
+        listMultimapOf(ChunkId("NAME") to sample.name)
+    }
+    addPropEncoder(ChunkId("SMPL")) { album: Album ->
+        // Encodes RATE as a shared property for all FORM SMPL items.
+        listMultimapOf(ChunkId("RATE") to album.sharedRate)
+    }
+}
+
+val albumEncoder: IffRootEncoder<Album> = IffRootEncoder.newEncoder {
+    root = IffRootEncoder.Root.ListRoot(ChunkId("ALBM"))
+    encoder(ListBodyEncoder.withProperties(
+        core,
+        propertiesDisassembler = { album -> mapOf(ChunkId("SMPL") to album) },
+        disassembler = { album -> album.tracks.map { ChunkId("SMPL") to it as Any } },
+    ))
+}
+```
+
+**Format grammar is the caller's responsibility.** The IFF spec defines the mechanism — `PROP` supplies defaults for `FORM` chunks of a matching type within the enclosing group — but does not dictate which chunk types a given format places in a `PROP` versus in each individual `FORM`. Callers must respect the grammar of the specific IFF-based format being written.
+
 ### Cross-type dispatch
 
 When a group chunk contains children of a different group chunk type — for example, a `LIST ALBM` whose items are `FORM SMPL` chunks — the list disassembler must be able to reach the `SMPL` form encoder. Because each body encoder dispatches only through its own `IffEncoderCore`, both encoders must share the same core instance.
@@ -333,7 +371,7 @@ sample.unknownChunks.forEach { (id, _) ->
 
 Because `ChunkEncoder` is not a functional interface, the lambda overload `addLocalEncoder(type) { value, dest -> ... }` is the only way to register an encoder without providing a full `ChunkEncoder` implementation.
 
-**PROP chunks.** `PROP` chunks inside a `LIST` or `CAT ` are parsed and their sub-chunks are merged into the relevant `FORM` assemblers. The encoder has no mechanism to write `PROP` chunks. If the source file relied on `PROP` for property inheritance, re-encoding will inline all sub-chunks directly into each `FORM` — the structural sharing is lost, and the output will be larger.
+**PROP chunks.** `PROP` chunks inside a `LIST` or `CAT ` are parsed and their sub-chunks are merged into the relevant `FORM` assemblers before the form parser's assembler runs. The encoder supports writing `PROP` chunks via `withProperties`, but there is no automatic extraction: the caller must decide which chunks to factor into a `PROP` and supply a matching `PropBodyEncoder`. A round-trip that does not use `withProperties` will inline all sub-chunks directly into each `FORM` — the structural sharing is lost, and the output may be larger.
 
 **Variant outer IDs.** The parser accepts `FOR1`–`FOR9`, `LIS1`–`LIS9`, and `CAT1`–`CAT9` and preserves the original outer ID in `FormChunk.outerChunkId`, `ListChunk.outerChunkId`, and `CatChunk.outerChunkId`. The encoder always writes the canonical outer ID (`FORM`, `LIST`, or `CAT `). There is no mechanism to select a variant.
 

@@ -80,6 +80,18 @@ interface IffEncoderCore {
         fun <T> addListEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>)
 
         /**
+         * Registers a [ListBodyEncoder] for `LIST` chunks whose list-type field matches [type],
+         * with `PROP` support. [propertiesDisassembler] extracts the per-form-type property values;
+         * [disassembler] extracts the child group chunks. Both are wired to this core.
+         * The chunk is always written with outer ID `LIST`; variant outer IDs are not supported.
+         */
+        fun <T> addListEncoder(
+            type: ChunkId,
+            propertiesDisassembler: (T) -> Map<ChunkId, Any>,
+            disassembler: (T) -> List<Pair<ChunkId, Any>>,
+        )
+
+        /**
          * Registers [encoder] for `CAT ` chunks whose hint field matches [type].
          * The chunk is always written with outer ID `CAT `; variant outer IDs are not supported.
          */
@@ -92,6 +104,33 @@ interface IffEncoderCore {
          * The chunk is always written with outer ID `CAT `; variant outer IDs are not supported.
          */
         fun <T> addCatEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>)
+
+        /**
+         * Registers a [CatBodyEncoder] for `CAT ` chunks whose hint field matches [type],
+         * with `PROP` support. [propertiesDisassembler] extracts the per-form-type property values;
+         * [disassembler] extracts the child group chunks. Both are wired to this core.
+         * The chunk is always written with outer ID `CAT `; variant outer IDs are not supported.
+         */
+        fun <T> addCatEncoder(
+            type: ChunkId,
+            propertiesDisassembler: (T) -> Map<ChunkId, Any>,
+            disassembler: (T) -> List<Pair<ChunkId, Any>>,
+        )
+
+        /**
+         * Registers [encoder] for `PROP` chunks whose form-type field matches [type].
+         *
+         * `PROP` encoders are only consulted by [ListBodyEncoder] and [CatBodyEncoder] instances
+         * constructed via `withProperties`; they are ignored during `FORM` encoding.
+         */
+        fun addPropEncoder(type: ChunkId, encoder: PropBodyEncoder<*>)
+
+        /**
+         * Registers a [PropBodyEncoder] for `PROP` chunks whose form-type field matches [type],
+         * constructed from the given disassembler lambda. The encoder is wired to this core so
+         * local chunks are dispatched through the same registered local encoders.
+         */
+        fun <T> addPropEncoder(type: ChunkId, disassembler: (T) -> ListMultimap<ChunkId, Any>)
     }
 
     /** Encoders for `FORM` chunks, keyed by inner form-type field. */
@@ -105,4 +144,7 @@ interface IffEncoderCore {
 
     /** Encoders for local (non-group) chunks, keyed by chunk type ID. */
     val localEncoders: Map<ChunkId, ChunkEncoder<*>>
+
+    /** Encoders for `PROP` chunks, keyed by form-type field. */
+    val propEncoders: Map<ChunkId, PropBodyEncoder<*>>
 }

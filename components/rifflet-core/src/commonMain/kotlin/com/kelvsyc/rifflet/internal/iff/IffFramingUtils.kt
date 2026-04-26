@@ -12,7 +12,7 @@ import okio.Buffer
 internal fun writeIffChunk(typeId: ChunkId, body: Buffer, destination: Buffer) {
     val bodySize = body.size
     destination.writeInt(typeId.data)
-    destination.writeInt(bodySize.toInt())
+    destination.writeInt(bodySize.toUInt().toInt())
     destination.writeAll(body)
     if (bodySize % 2L == 1L) destination.writeByte(0)
 }

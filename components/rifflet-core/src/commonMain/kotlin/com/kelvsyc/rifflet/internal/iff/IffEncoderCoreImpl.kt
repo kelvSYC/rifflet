@@ -7,6 +7,7 @@ import com.kelvsyc.rifflet.iff.CatBodyEncoder
 import com.kelvsyc.rifflet.iff.FormBodyEncoder
 import com.kelvsyc.rifflet.iff.IffEncoderCore
 import com.kelvsyc.rifflet.iff.ListBodyEncoder
+import com.kelvsyc.rifflet.iff.PropBodyEncoder
 import okio.Buffer
 
 internal class IffEncoderCoreImpl(
@@ -14,10 +15,11 @@ internal class IffEncoderCoreImpl(
     override val listEncoders: MutableMap<ChunkId, ListBodyEncoder<*>>,
     override val catEncoders: MutableMap<ChunkId, CatBodyEncoder<*>>,
     override val localEncoders: MutableMap<ChunkId, ChunkEncoder<*>>,
+    override val propEncoders: MutableMap<ChunkId, PropBodyEncoder<*>>,
 ) : IffEncoderCore {
 
     class Builder : IffEncoderCore.Builder {
-        private val core = IffEncoderCoreImpl(mutableMapOf(), mutableMapOf(), mutableMapOf(), mutableMapOf())
+        private val core = IffEncoderCoreImpl(mutableMapOf(), mutableMapOf(), mutableMapOf(), mutableMapOf(), mutableMapOf())
 
         override fun addLocalEncoder(type: ChunkId, encoder: ChunkEncoder<*>) {
             core.localEncoders[type] = encoder
@@ -46,12 +48,36 @@ internal class IffEncoderCoreImpl(
             core.listEncoders[type] = ListBodyEncoder(core, disassembler)
         }
 
+        override fun <T> addListEncoder(
+            type: ChunkId,
+            propertiesDisassembler: (T) -> Map<ChunkId, Any>,
+            disassembler: (T) -> List<Pair<ChunkId, Any>>,
+        ) {
+            core.listEncoders[type] = ListBodyEncoder.withProperties(core, propertiesDisassembler, disassembler)
+        }
+
         override fun addCatEncoder(type: ChunkId, encoder: CatBodyEncoder<*>) {
             core.catEncoders[type] = encoder
         }
 
         override fun <T> addCatEncoder(type: ChunkId, disassembler: (T) -> List<Pair<ChunkId, Any>>) {
             core.catEncoders[type] = CatBodyEncoder(core, disassembler)
+        }
+
+        override fun <T> addCatEncoder(
+            type: ChunkId,
+            propertiesDisassembler: (T) -> Map<ChunkId, Any>,
+            disassembler: (T) -> List<Pair<ChunkId, Any>>,
+        ) {
+            core.catEncoders[type] = CatBodyEncoder.withProperties(core, propertiesDisassembler, disassembler)
+        }
+
+        override fun addPropEncoder(type: ChunkId, encoder: PropBodyEncoder<*>) {
+            core.propEncoders[type] = encoder
+        }
+
+        override fun <T> addPropEncoder(type: ChunkId, disassembler: (T) -> ListMultimap<ChunkId, Any>) {
+            core.propEncoders[type] = PropBodyEncoder(core, disassembler)
         }
 
         fun build(): IffEncoderCore = core
