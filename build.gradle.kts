@@ -33,6 +33,12 @@ tasks.build {
     }
 }
 
+tasks.register("dokkaGenerate") {
+    components.forEach {
+        dependsOn(gradle.includedBuild(it).task(":dokkaGeneratePublicationHtml"))
+    }
+}
+
 tasks.publish {
     components.forEach {
         dependsOn(gradle.includedBuild(it).task(":$name"))
