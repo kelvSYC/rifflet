@@ -1,5 +1,6 @@
 plugins {
-    id("com.kelvsyc.internal.rifflet.kotlin-multiplatform-jvm-library")
+    id("com.kelvsyc.internal.rifflet.kotlin-multiplatform-library")
+    id("com.kelvsyc.internal.rifflet.kotlin-multiplatform-jvm")
 }
 
 kotlin {

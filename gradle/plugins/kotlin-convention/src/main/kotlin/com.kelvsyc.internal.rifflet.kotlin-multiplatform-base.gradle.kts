@@ -2,20 +2,14 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
-    id("com.kelvsyc.internal.rifflet.kotlin-multiplatform-jvm-base")
+    kotlin("multiplatform")
 }
 
 val libs = versionCatalogs.named("libs")
 
 kotlin {
-    withSourcesJar(publish = true)
-
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(25))
-    }
-
     compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+        apiVersion.set(KotlinVersion.KOTLIN_2_3)
         languageVersion.set(KotlinVersion.KOTLIN_2_3)
     }
 
@@ -27,16 +21,9 @@ kotlin {
         libs.findLibrary("kotest-assertions-core").getOrNull()?.let { implementation(it) }
         libs.findLibrary("kotest-assertions-shared").getOrNull()?.let { implementation(it) }
         libs.findLibrary("kotest-framework-engine").getOrNull()?.let { implementation(it) }
-        libs.findLibrary("kotest-runner").getOrNull()?.let { implementation(it) }
     }
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
-// Catch platform-specific imports that sneak into commonMain source sets.
-// Any import of java.*, javax.*, android.*, or sun.* breaks non-JVM targets.
 val checkCommonMainPlatformImports by tasks.registering {
     description = "Fails if any commonMain Kotlin source contains platform-specific imports."
     group = "verification"
