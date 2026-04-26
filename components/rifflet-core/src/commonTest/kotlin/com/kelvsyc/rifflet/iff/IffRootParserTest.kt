@@ -28,10 +28,10 @@ private fun <T> catParser(block: (List<GroupChunk>, Map<ChunkId, List<LocalChunk
             block(chunks, properties)
     }
 
-private fun formBinary(formType: String): Buffer {
+private fun formBinary(formType: String, outerType: String = "FORM"): Buffer {
     val body = Buffer().apply { writeString(formType, Charsets.ISO_8859_1) }
     return Buffer().apply {
-        writeString("FORM", Charsets.ISO_8859_1)
+        writeString(outerType, Charsets.ISO_8859_1)
         writeInt(body.size.toInt())
         writeAll(body)
     }
@@ -200,6 +200,32 @@ class IffRootParserTest : FunSpec({
                 core {}
             }
             shouldThrow<RiffletParseException> { parser.parse(localChunkBinary("NAME")) }
+        }
+    }
+
+    context("variant root ID") {
+        test("FOR1 root is accepted when variantId is declared as FOR1") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"), variantId = ChunkId("FOR1"))
+                core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
+            }
+            parser.parse(formBinary("TEST", outerType = "FOR1")) shouldBe "parsed"
+        }
+
+        test("throws when declared variantId is FOR1 but binary has FORM outer type") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"), variantId = ChunkId("FOR1"))
+                core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
+            }
+            shouldThrow<RiffletParseException> { parser.parse(formBinary("TEST")) }
+        }
+
+        test("throws when declared variantId is FORM but binary has FOR1 outer type") {
+            val parser = IffRootParser.newParser<String> {
+                root = IffRootParser.Root.FormRoot(id("TEST"))
+                core { addFormParser(id("TEST"), formParser { _, _ -> "parsed" }) }
+            }
+            shouldThrow<RiffletParseException> { parser.parse(formBinary("TEST", outerType = "FOR1")) }
         }
     }
 })
