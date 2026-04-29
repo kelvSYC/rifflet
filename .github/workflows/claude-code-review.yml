@@ -35,6 +35,10 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--model claude-haiku-4-5-20251001'
-          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
-          plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          prompt: |
+            Review the changes in this pull request. For each file changed, evaluate:
+            - Correctness: logic errors, edge cases, incorrect assumptions
+            - Kotlin Multiplatform compatibility: no JVM-only APIs in common source sets
+            - API design: naming, consistency with existing conventions in the codebase
+            - Test coverage: are the changes adequately tested with Kotest?
+            Post inline comments on specific lines where you find issues. Summarize your findings at the end.
