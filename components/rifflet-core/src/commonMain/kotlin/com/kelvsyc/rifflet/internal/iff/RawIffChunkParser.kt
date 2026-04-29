@@ -4,8 +4,8 @@ import com.kelvsyc.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.RawChunk
 import com.kelvsyc.rifflet.core.RiffletParseException
-import com.kelvsyc.rifflet.iff.readChunkId
 import com.kelvsyc.rifflet.iff.BlankChunk
+import com.kelvsyc.rifflet.internal.core.readChunkId
 import com.kelvsyc.rifflet.iff.CatChunk
 import com.kelvsyc.rifflet.iff.GroupChunk
 import com.kelvsyc.rifflet.iff.IffChunk

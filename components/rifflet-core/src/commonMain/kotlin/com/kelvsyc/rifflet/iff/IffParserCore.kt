@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.iff
 
 import com.kelvsyc.collections.ListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.core.LocalChunkParser
 import com.kelvsyc.rifflet.internal.iff.IffParserCoreImpl
 import okio.ByteString
 
