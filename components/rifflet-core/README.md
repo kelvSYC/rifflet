@@ -1,6 +1,6 @@
 # rifflet-core
 
-Kotlin Multiplatform library for parsing IFF (Interchange File Format) files. Targets JVM; no platform-specific dependencies.
+Kotlin Multiplatform library for parsing and writing IFF (Interchange File Format), RIFF, and RIFX files. Targets JVM; no platform-specific dependencies.
 
 ## IFF primer
 
@@ -376,3 +376,230 @@ Because `ChunkEncoder` is not a functional interface, the lambda overload `addLo
 **Variant outer IDs.** The parser accepts `FOR1`–`FOR9`, `LIS1`–`LIS9`, and `CAT1`–`CAT9` and preserves the original outer ID in `FormChunk.outerChunkId`, `ListChunk.outerChunkId`, and `CatChunk.outerChunkId`. The encoder always writes the canonical outer ID (`FORM`, `LIST`, or `CAT `). There is no mechanism to select a variant.
 
 **Blank chunks.** Blank (`    `) chunks are silently discarded during parsing and cannot be produced by the encoder.
+
+---
+
+## RIFF
+
+RIFF (Resource Interchange File Format) is Microsoft's little-endian adaptation of IFF. The binary layout is the same — 4-byte type ID, 4-byte size, body, optional pad byte — but sizes are stored little-endian rather than big-endian.
+
+### RIFF primer
+
+| Chunk type | Structure |
+|---|---|
+| `RIFF` | Top-level container. 4-byte form-type field, then zero or more local or `LIST` chunks. |
+| `LIST` | Sub-container. 4-byte list-type field, then zero or more local or `LIST` chunks. |
+| `JUNK` | Padding chunk. Content is arbitrary and silently discarded. |
+| `PAD ` | Padding chunk. Content is arbitrary and silently discarded. |
+
+Every other 4-byte type ID identifies a **local chunk** carrying an opaque binary payload.
+
+Key differences from IFF:
+
+- **Little-endian sizes.** The 4-byte size field is stored as a 32-bit unsigned little-endian integer.
+- **`RIFF` is always the root.** A `RIFF` chunk may not appear nested inside another container.
+- **No `PROP` chunks.** `LIST` may contain local chunks as well as nested `LIST` containers; there is no property-inheritance mechanism.
+- **No variant IDs.** There are no `RIF1`–`RIF9` equivalents.
+
+### Parsing
+
+Parsing follows the same two-layer pipeline as IFF. `RiffRootParser` reads the binary stream; `RiffParserCore` holds the registered parsers.
+
+Two parser interfaces cover the two container types:
+
+- `RiffFormChunkParser<T>` — receives a `RIFF` container's sub-chunks as a `ListMultimap<ChunkId, RiffChunk>`.
+- `RiffListChunkParser<T>` — receives a `LIST` container's sub-chunks as a `ListMultimap<ChunkId, RiffChunk>`.
+
+Sub-chunks whose type has no registered parser are left as their raw `RiffChunk` representation.
+
+#### Worked example
+
+The hypothetical **SMPL** format is a `RIFF SMPL` containing two local chunks:
+
+- `NAME` — null-terminated ASCII string, the sample name
+- `RATE` — 4-byte little-endian unsigned integer, the sample rate in Hz
+
+```kotlin
+import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.riff.RiffRootParser
+import okio.Buffer
+
+data class Sample(val name: String, val rate: UInt)
+
+val smplParser: RiffRootParser<Sample> = RiffRootParser.newParser {
+    root = RiffRootParser.Root(ChunkId("SMPL"))
+    core {
+        addLocalParser(ChunkId("NAME")) { data ->
+            data.utf8().trimEnd(' ')
+        }
+        addLocalParser(ChunkId("RATE")) { data ->
+            Buffer().write(data).readIntLe().toUInt()
+        }
+        addFormParser(ChunkId("SMPL")) { chunks ->
+            Sample(
+                name = chunks[ChunkId("NAME")].filterIsInstance<String>().first(),
+                rate = chunks[ChunkId("RATE")].filterIsInstance<UInt>().first(),
+            )
+        }
+    }
+}
+
+val sample: Sample = smplParser.parse(source)
+```
+
+The `source` argument is an `okio.Source`. The parser reads exactly one root `RIFF` chunk from it.
+
+#### LIST parsers
+
+`addListParser` works the same way as `addFormParser`. Its assembler lambda receives the `LIST` sub-chunks as a `ListMultimap<ChunkId, RiffChunk>`.
+
+```kotlin
+addListParser(ChunkId("smpl")) { chunks ->
+    chunks[ChunkId("SMPL")].filterIsInstance<Sample>()
+}
+```
+
+#### Error handling
+
+`RiffRootParser.parse` throws `RiffletParseException` (unchecked) when:
+
+- The root chunk is not a `RIFF` chunk or its form-type does not match the declared root.
+- No parser is registered for the root form-type.
+- The binary data violates RIFF structure rules (e.g. a nested `RIFF` chunk, or truncated input).
+
+### Encoding
+
+Encoding mirrors the parsing pipeline in reverse.
+
+1. **`RiffRootEncoder`** frames the root `RIFF` chunk and delegates to a `RiffFormBodyEncoder`.
+2. **`RiffEncoderCore`** holds the registry of body encoders.
+
+Three encoder interfaces cover the output types:
+
+- `RiffFormBodyEncoder<T>` — writes local and `LIST` child chunks for a `RIFF` container body.
+- `RiffListBodyEncoder<T>` — writes local and nested `LIST` child chunks for a `LIST` container body.
+
+Body encoders are not `ChunkEncoder` instances — they write only the body content; the outer header is written by the caller.
+
+#### Worked example
+
+```kotlin
+import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.riff.RiffEncoderCore
+import com.kelvsyc.rifflet.riff.RiffFormBodyEncoder
+import com.kelvsyc.rifflet.riff.RiffRootEncoder
+
+data class Sample(val name: String, val rate: UInt)
+
+val smplEncoder: RiffRootEncoder<Sample> = RiffRootEncoder.newEncoder {
+    root = RiffRootEncoder.Root(ChunkId("SMPL"))
+    encoder(RiffFormBodyEncoder(RiffEncoderCore.newCore {
+        addLocalEncoder(ChunkId("NAME")) { value: String, dest ->
+            dest.writeString(value + " ", Charsets.US_ASCII)
+        }
+        addLocalEncoder(ChunkId("RATE")) { value: UInt, dest ->
+            dest.writeIntLe(value.toInt())
+        }
+    }) { sample ->
+        listMultimapOf(
+            ChunkId("NAME") to sample.name,
+            ChunkId("RATE") to sample.rate,
+        )
+    })
+}
+
+smplEncoder.encode(sample, sink)
+```
+
+The disassembler lambda returns a `ListMultimap<ChunkId, Any>`. Insertion order becomes chunk order in the encoded output. Each `(typeId, value)` pair is dispatched through the core's registered encoders.
+
+The `sink` argument is an `okio.Sink`. The encoder writes exactly one root `RIFF` chunk to it.
+
+#### Encoding LIST containers
+
+Register a `RiffListBodyEncoder` for any `LIST` containers your format uses. Its disassembler returns the same `ListMultimap<ChunkId, Any>` as a form disassembler.
+
+```kotlin
+addListEncoder(ChunkId("smpl")) { samples: List<Sample> ->
+    samples.map { ChunkId("SMPL") to it as Any }.toListMultimap()
+}
+```
+
+A `RiffListBodyEncoder` may dispatch to both local encoders and nested `LIST` encoders registered in the same core; it does not dispatch to `RIFF` form encoders.
+
+#### Error handling
+
+`RiffRootEncoder.encode` throws `RiffletEncodeException` (unchecked) when no encoder is registered in the core for a chunk type produced by a disassembler.
+
+---
+
+## RIFX
+
+RIFX has the same structure as RIFF — `RIFX` root container, `LIST` sub-containers, `JUNK`/`PAD` padding — with one difference: **chunk sizes are stored as 32-bit unsigned big-endian integers**, matching the original IFF byte order. The root FourCC is `RIFX` instead of `RIFF`.
+
+Because the data model is identical to RIFF, the `RiffChunk` type hierarchy (`RiffFormChunk`, `RiffListChunk`, `RiffLocalChunk`) is shared between both formats. Only the framing layer — the code that reads and writes size fields — is format-specific.
+
+### Parsing
+
+`RifxRootParser` is the RIFX entry point. It accepts the same `RiffParserCore` as `RiffRootParser`, so a parser core written for RIFF can be reused without modification. The only change needed is the root declaration and the parser constructor.
+
+```kotlin
+import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.rifx.RifxRootParser
+
+val smplParser: RifxRootParser<Sample> = RifxRootParser.newParser {
+    root = RifxRootParser.Root(ChunkId("SMPL"))
+    core {
+        addLocalParser(ChunkId("NAME")) { data ->
+            data.utf8().trimEnd(' ')
+        }
+        addLocalParser(ChunkId("RATE")) { data ->
+            Buffer().write(data).readInt().toUInt() // big-endian read
+        }
+        addFormParser(ChunkId("SMPL")) { chunks ->
+            Sample(
+                name = chunks[ChunkId("NAME")].filterIsInstance<String>().first(),
+                rate = chunks[ChunkId("RATE")].filterIsInstance<UInt>().first(),
+            )
+        }
+    }
+}
+```
+
+`RifxRootParser.parse` throws `RiffletParseException` under the same conditions as `RiffRootParser.parse`, substituting `RIFX` for `RIFF` in the root chunk check.
+
+### Encoding
+
+RIFX encoding uses its own encoder infrastructure — `RifxEncoderCore`, `RifxFormBodyEncoder`, and `RifxListBodyEncoder` — in place of their RIFF counterparts. These write big-endian size fields throughout. The API shape is otherwise identical.
+
+```kotlin
+import com.kelvsyc.rifflet.core.ChunkId
+import com.kelvsyc.rifflet.rifx.RifxEncoderCore
+import com.kelvsyc.rifflet.rifx.RifxFormBodyEncoder
+import com.kelvsyc.rifflet.rifx.RifxRootEncoder
+
+val smplEncoder: RifxRootEncoder<Sample> = RifxRootEncoder.newEncoder {
+    root = RifxRootEncoder.Root(ChunkId("SMPL"))
+    encoder(RifxFormBodyEncoder(RifxEncoderCore.newCore {
+        addLocalEncoder(ChunkId("NAME")) { value: String, dest ->
+            dest.writeString(value + " ", Charsets.US_ASCII)
+        }
+        addLocalEncoder(ChunkId("RATE")) { value: UInt, dest ->
+            dest.writeInt(value.toInt()) // big-endian write
+        }
+    }) { sample ->
+        listMultimapOf(
+            ChunkId("NAME") to sample.name,
+            ChunkId("RATE") to sample.rate,
+        )
+    })
+}
+
+smplEncoder.encode(sample, sink)
+```
+
+`RifxRootEncoder.encode` throws `RiffletEncodeException` under the same conditions as `RiffRootEncoder.encode`.
+
+### Choosing between RIFF and RIFX
+
+Use `RiffRootParser` / `RiffRootEncoder` for little-endian RIFF files (WAV, AVI, and most Windows multimedia formats). Use `RifxRootParser` / `RifxRootEncoder` for big-endian RIFX files. The FourCC in the first four bytes of the file identifies which format is in use: `RIFF` for little-endian, `RIFX` for big-endian.
