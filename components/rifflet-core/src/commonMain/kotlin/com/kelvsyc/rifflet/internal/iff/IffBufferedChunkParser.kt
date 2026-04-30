@@ -1,7 +1,7 @@
 package com.kelvsyc.rifflet.internal.iff
 
-import com.kelvsyc.rifflet.iff.readChunkId
 import com.kelvsyc.rifflet.iff.IffChunkIds
+import com.kelvsyc.rifflet.internal.core.readChunkId
 import com.kelvsyc.rifflet.internal.core.BufferedRawChunk
 import com.kelvsyc.rifflet.internal.core.BufferedRawChunkParser
 import okio.Buffer

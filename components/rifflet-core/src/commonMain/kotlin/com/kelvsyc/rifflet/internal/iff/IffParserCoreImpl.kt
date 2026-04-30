@@ -9,7 +9,7 @@ import com.kelvsyc.rifflet.iff.FormParser
 import com.kelvsyc.rifflet.iff.IffParserCore
 import com.kelvsyc.rifflet.iff.ListChunkParser
 import com.kelvsyc.rifflet.iff.ListParser
-import com.kelvsyc.rifflet.iff.LocalChunkParser
+import com.kelvsyc.rifflet.core.LocalChunkParser
 import okio.ByteString
 
 internal class IffParserCoreImpl(
