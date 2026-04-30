@@ -5,7 +5,7 @@ kotlin = "2.3.21"
 [libraries]
 # BOMs
 kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
-kotest-bom = "io.kotest:kotest-bom:6.0.4"
+kotest-bom = "io.kotest:kotest-bom:6.1.11"
 
 # Internal
 dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
