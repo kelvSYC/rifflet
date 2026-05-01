@@ -20,7 +20,7 @@ kotest-framework-engine = { module = "io.kotest:kotest-framework-engine" } # ver
 kotest-property = { module = "io.kotest:kotest-property" } # version from BOM 'kotest-bom'
 kotest-runner = { module = "io.kotest:kotest-runner-junit5" } # version from BOM 'kotest-bom'
 mockk = "io.mockk:mockk:1.14.6"
-okio = "com.squareup.okio:okio:3.16.2"
+okio = "com.squareup.okio:okio:3.17.0"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
