@@ -1,6 +1,6 @@
 package com.kelvsyc.rifflet.riff
 
-import com.kelvsyc.collections.listMultimapOf
+import com.kelvsyc.kotlin.core.collections.listMultimapOf
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.RiffletEncodeException
 import io.kotest.assertions.throwables.shouldThrow
