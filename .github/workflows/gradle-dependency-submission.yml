@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: read
 
 jobs:
   dependency-submission:
@@ -24,6 +25,9 @@ jobs:
           distribution: 'zulu'
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v6
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
