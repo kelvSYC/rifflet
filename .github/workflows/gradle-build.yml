@@ -88,8 +88,44 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set snapshot version properties
+        # The com.javiersc.semver plugin reads stage/scope/tagPrefix from
+        # gradle.properties via a three-tier lookup. In a composite build,
+        # -P flags only reach the root build's startParameter, so we must
+        # write directly to each included build's gradle.properties.
+        #
+        # semver.tagPrefix must be set explicitly as a property — the plugin
+        # has a bug where getTagPrefixProperty() defaults to "" when the
+        # property is absent, even though the settings extension sets it to
+        # "v". Without this, tagPrefix != projectTagPrefix and the plugin
+        # silently ignores stage/scope.
+        #
+        # To avoid the +DIRTY version suffix, we hide modified tracked files
+        # with git update-index --assume-unchanged, and newly created files
+        # with .git/info/exclude.
         run: |
-          find . -name "gradle.properties" -not -path "*/build/*" -exec sh -c 'echo "semver.stage=snapshot" >> "$1" && echo "semver.scope=patch" >> "$1" && echo "semver.checkClean=false" >> "$1"' _ {} \;
+          SEMVER_PROPS=$(printf 'semver.stage=snapshot\nsemver.scope=patch\nsemver.tagPrefix=v\n')
+          CREATED_FILES=()
+          MODIFIED_FILES=()
+
+          for dir in . components/*; do
+            [ -f "$dir/settings.gradle.kts" ] || [ "$dir" = "." ] || continue
+            props="$dir/gradle.properties"
+            if [ -f "$props" ]; then
+              printf '\n%s\n' "$SEMVER_PROPS" >> "$props"
+              MODIFIED_FILES+=("$props")
+            else
+              printf '%s\n' "$SEMVER_PROPS" > "$props"
+              CREATED_FILES+=("$props")
+            fi
+          done
+
+          for f in "${MODIFIED_FILES[@]}"; do
+            git update-index --assume-unchanged "$f"
+          done
+
+          for f in "${CREATED_FILES[@]}"; do
+            echo "$f" >> .git/info/exclude
+          done
       - name: Publish Snapshot
         run: ./gradlew :publish
         env:
