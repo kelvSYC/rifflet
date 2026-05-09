@@ -1,6 +1,6 @@
 package com.kelvsyc.rifflet.iff
 
-import com.kelvsyc.collections.toListMultimap
+import com.kelvsyc.kotlin.core.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 
 /**

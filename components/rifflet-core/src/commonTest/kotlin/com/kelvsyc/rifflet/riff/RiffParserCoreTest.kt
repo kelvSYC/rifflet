@@ -1,7 +1,7 @@
 package com.kelvsyc.rifflet.riff
 
-import com.kelvsyc.collections.listMultimapOf
-import com.kelvsyc.collections.toListMultimap
+import com.kelvsyc.kotlin.core.collections.listMultimapOf
+import com.kelvsyc.kotlin.core.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.LocalChunkParser
 import com.kelvsyc.rifflet.core.RawChunk
@@ -82,13 +82,13 @@ class RiffParserCoreTest : FunSpec({
         test("direct RiffFormChunkParser overload is used as-is") {
             var called = false
             val customParser = object : RiffFormChunkParser<String> {
-                override fun parse(chunks: com.kelvsyc.collections.ListMultimap<ChunkId, RiffChunk>): String {
+                override fun parse(chunks: com.kelvsyc.kotlin.core.collections.ListMultimap<ChunkId, RiffChunk>): String {
                     called = true; return "custom"
                 }
             }
             val core = RiffParserCore.newCore { addFormParser(id("WAVE"), customParser) }
             core.formParsers[id("WAVE")]!!.parse(
-                com.kelvsyc.collections.emptyListMultimap()
+                com.kelvsyc.kotlin.core.collections.emptyListMultimap()
             )
             called shouldBe true
         }

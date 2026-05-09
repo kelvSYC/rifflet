@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
     outputs:
       kdoc-id: ${{ steps.upload-kdoc.outputs.artifact-id }}
 
@@ -38,6 +39,9 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
       - name: Build
         run: ./gradlew --info --stacktrace :build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload KDoc
         id: upload-kdoc
         uses: actions/upload-artifact@v7

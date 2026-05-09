@@ -1,10 +1,10 @@
 package com.kelvsyc.rifflet.iff
 
-import com.kelvsyc.collections.ListMultimap
-import com.kelvsyc.collections.contains
-import com.kelvsyc.collections.filterKeys
-import com.kelvsyc.collections.mapValues
-import com.kelvsyc.collections.plus
+import com.kelvsyc.kotlin.core.collections.ListMultimap
+import com.kelvsyc.kotlin.core.collections.contains
+import com.kelvsyc.kotlin.core.collections.filterKeys
+import com.kelvsyc.kotlin.core.collections.mapValues
+import com.kelvsyc.kotlin.core.collections.plus
 import com.kelvsyc.rifflet.core.ChunkId
 
 /**

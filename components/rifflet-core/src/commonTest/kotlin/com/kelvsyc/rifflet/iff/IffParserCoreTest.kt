@@ -1,8 +1,8 @@
 package com.kelvsyc.rifflet.iff
 
-import com.kelvsyc.collections.emptyListMultimap
-import com.kelvsyc.collections.listMultimapOf
-import com.kelvsyc.collections.toListMultimap
+import com.kelvsyc.kotlin.core.collections.emptyListMultimap
+import com.kelvsyc.kotlin.core.collections.listMultimapOf
+import com.kelvsyc.kotlin.core.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.LocalChunkParser
 import com.kelvsyc.rifflet.core.RawChunk
@@ -98,8 +98,8 @@ class IffParserCoreTest : FunSpec({
             var called = false
             val customParser = object : FormChunkParser<String> {
                 override fun parse(
-                    chunks: com.kelvsyc.collections.ListMultimap<ChunkId, IffChunk>,
-                    properties: com.kelvsyc.collections.ListMultimap<ChunkId, LocalChunk>,
+                    chunks: com.kelvsyc.kotlin.core.collections.ListMultimap<ChunkId, IffChunk>,
+                    properties: com.kelvsyc.kotlin.core.collections.ListMultimap<ChunkId, LocalChunk>,
                 ): String {
                     called = true
                     return "custom"

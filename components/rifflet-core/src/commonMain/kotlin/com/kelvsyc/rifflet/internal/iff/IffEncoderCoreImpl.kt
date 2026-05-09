@@ -1,6 +1,6 @@
 package com.kelvsyc.rifflet.internal.iff
 
-import com.kelvsyc.collections.ListMultimap
+import com.kelvsyc.kotlin.core.collections.ListMultimap
 import com.kelvsyc.rifflet.core.ChunkEncoder
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.iff.CatBodyEncoder

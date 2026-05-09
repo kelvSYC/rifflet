@@ -1,9 +1,9 @@
 package com.kelvsyc.rifflet.riff
 
-import com.kelvsyc.collections.ListMultimap
-import com.kelvsyc.collections.emptyListMultimap
-import com.kelvsyc.collections.listMultimapOf
-import com.kelvsyc.collections.toListMultimap
+import com.kelvsyc.kotlin.core.collections.ListMultimap
+import com.kelvsyc.kotlin.core.collections.emptyListMultimap
+import com.kelvsyc.kotlin.core.collections.listMultimapOf
+import com.kelvsyc.kotlin.core.collections.toListMultimap
 import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.LocalChunkParser
 import com.kelvsyc.rifflet.core.RawChunk
