@@ -1,7 +1,5 @@
 // Settings plugin to be applied to all components
 
-import com.javiersc.semver.settings.gradle.plugin.SemverSettingsExtension
-
 pluginManagement {
     includeBuild("../../gradle/plugins")
 }
@@ -27,16 +25,7 @@ dependencyResolutionManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention")
-    id("com.javiersc.semver")
-}
-
-configure<SemverSettingsExtension> {
-    isEnabled.set(true)
-    // Resolve .git worktree pointer files: jgit's FileRepositoryBuilder.setGitDir() (used by
-    // com.javiersc.semver 0.9.0) does not follow `gitdir:` pointers, so in a git worktree the
-    // raw `.git` file must be replaced with the real worktree git directory.
-    gitDir.set(layout.settingsDirectory.dir(resolveGitDir("../../.git").absolutePath))
-    tagPrefix.set("v")
+    id("com.kelvsyc.internal.semver")
 }
 
 fun resolveGitDir(relativePath: String): java.io.File {
