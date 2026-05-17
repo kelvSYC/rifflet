@@ -27,3 +27,16 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention")
     id("com.kelvsyc.internal.semver")
 }
+
+fun resolveGitDir(relativePath: String): java.io.File {
+    val marker = layout.settingsDirectory.asFile.resolve(relativePath)
+    if (!marker.isFile) return marker
+    val pointer = marker.readLines()
+        .firstOrNull { it.startsWith("gitdir:") }
+        ?.substringAfter("gitdir:")
+        ?.trim()
+        ?: return marker
+    val pointed = java.io.File(pointer)
+    val resolved = if (pointed.isAbsolute) pointed else marker.parentFile.resolve(pointed)
+    return resolved.canonicalFile
+}
