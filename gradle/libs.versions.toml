@@ -11,7 +11,7 @@ kotlin-tools-bom = "com.kelvsyc.kotlin:bom:0.2.4"
 # Internal
 dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 foojay-resolver-plugin = "org.gradle.toolchains.foojay-resolver:org.gradle.toolchains.foojay-resolver.gradle.plugin:1.0.0"
-jgit = "org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r"
+jgit = "org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r"
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" } # version from BOM 'kotlin-gradle-plugins-bom'
 
 # API Dependencies
