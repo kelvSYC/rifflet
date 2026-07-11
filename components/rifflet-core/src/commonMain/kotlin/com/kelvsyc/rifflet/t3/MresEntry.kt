@@ -10,7 +10,7 @@ import okio.ByteString
  * @param body The whole `MRES` block's data, shared (by reference, not copied) across every entry
  *   parsed from the same block, so that [data] can slice out just this entry's bytes on demand.
  */
-data class MresEntry(val name: String, val offset: UInt, val size: UInt, private val body: ByteString) {
+data class MresEntry(override val name: String, val offset: UInt, val size: UInt, private val body: ByteString) : T3Resource {
     /** This resource's binary data, sliced from the shared block body only when called. */
     fun data(): ByteString = body.substring(offset.toInt(), (offset + size).toInt())
 }
