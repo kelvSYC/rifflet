@@ -8,7 +8,7 @@ import okio.BufferedSource
  * Reads a single T3 block: 4-byte type ID, 4-byte little-endian size, 2-byte little-endian flags,
  * then transfers exactly `size` bytes of body via okio segment transfer (zero byte copy).
  *
- * Unlike the IFF/RIFF equivalents, T3 has no padding byte after odd-length bodies.
+ * T3 has no padding byte after odd-length bodies.
  */
 internal object T3BufferedBlockParser {
     fun parse(source: BufferedSource): T3RawBufferedBlock {

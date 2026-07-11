@@ -10,9 +10,8 @@ import com.kelvsyc.rifflet.t3.T3RawBlock
 /**
  * Dispatches an already-framed [T3RawBufferedBlock] to its typed [T3Block] representation.
  *
- * T3's block-type vocabulary is closed and fully enumerated by the spec (unlike IFF/RIFF's
- * application-defined `FORM`/`RIFF` content types), so dispatch is a fixed `when` rather than a
- * caller-supplied registry — see the design spec for the full rationale.
+ * T3's block-type vocabulary is closed and fully enumerated by the spec, so dispatch is a fixed
+ * `when` rather than a caller-supplied registry.
  */
 internal object T3BlockParser {
     private const val ENTP_V1_SIZE = 16u
