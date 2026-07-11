@@ -20,6 +20,7 @@ internal object T3BlockParser {
     fun parse(raw: T3RawBufferedBlock): T3Block = when (raw.type) {
         T3BlockIds.ENTP -> parseEntryPoint(raw)
         T3BlockIds.EOF -> parseEnd(raw)
+        T3BlockIds.MRES -> T3MresParser.parse(raw)
         else -> parseRaw(raw)
     }
 
