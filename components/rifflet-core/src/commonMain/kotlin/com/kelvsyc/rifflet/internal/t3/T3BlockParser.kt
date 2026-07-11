@@ -21,6 +21,7 @@ internal object T3BlockParser {
         T3BlockIds.ENTP -> parseEntryPoint(raw)
         T3BlockIds.EOF -> parseEnd(raw)
         T3BlockIds.MRES -> T3MresParser.parse(raw)
+        T3BlockIds.MREL -> T3MrelParser.parse(raw)
         else -> parseRaw(raw)
     }
 
