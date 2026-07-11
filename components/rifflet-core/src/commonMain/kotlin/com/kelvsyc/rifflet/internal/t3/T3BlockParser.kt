@@ -28,6 +28,7 @@ internal object T3BlockParser {
         T3BlockIds.MHLS -> T3MhlsParser.parse(raw)
         T3BlockIds.MRES -> T3MresParser.parse(raw)
         T3BlockIds.MREL -> T3MrelParser.parse(raw)
+        T3BlockIds.OBJS -> T3ObjsParser.parse(raw)
         T3BlockIds.SINI -> T3SiniParser.parse(raw)
         T3BlockIds.SRCF -> T3SrcfParser.parse(raw)
         T3BlockIds.SYMD -> T3SymdParser.parse(raw)
