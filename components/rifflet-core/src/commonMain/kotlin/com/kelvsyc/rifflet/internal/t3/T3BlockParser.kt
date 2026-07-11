@@ -21,6 +21,7 @@ internal object T3BlockParser {
         T3BlockIds.ENTP -> parseEntryPoint(raw)
         T3BlockIds.EOF -> parseEnd(raw)
         T3BlockIds.CPDF -> T3CpdfParser.parse(raw)
+        T3BlockIds.CPPG -> T3CppgParser.parse(raw)
         T3BlockIds.FNSD -> T3FnsdParser.parse(raw)
         T3BlockIds.GSYM -> T3GsymParser.parse(raw)
         T3BlockIds.MACR -> T3MacrParser.parse(raw)
