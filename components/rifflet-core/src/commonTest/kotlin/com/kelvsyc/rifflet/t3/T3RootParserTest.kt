@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.t3
 
+import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -204,7 +205,7 @@ class T3RootParserTest : FunSpec({
         val source = Buffer().apply {
             writeAll(preambleBinary())
             writeAll(entpBinary())
-            writeAll(blockBinary("MCLD", flags = 0x0000, data = byteArrayOf(0x01, 0x02, 0x03)))
+            writeAll(blockBinary("TEST", flags = 0x0000, data = byteArrayOf(0x01, 0x02, 0x03)))
             writeAll(blockBinary("EOF ", flags = 0x0001))
         }
         val image = T3RootParser.parse(source)
@@ -212,7 +213,7 @@ class T3RootParserTest : FunSpec({
         image.header.timestamp shouldBe "Sun Aug 01 17:05:20 1999"
         image.blocks.size shouldBe 3
         (image.blocks[0] as EntryPointBlock).debugTableFrameHeaderSize shouldBe 20
-        (image.blocks[1] as T3RawBlock).type shouldBe T3BlockIds.MCLD
+        (image.blocks[1] as T3RawBlock).type shouldBe ChunkId("TEST")
         image.blocks[2] shouldBe EndBlock
     }
 
@@ -384,6 +385,32 @@ class T3RootParserTest : FunSpec({
         objs.objects[0].objectId shouldBe 0x0042u
     }
 
+    test("MCLD block is parsed into McldBlock with correct entry") {
+        // Body: 1 entry, name "tads-object", no properties
+        val name = "tads-object"
+        val mcldBody = Buffer().apply {
+            writeShortLe(1)                                 // entry_count
+            writeShortLe(0)                                 // offset_to_next — discarded
+            writeByte(name.length)
+            writeString(name, Charsets.US_ASCII)
+            writeShortLe(0)                                 // property_count
+            writeShortLe(2)                                 // property_record_size
+        }.readByteArray()
+
+        val source = Buffer().apply {
+            writeAll(preambleBinary())
+            writeAll(entpBinary())
+            writeAll(blockBinary("MCLD", flags = 0x0001, data = mcldBody))
+            writeAll(blockBinary("EOF ", flags = 0x0000))
+        }
+
+        val image = T3RootParser.parse(source)
+        val mcld = image.blocks.filterIsInstance<McldBlock>().first()
+        mcld.entries.size shouldBe 1
+        mcld.entries[0].name shouldBe "tads-object"
+        mcld.entries[0].properties shouldBe emptyList()
+    }
+
     context("truncated input") {
         test("source ending mid-preamble throws RiffletParseException") {
             val source = Buffer().apply { write(VALID_MAGIC) }
@@ -393,7 +420,7 @@ class T3RootParserTest : FunSpec({
         test("source ending mid-block-header throws RiffletParseException") {
             val source = Buffer().apply {
                 writeAll(preambleBinary())
-                writeString("MCLD", Charsets.ISO_8859_1)
+                writeString("TEST", Charsets.ISO_8859_1)
             }
             shouldThrow<RiffletParseException> { T3RootParser.parse(source) }
         }
@@ -401,7 +428,7 @@ class T3RootParserTest : FunSpec({
         test("source ending mid-block-body throws RiffletParseException") {
             val source = Buffer().apply {
                 writeAll(preambleBinary())
-                writeString("MCLD", Charsets.ISO_8859_1)
+                writeString("TEST", Charsets.ISO_8859_1)
                 writeIntLe(100)
                 writeShortLe(0x0000)
                 write(byteArrayOf(0x01, 0x02))
@@ -412,7 +439,7 @@ class T3RootParserTest : FunSpec({
         test("source ending with no EOF block ever seen throws RiffletParseException") {
             val source = Buffer().apply {
                 writeAll(preambleBinary())
-                writeAll(blockBinary("MCLD", flags = 0x0000, data = byteArrayOf(0x01)))
+                writeAll(blockBinary("TEST", flags = 0x0000, data = byteArrayOf(0x01)))
             }
             shouldThrow<RiffletParseException> { T3RootParser.parse(source) }
         }
