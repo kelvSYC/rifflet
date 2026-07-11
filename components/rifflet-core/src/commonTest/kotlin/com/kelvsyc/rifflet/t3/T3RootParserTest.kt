@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
+import okio.ByteString
 import okio.ByteString.Companion.decodeHex
 
 private val VALID_MAGIC = "54332d696d6167650d0a1a".decodeHex()
@@ -35,6 +36,30 @@ private fun entpBinary(): Buffer = blockBinary(
         writeShortLe(20)
     }.readByteArray(),
 )
+
+private fun xorBytes(bytes: ByteArray): ByteArray = ByteArray(bytes.size) { i -> (bytes[i].toInt() xor 0xFF).toByte() }
+
+/** Builds an MRES block body (TOC + contiguous resource data) for the given name-to-data pairs. */
+private fun mresBinary(vararg resources: Pair<String, ByteArray>): ByteArray {
+    val tocEntries = resources.map { (name, data) ->
+        Triple(name, xorBytes(Buffer().apply { writeString(name, Charsets.ISO_8859_1) }.readByteArray()), data)
+    }
+    val tocSize = 2 + tocEntries.sumOf { (_, nameBytes, _) -> 9 + nameBytes.size }
+    var dataOffset = tocSize
+    val body = Buffer()
+    body.writeShortLe(tocEntries.size)
+    for ((_, nameBytes, data) in tocEntries) {
+        body.writeIntLe(dataOffset)
+        body.writeIntLe(data.size)
+        body.writeByte(nameBytes.size)
+        body.write(nameBytes)
+        dataOffset += data.size
+    }
+    for ((_, _, data) in tocEntries) {
+        body.write(data)
+    }
+    return body.readByteArray()
+}
 
 class T3RootParserTest : FunSpec({
 
@@ -73,6 +98,20 @@ class T3RootParserTest : FunSpec({
         shouldThrow<RiffletParseException> { T3RootParser.parse(source) }
     }
 
+    test("well-formed image containing an MRES block dispatches it correctly") {
+        val source = Buffer().apply {
+            writeAll(preambleBinary())
+            writeAll(blockBinary("MRES", flags = 0x0000, data = mresBinary("A.WAV" to byteArrayOf(0x01, 0x02))))
+            writeAll(blockBinary("EOF ", flags = 0x0001))
+        }
+        val image = T3RootParser.parse(source)
+        image.blocks.size shouldBe 2
+        val mres = image.blocks[0] as MresBlock
+        mres.entries.size shouldBe 1
+        mres.entries[0].name shouldBe "A.WAV"
+        image.findResource("A.WAV")?.data() shouldBe ByteString.of(0x01, 0x02)
+    }
+
     context("truncated input") {
         test("source ending mid-preamble throws RiffletParseException") {
             val source = Buffer().apply { write(VALID_MAGIC) }
@@ -102,6 +141,17 @@ class T3RootParserTest : FunSpec({
             val source = Buffer().apply {
                 writeAll(preambleBinary())
                 writeAll(blockBinary("MCLD", flags = 0x0000, data = byteArrayOf(0x01)))
+            }
+            shouldThrow<RiffletParseException> { T3RootParser.parse(source) }
+        }
+
+        test("source ending mid-MRES-block-body throws RiffletParseException") {
+            val source = Buffer().apply {
+                writeAll(preambleBinary())
+                writeString("MRES", Charsets.ISO_8859_1)
+                writeIntLe(100)
+                writeShortLe(0x0000)
+                write(byteArrayOf(0x01, 0x02))
             }
             shouldThrow<RiffletParseException> { T3RootParser.parse(source) }
         }
