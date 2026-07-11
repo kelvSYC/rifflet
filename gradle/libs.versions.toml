@@ -5,7 +5,7 @@ kotlin = "2.3.21"
 [libraries]
 # BOMs
 kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
-kotest-bom = "io.kotest:kotest-bom:6.2.1"
+kotest-bom = "io.kotest:kotest-bom:6.2.2"
 kotlin-tools-bom = "com.kelvsyc.kotlin:bom:0.2.4"
 
 # Internal
