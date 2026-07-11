@@ -38,4 +38,25 @@ class T3CpdfParserTest : FunSpec({
         block.pools[1].pageCount shouldBe 5u
         block.pools[1].pageSize shouldBe 1024u
     }
+
+    test("poolEntry: poolId 1 returns first pool") {
+        val block = CpdfBlock(listOf(CpdfPoolEntry(10u, 512u), CpdfPoolEntry(5u, 1024u)))
+        block.poolEntry(1)?.pageCount shouldBe 10u
+        block.poolEntry(1)?.pageSize shouldBe 512u
+    }
+
+    test("poolEntry: poolId 2 returns second pool") {
+        val block = CpdfBlock(listOf(CpdfPoolEntry(10u, 512u), CpdfPoolEntry(5u, 1024u)))
+        block.poolEntry(2)?.pageCount shouldBe 5u
+    }
+
+    test("poolEntry: poolId 0 returns null") {
+        val block = CpdfBlock(listOf(CpdfPoolEntry(10u, 512u)))
+        block.poolEntry(0) shouldBe null
+    }
+
+    test("poolEntry: poolId beyond range returns null") {
+        val block = CpdfBlock(listOf(CpdfPoolEntry(10u, 512u)))
+        block.poolEntry(2) shouldBe null
+    }
 })
