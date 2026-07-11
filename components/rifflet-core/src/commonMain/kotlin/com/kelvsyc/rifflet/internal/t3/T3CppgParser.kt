@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.t3
 
+import com.kelvsyc.rifflet.internal.core.toByteString
 import com.kelvsyc.rifflet.t3.CppgBlock
 import okio.ByteString
 
@@ -15,6 +16,6 @@ internal object T3CppgParser {
         if (xorMask != 0) {
             for (i in bytes.indices) bytes[i] = (bytes[i].toInt() xor xorMask).toByte()
         }
-        return CppgBlock(poolId, pageIndex, xorMask, ByteString.of(*bytes))
+        return CppgBlock(poolId, pageIndex, xorMask, bytes.toByteString())
     }
 }
