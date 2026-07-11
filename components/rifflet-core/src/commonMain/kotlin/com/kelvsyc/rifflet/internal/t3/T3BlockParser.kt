@@ -22,6 +22,7 @@ internal object T3BlockParser {
         T3BlockIds.EOF -> parseEnd(raw)
         T3BlockIds.FNSD -> T3FnsdParser.parse(raw)
         T3BlockIds.GSYM -> T3GsymParser.parse(raw)
+        T3BlockIds.MACR -> T3MacrParser.parse(raw)
         T3BlockIds.MHLS -> T3MhlsParser.parse(raw)
         T3BlockIds.MRES -> T3MresParser.parse(raw)
         T3BlockIds.MREL -> T3MrelParser.parse(raw)
