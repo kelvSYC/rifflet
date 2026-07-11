@@ -1,6 +1,6 @@
 # rifflet-core
 
-Kotlin Multiplatform library for parsing and writing IFF (Interchange File Format), RIFF, and RIFX files. Targets JVM; no platform-specific dependencies.
+Kotlin Multiplatform library for parsing and writing IFF (Interchange File Format), RIFF, and RIFX files, and for parsing T3 VM image files. Targets JVM; no platform-specific dependencies.
 
 ## IFF primer
 
@@ -603,3 +603,145 @@ smplEncoder.encode(sample, sink)
 ### Choosing between RIFF and RIFX
 
 Use `RiffRootParser` / `RiffRootEncoder` for little-endian RIFF files (WAV, AVI, and most Windows multimedia formats). Use `RifxRootParser` / `RifxRootEncoder` for big-endian RIFX files. The FourCC in the first four bytes of the file identifies which format is in use: `RIFF` for little-endian, `RIFX` for big-endian.
+
+---
+
+## T3 (TADS 3 VM image format)
+
+T3 is the binary image format used by the TADS 3 interactive fiction virtual machine. A `.t3` file is a sequence of typed blocks, each with a 4-byte ASCII type ID, a 4-byte little-endian body size, and a 2-byte flags word. The block vocabulary is closed and fully specified; no parser registry is needed or supported.
+
+Unlike the IFF/RIFF pipeline, T3 support is **parse-only** — there is no encoding API.
+
+### T3 primer
+
+| Block ID | Type | Mandatory | Purpose |
+|---|---|---|---|
+| `ENTP` | `EntryPointBlock` | yes | Code pool entry point offset and fixed debug-record sizes |
+| `OBJS` | `ObjsBlock` | yes | Static object definitions, grouped by metaclass; per-object data is raw `ByteString` |
+| `CPDF` | `CpdfBlock` | yes | Constant pool definition (pool count, page counts, page sizes) |
+| `CPPG` | `CppgBlock` | yes | One constant pool page per block (bytecode, strings, lists, …) |
+| `MRES` | `MresBlock` | no | Embedded multimedia resources |
+| `MREL` | `MrelBlock` | no | External multimedia resource links |
+| `MCLD` | `McldBlock` | yes | Metaclass dependency list; maps metaclass index numbers to names and property IDs |
+| `FNSD` | `FnsdBlock` | yes | Function set dependency list; maps function set index numbers to names |
+| `SYMD` | `SymdBlock` | yes | Symbolic names for objects and properties |
+| `SRCF` | `SrcfBlock` | no | Source file descriptors (file names and per-method line-number tables) |
+| `GSYM` | `GsymBlock` | no | Global symbol table |
+| `MHLS` | `MhlsBlock` | no | Method header list |
+| `MACR` | `MacrBlock` | no | Preprocessor macro symbol table |
+| `SINI` | `SiniBlock` | no | Static initializer list (object/property pairs) |
+| `EOF ` | `EndBlock` | yes | Sentinel marking the end of the image |
+
+Each `CPPG` block represents one page of one pool. A real image will contain many `CPPG` blocks — one per page per pool. Pool 1 is the method (bytecode) pool; pool 2 is the constant (data) pool.
+
+### Parsing
+
+```kotlin
+import com.kelvsyc.rifflet.t3.T3RootParser
+import com.kelvsyc.rifflet.t3.EntryPointBlock
+import com.kelvsyc.rifflet.t3.McldBlock
+import com.kelvsyc.rifflet.t3.ObjsBlock
+import okio.FileSystem
+import okio.Path.Companion.toPath
+
+val image: T3Image = FileSystem.SYSTEM.source("game.t3".toPath()).use { T3RootParser.parse(it) }
+
+// All blocks in file order, including the terminal EndBlock
+val blocks: List<T3Block> = image.blocks
+```
+
+`T3RootParser.parse` throws `RiffletParseException` when the source is not a well-formed T3 image.
+
+### Accessing blocks
+
+Blocks are returned in file order. Use `filterIsInstance` to narrow to a specific type:
+
+```kotlin
+val entp: EntryPointBlock = image.blocks.filterIsInstance<EntryPointBlock>().first()
+println("Entry point: pool offset ${entp.codePoolEntryPointOffset}")
+```
+
+Unknown or optional blocks with the mandatory flag absent are returned as `T3RawBlock` instances, giving access to the raw body bytes.
+
+### Cross-block helpers
+
+`T3Image` and some block types provide helpers for the most common cross-block operations:
+
+#### Metaclass lookup
+
+`McldBlock` maps metaclass index numbers (used in `ObjsBlock.metaclassIndex`) to their names and property IDs:
+
+```kotlin
+val mcld: McldBlock = image.blocks.filterIsInstance<McldBlock>().first()
+
+// Resolve a metaclass index to its entry
+val entry: McldEntry? = mcld.entryForIndex(someObjsBlock.metaclassIndex)
+println(entry?.name)  // e.g. "tads-object/030001"
+
+// Find a metaclass by name
+val idx: Int? = mcld.indexOf("list/030001")
+val listBlocks: List<ObjsBlock> = image.blocks
+    .filterIsInstance<ObjsBlock>()
+    .filter { it.metaclassIndex == idx }
+```
+
+#### Multimedia resource lookup
+
+`T3Image.findResource` scans `MRES` and `MREL` blocks together in file order, matching the reference VM's combined-namespace lookup:
+
+```kotlin
+val resource: T3Resource? = image.findResource("splash.jpg")
+when (resource) {
+    is MresEntry -> /* embedded: resource.data() returns the raw bytes */
+    is MrelEntry -> /* external: resource.filename is the relative path */
+    null -> /* not found */
+}
+```
+
+#### Object lookup
+
+`T3Image.findObject` scans all `ObjsBlock` entries in file order:
+
+```kotlin
+val obj: ObjsObject? = image.findObject(objectId = 0x1001u)
+// obj.data is a raw ByteString; interpretation depends on the metaclass
+```
+
+#### Constant pool access
+
+`T3Image.readFromPool` reads bytes from a pool by virtual byte offset, handling page boundaries transparently:
+
+```kotlin
+// Read 64 bytes from the constant pool (pool 2) at offset 0x100
+val bytes: ByteString? = image.readFromPool(poolId = 2, offset = 0x100u, size = 64)
+```
+
+Returns `null` if the pool ID is invalid or a required `CPPG` page is absent.
+
+`CpdfBlock.poolEntry` converts a 1-based pool ID to its `CpdfPoolEntry` (page count and page size):
+
+```kotlin
+val cpdf: CpdfBlock = image.blocks.filterIsInstance<CpdfBlock>().first()
+val pool1: CpdfPoolEntry? = cpdf.poolEntry(1)  // method pool
+val pool2: CpdfPoolEntry? = cpdf.poolEntry(2)  // constant pool
+```
+
+#### CPPG page data
+
+Each `CppgBlock.pageData` is already XOR-decoded (the T3 spec's lightweight obfuscation is applied during parsing). If the original on-disk bytes are needed, call `rawPageData()`:
+
+```kotlin
+val page: CppgBlock = image.blocks.filterIsInstance<CppgBlock>()
+    .first { it.poolId == 1 && it.pageIndex == 0u }
+val logical: ByteString = page.pageData     // de-masked
+val raw: ByteString = page.rawPageData()    // original on-disk bytes
+```
+
+### Error handling
+
+`T3RootParser.parse` throws `RiffletParseException` (unchecked) when:
+
+- The magic bytes or image header are invalid.
+- A block with the mandatory flag set has an unrecognized type ID.
+- The `EOF ` block is missing or malformed.
+- The binary data is truncated mid-block.

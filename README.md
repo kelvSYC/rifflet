@@ -1,6 +1,6 @@
 # Rifflet
 
-Kotlin Multiplatform library for parsing and writing IFF (Interchange File Format) binary files and derivatives such as RIFF and RIFX.
+Kotlin Multiplatform library for parsing and writing IFF (Interchange File Format) binary files and derivatives, and for parsing T3 VM image files.
 
 ## Features
 
@@ -8,13 +8,14 @@ Kotlin Multiplatform library for parsing and writing IFF (Interchange File Forma
 - RIFF support (little-endian IFF variant used by WAV, AVI, etc.)
 - RIFX support (big-endian RIFF variant)
 - Chunk-level parsing and encoding API
+- T3 VM image file parsing (bytecode pools, object definitions, constant pools, resource metadata, debug symbols)
 - Built on [Okio](https://square.github.io/okio/) for efficient I/O across platforms
 
 ## Modules
 
 | Module | Coordinates | Description |
 |---|---|---|
-| `rifflet-core` | `com.kelvsyc.rifflet:rifflet-core` | Core IFF/RIFF/RIFX parsing and writing primitives |
+| `rifflet-core` | `com.kelvsyc.rifflet:rifflet-core` | Core IFF/RIFF/RIFX parsing and writing primitives; T3 VM image file parsing |
 
 ## Platform Support
 
