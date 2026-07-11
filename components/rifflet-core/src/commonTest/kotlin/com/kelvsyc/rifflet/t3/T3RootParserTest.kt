@@ -61,6 +61,21 @@ private fun mresBinary(vararg resources: Pair<String, ByteArray>): ByteArray {
     return body.readByteArray()
 }
 
+/** Builds an MREL block body (entry count + name/filename mappings, both plain, no XOR). */
+private fun mrelBinary(vararg mappings: Pair<String, String>): ByteArray {
+    val body = Buffer()
+    body.writeShortLe(mappings.size)
+    for ((name, filename) in mappings) {
+        val nameBytes = Buffer().apply { writeString(name, Charsets.ISO_8859_1) }.readByteArray()
+        val filenameBytes = Buffer().apply { writeString(filename, Charsets.ISO_8859_1) }.readByteArray()
+        body.writeByte(nameBytes.size)
+        body.write(nameBytes)
+        body.writeByte(filenameBytes.size)
+        body.write(filenameBytes)
+    }
+    return body.readByteArray()
+}
+
 class T3RootParserTest : FunSpec({
 
     test("well-formed image parses header and all blocks, ending with EndBlock") {
@@ -112,6 +127,20 @@ class T3RootParserTest : FunSpec({
         (image.findResource("A.WAV") as MresEntry).data() shouldBe ByteString.of(0x01, 0x02)
     }
 
+    test("well-formed image containing an MREL block dispatches it correctly") {
+        val source = Buffer().apply {
+            writeAll(preambleBinary())
+            writeAll(blockBinary("MREL", flags = 0x0000, data = mrelBinary("SPLASH.PNG" to "art/splash.png")))
+            writeAll(blockBinary("EOF ", flags = 0x0001))
+        }
+        val image = T3RootParser.parse(source)
+        image.blocks.size shouldBe 2
+        val mrel = image.blocks[0] as MrelBlock
+        mrel.entries.size shouldBe 1
+        mrel.entries[0].name shouldBe "SPLASH.PNG"
+        (image.findResource("SPLASH.PNG") as MrelEntry).filename shouldBe "art/splash.png"
+    }
+
     context("truncated input") {
         test("source ending mid-preamble throws RiffletParseException") {
             val source = Buffer().apply { write(VALID_MAGIC) }
@@ -149,6 +178,17 @@ class T3RootParserTest : FunSpec({
             val source = Buffer().apply {
                 writeAll(preambleBinary())
                 writeString("MRES", Charsets.ISO_8859_1)
+                writeIntLe(100)
+                writeShortLe(0x0000)
+                write(byteArrayOf(0x01, 0x02))
+            }
+            shouldThrow<RiffletParseException> { T3RootParser.parse(source) }
+        }
+
+        test("source ending mid-MREL-block-body throws RiffletParseException") {
+            val source = Buffer().apply {
+                writeAll(preambleBinary())
+                writeString("MREL", Charsets.ISO_8859_1)
                 writeIntLe(100)
                 writeShortLe(0x0000)
                 write(byteArrayOf(0x01, 0x02))
