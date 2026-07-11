@@ -37,7 +37,7 @@ class T3ImageTest : FunSpec({
                 EndBlock,
             ),
         )
-        image.findResource("DUP.WAV")?.data() shouldBe ByteString.of(0x01)
+        (image.findResource("DUP.WAV") as MresEntry).data() shouldBe ByteString.of(0x01)
     }
 
     test("findResource returns null when no MRES blocks are present") {
@@ -55,5 +55,34 @@ class T3ImageTest : FunSpec({
             ),
         )
         image.findResource("sound.wav")?.name shouldBe "Sound.WAV"
+    }
+
+    test("findResource finds a resource only present in an MrelBlock") {
+        val image = T3Image(header(), listOf(MrelBlock(listOf(MrelEntry("A.WAV", "sound/a.wav"))), EndBlock))
+        (image.findResource("A.WAV") as MrelEntry).filename shouldBe "sound/a.wav"
+    }
+
+    test("findResource prefers an MrelBlock over a later MresBlock with the same name") {
+        val image = T3Image(
+            header(),
+            listOf(
+                MrelBlock(listOf(MrelEntry("DUP.WAV", "sound/linked.wav"))),
+                MresBlock(listOf(entry("DUP.WAV", byteArrayOf(0x01)))),
+                EndBlock,
+            ),
+        )
+        (image.findResource("DUP.WAV") as MrelEntry).filename shouldBe "sound/linked.wav"
+    }
+
+    test("findResource prefers an MresBlock over a later MrelBlock with the same name") {
+        val image = T3Image(
+            header(),
+            listOf(
+                MresBlock(listOf(entry("DUP.WAV", byteArrayOf(0x01)))),
+                MrelBlock(listOf(MrelEntry("DUP.WAV", "sound/linked.wav"))),
+                EndBlock,
+            ),
+        )
+        (image.findResource("DUP.WAV") as MresEntry).data() shouldBe ByteString.of(0x01)
     }
 })

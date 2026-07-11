@@ -109,7 +109,7 @@ class T3RootParserTest : FunSpec({
         val mres = image.blocks[0] as MresBlock
         mres.entries.size shouldBe 1
         mres.entries[0].name shouldBe "A.WAV"
-        image.findResource("A.WAV")?.data() shouldBe ByteString.of(0x01, 0x02)
+        (image.findResource("A.WAV") as MresEntry).data() shouldBe ByteString.of(0x01, 0x02)
     }
 
     context("truncated input") {
