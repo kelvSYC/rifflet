@@ -162,6 +162,42 @@ private fun macrBinary(name: String, expansion: String): ByteArray {
     }.readByteArray()
 }
 
+private fun cpdfBinary(vararg pools: Pair<UInt, UInt>): ByteArray = Buffer().apply {
+    writeShortLe(pools.size)
+    for ((pageCount, pageSize) in pools) {
+        writeIntLe(pageCount.toInt())
+        writeIntLe(pageSize.toInt())
+    }
+}.readByteArray()
+
+private fun cppgBinary(
+    poolId: Int,
+    pageIndex: UInt,
+    xorMask: Int,
+    pageData: ByteArray,
+): ByteArray = Buffer().apply {
+    writeShortLe(poolId)
+    writeIntLe(pageIndex.toInt())
+    writeByte(xorMask)
+    write(pageData)
+}.readByteArray()
+
+private fun objsBinary(
+    metaclassIndex: Int,
+    flags: Int = 0,
+    vararg objects: Pair<UInt, ByteArray>,
+): ByteArray = Buffer().apply {
+    val isLarge = flags and 0x01 != 0
+    writeShortLe(objects.size)
+    writeShortLe(metaclassIndex)
+    writeShortLe(flags)
+    for ((objectId, data) in objects) {
+        writeIntLe(objectId.toInt())
+        if (isLarge) writeIntLe(data.size) else writeShortLe(data.size)
+        write(data)
+    }
+}.readByteArray()
+
 class T3RootParserTest : FunSpec({
 
     test("well-formed image parses header and all blocks, ending with EndBlock") {
@@ -308,6 +344,44 @@ class T3RootParserTest : FunSpec({
         val macr = image.blocks[0] as MacrBlock
         macr.entries[0].name shouldBe "VERSION"
         macr.entries[0].expansion shouldBe "3"
+    }
+
+    test("well-formed image containing a CPDF block dispatches it correctly") {
+        val source = Buffer().apply {
+            writeAll(preambleBinary())
+            writeAll(blockBinary("CPDF", flags = 0x0001, data = cpdfBinary(10u to 512u, 5u to 1024u)))
+            writeAll(blockBinary("EOF ", flags = 0x0001))
+        }
+        val image = T3RootParser.parse(source)
+        val cpdf = image.blocks[0] as CpdfBlock
+        cpdf.pools.size shouldBe 2
+        cpdf.pools[0].pageCount shouldBe 10u
+        cpdf.pools[0].pageSize shouldBe 512u
+    }
+
+    test("well-formed image containing a CPPG block dispatches it correctly") {
+        val source = Buffer().apply {
+            writeAll(preambleBinary())
+            writeAll(blockBinary("CPPG", flags = 0x0001, data = cppgBinary(1, 0u, 0, byteArrayOf(0x01, 0x02, 0x03))))
+            writeAll(blockBinary("EOF ", flags = 0x0001))
+        }
+        val image = T3RootParser.parse(source)
+        val cppg = image.blocks[0] as CppgBlock
+        cppg.poolId shouldBe 1
+        cppg.pageIndex shouldBe 0u
+        cppg.pageData shouldBe ByteString.of(0x01, 0x02, 0x03)
+    }
+
+    test("well-formed image containing an OBJS block dispatches it correctly") {
+        val source = Buffer().apply {
+            writeAll(preambleBinary())
+            writeAll(blockBinary("OBJS", flags = 0x0001, data = objsBinary(3, objects = arrayOf(0x0042u to byteArrayOf(0xFF.toByte())))))
+            writeAll(blockBinary("EOF ", flags = 0x0001))
+        }
+        val image = T3RootParser.parse(source)
+        val objs = image.blocks[0] as ObjsBlock
+        objs.metaclassIndex shouldBe 3
+        objs.objects[0].objectId shouldBe 0x0042u
     }
 
     context("truncated input") {
