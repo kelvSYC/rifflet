@@ -1,7 +1,7 @@
 package com.kelvsyc.rifflet.t3
 
 import com.kelvsyc.rifflet.core.ChunkId
-import com.kelvsyc.rifflet.internal.core.toByteString
+import okio.Buffer
 import okio.ByteString
 
 data class CppgBlock(
@@ -21,6 +21,6 @@ data class CppgBlock(
         if (xorMask == 0) return pageData
         val bytes = pageData.toByteArray()
         for (i in bytes.indices) bytes[i] = (bytes[i].toInt() xor xorMask).toByte()
-        return bytes.toByteString()
+        return Buffer().write(bytes).readByteString()
     }
 }

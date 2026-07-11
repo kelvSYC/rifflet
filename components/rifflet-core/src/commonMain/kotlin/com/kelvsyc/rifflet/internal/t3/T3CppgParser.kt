@@ -1,8 +1,7 @@
 package com.kelvsyc.rifflet.internal.t3
 
-import com.kelvsyc.rifflet.internal.core.toByteString
 import com.kelvsyc.rifflet.t3.CppgBlock
-import okio.ByteString
+import okio.Buffer
 
 internal object T3CppgParser {
     private const val HEADER_SIZE = 7L  // UINT2 (2) + UINT4 (4) + UINT1 (1)
@@ -16,6 +15,6 @@ internal object T3CppgParser {
         if (xorMask != 0) {
             for (i in bytes.indices) bytes[i] = (bytes[i].toInt() xor xorMask).toByte()
         }
-        return CppgBlock(poolId, pageIndex, xorMask, bytes.toByteString())
+        return CppgBlock(poolId, pageIndex, xorMask, Buffer().write(bytes).readByteString())
     }
 }
