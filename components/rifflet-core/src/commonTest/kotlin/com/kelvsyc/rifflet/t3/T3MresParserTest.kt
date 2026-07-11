@@ -96,4 +96,16 @@ class T3MresParserTest : FunSpec({
         }
         shouldThrow<RiffletParseException> { T3MresParser.parse(rawBlock(body)) }
     }
+
+    test("entry offset+size that would overflow UInt still throws RiffletParseException") {
+        val body = Buffer().apply {
+            writeShortLe(1)
+            writeIntLe(UInt.MAX_VALUE.toInt()) // offset = UInt.MAX_VALUE
+            writeIntLe(2) // size = 2; offset + size wraps past UInt.MAX_VALUE back to 1u as plain UInt arithmetic
+            val name = xorBytes(asciiBytes("NAME"))
+            writeByte(name.size)
+            write(name)
+        }
+        shouldThrow<RiffletParseException> { T3MresParser.parse(rawBlock(body)) }
+    }
 })

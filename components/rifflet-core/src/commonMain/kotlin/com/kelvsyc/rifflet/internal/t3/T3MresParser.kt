@@ -30,7 +30,7 @@ internal object T3MresParser {
                 val name = buildString {
                     for (b in nameBytes) append(((b.toInt() xor NAME_XOR_MASK) and 0xFF).toChar())
                 }
-                if (offset + size > body.size.toUInt())
+                if (offset.toULong() + size.toULong() > body.size.toULong())
                     throw RiffletParseException("MRES entry '$name' data range exceeds block size")
                 add(MresEntry(name, offset, size, body))
             }
