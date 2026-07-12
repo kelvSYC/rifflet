@@ -8,6 +8,12 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.DiffEntry
+import com.kelvsyc.rifflet.civ3.DiffSection
+import com.kelvsyc.rifflet.civ3.ErasEntry
+import com.kelvsyc.rifflet.civ3.ErasSection
+import com.kelvsyc.rifflet.civ3.WsizEntry
+import com.kelvsyc.rifflet.civ3.WsizSection
 
 /** Builds a valid 732-byte VER# section: marker, header count/length, version, description, title. */
 private fun verSectionBytes(major: Int = 12, minor: Int = 7): Buffer = Buffer().apply {
@@ -30,6 +36,44 @@ private fun rawSectionBytes(marker: String, items: List<ByteArray>): Buffer = Bu
         writeIntLe(it.size)
         write(it)
     }
+}
+
+/** Builds a well-formed 80-byte WSIZ item body (no length prefix; the caller adds it via [oneItemSectionBytes]). */
+private fun wsizItemBody(): Buffer = Buffer().apply {
+    writeIntLe(12) // optimalNumberOfCities
+    writeIntLe(4) // techRate
+    write(ByteArray(24)) // reserved
+    writeString("Standard", Charsets.US_ASCII)
+    write(ByteArray(32 - 8)) // pad "Standard" (8 bytes) to 32
+    writeIntLe(60) // height
+    writeIntLe(6) // distanceBetweenCivs
+    writeIntLe(7) // numberOfCivs
+    writeIntLe(80) // width
+}
+
+/** Builds a well-formed 120-byte DIFF item body. */
+private fun diffItemBody(): Buffer = Buffer().apply {
+    writeString("Chieftain", Charsets.US_ASCII)
+    write(ByteArray(64 - 9)) // pad "Chieftain" (9 bytes) to 64
+    repeat(14) { writeIntLe(it) }
+}
+
+/** Builds a well-formed 264-byte ERAS item body. */
+private fun erasItemBody(): Buffer = Buffer().apply {
+    writeString("Ancient", Charsets.US_ASCII)
+    write(ByteArray(64 - 7)) // pad "Ancient" (7 bytes) to 64
+    write(ByteArray(32)) // civilopediaEntry: empty
+    repeat(5) { write(ByteArray(32)) } // researcher1..5: empty
+    writeIntLe(0) // numberOfUsedResearcherNames
+    write(ByteArray(4)) // unknown
+}
+
+/** Wraps a single item body into a full section: marker, count=1, length prefix, item body. */
+private fun oneItemSectionBytes(marker: String, itemBody: Buffer): Buffer = Buffer().apply {
+    writeString(marker, Charsets.US_ASCII)
+    writeIntLe(1)
+    writeIntLe(itemBody.size.toInt())
+    writeAll(itemBody)
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -69,5 +113,45 @@ class Civ3RootParserTest : FunSpec({
             write(ByteArray(10))
         }
         shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
+    test("WSIZ section produces a typed WsizSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("WSIZ", wsizItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            WsizSection(
+                listOf(WsizEntry(12, 4, ByteString.of(*ByteArray(24)), "Standard", 60, 6, 7, 80)),
+            ),
+        )
+    }
+
+    test("DIFF section produces a typed DiffSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("DIFF", diffItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            DiffSection(listOf(DiffEntry("Chieftain", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13))),
+        )
+    }
+
+    test("ERAS section produces a typed ErasSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("ERAS", erasItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            ErasSection(
+                listOf(ErasEntry("Ancient", "", "", "", "", "", "", 0, ByteString.of(*ByteArray(4)))),
+            ),
+        )
     }
 })
