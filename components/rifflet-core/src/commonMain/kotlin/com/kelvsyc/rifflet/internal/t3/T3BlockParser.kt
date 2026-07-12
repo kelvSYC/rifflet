@@ -3,6 +3,7 @@ package com.kelvsyc.rifflet.internal.t3
 import com.kelvsyc.rifflet.core.RiffletParseException
 import com.kelvsyc.rifflet.t3.EndBlock
 import com.kelvsyc.rifflet.t3.EntryPointBlock
+import com.kelvsyc.rifflet.t3.McldBlock
 import com.kelvsyc.rifflet.t3.T3Block
 import com.kelvsyc.rifflet.t3.T3BlockIds
 import com.kelvsyc.rifflet.t3.T3RawBlock
@@ -25,6 +26,7 @@ internal object T3BlockParser {
         T3BlockIds.FNSD -> T3FnsdParser.parse(raw)
         T3BlockIds.GSYM -> T3GsymParser.parse(raw)
         T3BlockIds.MACR -> T3MacrParser.parse(raw)
+        T3BlockIds.MCLD -> T3McldParser.parse(raw)
         T3BlockIds.MHLS -> T3MhlsParser.parse(raw)
         T3BlockIds.MRES -> T3MresParser.parse(raw)
         T3BlockIds.MREL -> T3MrelParser.parse(raw)

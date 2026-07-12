@@ -9,6 +9,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
 
+private val UNKNOWN_BLOCK_TYPE = ChunkId("UNKW")
+
 private fun rawBlock(type: ChunkId, flags: Int, body: Buffer): T3RawBufferedBlock =
     T3RawBufferedBlock(type, flags, body, body.size.toUInt())
 
@@ -72,15 +74,25 @@ class T3BlockParserTest : FunSpec({
     context("unmodeled block type") {
         test("non-mandatory block is preserved as T3RawBlock") {
             val body = Buffer().apply { writeString("payload", Charsets.ISO_8859_1) }
-            val block = T3BlockParser.parse(rawBlock(T3BlockIds.MCLD, 0x0000, body)) as T3RawBlock
-            block.type shouldBe T3BlockIds.MCLD
+            val block = T3BlockParser.parse(rawBlock(UNKNOWN_BLOCK_TYPE, 0x0000, body)) as T3RawBlock
+            block.type shouldBe UNKNOWN_BLOCK_TYPE
             block.flags shouldBe 0x0000
             block.data.utf8() shouldBe "payload"
         }
 
         test("mandatory-but-unrecognized block throws RiffletParseException") {
             val body = Buffer().apply { writeString("payload", Charsets.ISO_8859_1) }
-            shouldThrow<RiffletParseException> { T3BlockParser.parse(rawBlock(T3BlockIds.MCLD, 0x0001, body)) }
+            shouldThrow<RiffletParseException> { T3BlockParser.parse(rawBlock(UNKNOWN_BLOCK_TYPE, 0x0001, body)) }
+        }
+    }
+
+    context("MCLD block") {
+        test("MCLD with mandatory flag dispatches to McldBlock") {
+            val body = Buffer().apply {
+                writeShortLe(0)         // zero entries
+            }
+            val block = T3BlockParser.parse(rawBlock(T3BlockIds.MCLD, 0x0001, body))
+            block shouldBe McldBlock(emptyList())
         }
     }
 })

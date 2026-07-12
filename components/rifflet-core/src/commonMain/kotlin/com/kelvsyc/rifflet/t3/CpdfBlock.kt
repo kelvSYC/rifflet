@@ -4,4 +4,6 @@ import com.kelvsyc.rifflet.core.ChunkId
 
 data class CpdfBlock(val pools: List<CpdfPoolEntry>) : T3Block {
     override val chunkId: ChunkId get() = T3BlockIds.CPDF
+
+    fun poolEntry(poolId: Int): CpdfPoolEntry? = pools.getOrNull(poolId - 1)
 }
