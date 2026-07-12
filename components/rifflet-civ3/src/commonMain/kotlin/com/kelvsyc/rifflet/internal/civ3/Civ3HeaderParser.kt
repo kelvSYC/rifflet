@@ -5,7 +5,6 @@ import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.RiffletParseException
 import com.kelvsyc.rifflet.internal.core.readChunkId
 import okio.BufferedSource
-import okio.ByteString
 
 /**
  * Parses the `VER#` section that begins every Civ3 BIC/BIX/BIQ file (immediately after the
@@ -55,10 +54,5 @@ internal object Civ3HeaderParser {
         val description = source.readByteString(DESCRIPTION_SIZE).truncateAtFirstNull()
         val title = source.readByteString(TITLE_SIZE).truncateAtFirstNull()
         return Civ3Header(major, minor, description, title)
-    }
-
-    private fun ByteString.truncateAtFirstNull(): String {
-        val end = indexOf(byteArrayOf(0))
-        return (if (end == -1) this else substring(0, end)).utf8()
     }
 }
