@@ -61,4 +61,31 @@ class Civ3HeaderParserTest : FunSpec({
         val source = verSectionBinary(headerLength = 100)
         shouldThrow<RiffletParseException> { Civ3HeaderParser.parse(source) }
     }
+
+    test("description with non-zero bytes after null terminator is truncated at first null") {
+        val descText = "Test with garbage"
+        val source = Buffer().apply {
+            writeString("VER#", Charsets.US_ASCII)
+            writeIntLe(1)       // headerCount
+            writeIntLe(720)     // headerLength
+            writeIntLe(0)       // reserved
+            writeIntLe(0)       // reserved
+            writeIntLe(12)      // major
+            writeIntLe(7)       // minor
+
+            // Description field: "Test with garbage" + null byte + non-zero garbage bytes (640 bytes total)
+            writeString(descText, Charsets.US_ASCII)
+            writeByte(0)        // null terminator
+            val garbageSize = 640 - descText.length - 1
+            val garbage = ByteArray(garbageSize) { (it + 1).toByte() } // non-zero filler values
+            write(garbage)
+
+            // Title field: normal null-padded (64 bytes total)
+            writePaddedField("Test Scenario", 64)
+        }
+        val header = Civ3HeaderParser.parse(source)
+        header.description shouldBe "Test with garbage"
+        header.title shouldBe "Test Scenario"
+        source.exhausted() shouldBe true
+    }
 })
