@@ -9,4 +9,5 @@ import com.kelvsyc.rifflet.core.ChunkId
  */
 object Civ3SectionIds {
     val WSIZ = ChunkId("WSIZ")
+    val DIFF = ChunkId("DIFF")
 }
