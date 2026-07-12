@@ -6,6 +6,7 @@ import com.kelvsyc.rifflet.civ3.Civ3Section
 import com.kelvsyc.rifflet.civ3.Civ3SectionIds
 import com.kelvsyc.rifflet.civ3.DiffSection
 import com.kelvsyc.rifflet.civ3.ErasSection
+import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.internal.core.readChunkId
 import okio.Buffer
@@ -42,6 +43,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.WSIZ -> WsizSection(items.map { WsizEntryParser.parse(it) })
             Civ3SectionIds.DIFF -> DiffSection(items.map { DiffEntryParser.parse(it) })
             Civ3SectionIds.ERAS -> ErasSection(items.map { ErasEntryParser.parse(it) })
+            Civ3SectionIds.GOVT -> GovtSection(items.map { GovtEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }

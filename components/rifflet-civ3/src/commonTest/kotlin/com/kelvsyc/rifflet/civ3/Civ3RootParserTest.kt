@@ -14,6 +14,9 @@ import com.kelvsyc.rifflet.civ3.ErasEntry
 import com.kelvsyc.rifflet.civ3.ErasSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
+import com.kelvsyc.rifflet.civ3.GovtEntry
+import com.kelvsyc.rifflet.civ3.GovtRelationship
+import com.kelvsyc.rifflet.civ3.GovtSection
 
 /** Builds a valid 732-byte VER# section: marker, header count/length, version, description, title. */
 private fun verSectionBytes(major: Int = 12, minor: Int = 7): Buffer = Buffer().apply {
@@ -74,6 +77,47 @@ private fun oneItemSectionBytes(marker: String, itemBody: Buffer): Buffer = Buff
     writeIntLe(1)
     writeIntLe(itemBody.size.toInt())
     writeAll(itemBody)
+}
+
+/** Builds a well-formed GOVT item body with one relationship entry. */
+private fun govtItemBody(): Buffer = Buffer().apply {
+    writeIntLe(0) // defaultType
+    writeIntLe(0) // transitionType
+    writeIntLe(1) // requiresMaintenance
+    writeIntLe(0) // toggle1
+    writeIntLe(0) // tilePenalty
+    writeIntLe(0) // tradeBonus
+    writeString("Despotism", Charsets.US_ASCII)
+    write(ByteArray(64 - 9)) // pad "Despotism" (9 bytes) to 64
+    write(ByteArray(32)) // civilopediaEntry
+    repeat(8) { write(ByteArray(32)) } // 4 male/female ruler title pairs
+    writeIntLe(0) // corruption
+    writeIntLe(0) // immuneTo
+    writeIntLe(0) // diplomatsAre
+    writeIntLe(0) // spiesAre
+    writeIntLe(1) // numberOfGovernments
+    writeIntLe(1) // canBribe
+    writeIntLe(20) // briberyModifier
+    writeIntLe(30) // resistanceModifier
+    writeIntLe(0) // hurrying
+    writeIntLe(0) // assimilationChance
+    writeIntLe(0) // draftLimit
+    writeIntLe(0) // militaryPoliceLimit
+    writeIntLe(0) // rulerTitlePairsUsed
+    writeIntLe(0) // prerequisiteTechnology
+    writeIntLe(0) // scienceRateCap
+    writeIntLe(0) // workerRate
+    writeIntLe(-1) // toggle2
+    writeIntLe(0) // toggle3
+    write(ByteArray(4)) // unknown
+    writeIntLe(0) // freeUnits
+    writeIntLe(0) // freeUnitsPerTown
+    writeIntLe(0) // freeUnitsPerCity
+    writeIntLe(0) // freeUnitsPerMetropolis
+    writeIntLe(0) // unitCost
+    writeIntLe(0) // warWeariness
+    writeIntLe(0) // xenophobic
+    writeIntLe(0) // forceResettle
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -151,6 +195,63 @@ class Civ3RootParserTest : FunSpec({
         file.sections shouldBe listOf(
             ErasSection(
                 listOf(ErasEntry("Ancient", "", "", "", "", "", "", 0, ByteString.of(*ByteArray(4)))),
+            ),
+        )
+    }
+
+    test("GOVT section produces a typed GovtSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("GOVT", govtItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            GovtSection(
+                listOf(
+                    GovtEntry(
+                        defaultType = 0,
+                        transitionType = 0,
+                        requiresMaintenance = 1,
+                        toggle1 = 0,
+                        tilePenalty = 0,
+                        tradeBonus = 0,
+                        name = "Despotism",
+                        civilopediaEntry = "",
+                        maleRulerTitle1 = "",
+                        femaleRulerTitle1 = "",
+                        maleRulerTitle2 = "",
+                        femaleRulerTitle2 = "",
+                        maleRulerTitle3 = "",
+                        femaleRulerTitle3 = "",
+                        maleRulerTitle4 = "",
+                        femaleRulerTitle4 = "",
+                        corruption = 0,
+                        immuneTo = 0,
+                        diplomatsAre = 0,
+                        spiesAre = 0,
+                        relationships = listOf(GovtRelationship(1, 20, 30)),
+                        hurrying = 0,
+                        assimilationChance = 0,
+                        draftLimit = 0,
+                        militaryPoliceLimit = 0,
+                        rulerTitlePairsUsed = 0,
+                        prerequisiteTechnology = 0,
+                        scienceRateCap = 0,
+                        workerRate = 0,
+                        toggle2 = -1,
+                        toggle3 = 0,
+                        unknown = ByteString.of(0, 0, 0, 0),
+                        freeUnits = 0,
+                        freeUnitsPerTown = 0,
+                        freeUnitsPerCity = 0,
+                        freeUnitsPerMetropolis = 0,
+                        unitCost = 0,
+                        warWeariness = 0,
+                        xenophobic = 0,
+                        forceResettle = 0,
+                    ),
+                ),
             ),
         )
     }
