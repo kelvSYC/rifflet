@@ -24,4 +24,14 @@ class PkwareBitReaderTest : FunSpec({
         reader.bits(12) shouldBe 948
         reader.bits(4) shouldBe 0
     }
+
+    test("decode reads successive canonical Huffman codes from a small synthetic table") {
+        // Table: symbol 0 has a 1-bit code, symbols 1 and 2 share 2-bit codes.
+        // Compact repeat form: (0 repeats<<4 | length 1) = 0x01, (1 repeat<<4 | length 2) = 0x12.
+        val table = constructHuffmanTable(intArrayOf(0x01, 0x12), 3)
+        val reader = PkwareBitReader(Buffer().write("05".decodeHex()))
+        reader.decode(table) shouldBe 0
+        reader.decode(table) shouldBe 1
+        reader.decode(table) shouldBe 2
+    }
 })
