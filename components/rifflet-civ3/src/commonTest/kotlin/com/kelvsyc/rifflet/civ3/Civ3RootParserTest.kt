@@ -8,10 +8,16 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.CtznEntry
+import com.kelvsyc.rifflet.civ3.CtznSection
+import com.kelvsyc.rifflet.civ3.CultEntry
+import com.kelvsyc.rifflet.civ3.CultSection
 import com.kelvsyc.rifflet.civ3.DiffEntry
 import com.kelvsyc.rifflet.civ3.DiffSection
 import com.kelvsyc.rifflet.civ3.ErasEntry
 import com.kelvsyc.rifflet.civ3.ErasSection
+import com.kelvsyc.rifflet.civ3.ExprEntry
+import com.kelvsyc.rifflet.civ3.ExprSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
@@ -172,6 +178,42 @@ private fun raceItemBody(): Buffer = Buffer().apply {
     writeIntLe(1) // numberOfScientificLeaders
     writeString("Archimedes", Charsets.US_ASCII)
     write(ByteArray(32 - 10)) // pad "Archimedes" (10 bytes) to 32
+}
+
+/** Builds a well-formed 40-byte EXPR item body. */
+private fun exprItemBody(): Buffer = Buffer().apply {
+    writeString("Veteran", Charsets.US_ASCII)
+    write(ByteArray(32 - 7)) // pad "Veteran" (7 bytes) to 32
+    writeIntLe(10) // baseHitPoints
+    writeIntLe(20) // retreatBonus
+}
+
+/** Builds a well-formed 88-byte CULT item body. */
+private fun cultItemBody(): Buffer = Buffer().apply {
+    writeString("Legendary", Charsets.US_ASCII)
+    write(ByteArray(64 - 9)) // pad "Legendary" (9 bytes) to 64
+    writeIntLe(10) // chanceOfSuccessfulPropaganda
+    writeIntLe(300) // cultureRatioPercentage
+    writeIntLe(1) // cultureRatioDenominator
+    writeIntLe(3) // cultureRatioNumerator
+    writeIntLe(50) // initialResistanceChance
+    writeIntLe(25) // continuedResistanceChance
+}
+
+/** Builds a well-formed 124-byte CTZN item body. */
+private fun ctznItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // defaultCitizen
+    writeString("Entertainer", Charsets.US_ASCII)
+    write(ByteArray(32 - 11)) // pad "Entertainer" (11 bytes) to 32
+    write(ByteArray(32)) // civilopediaEntry
+    writeString("Entertainers", Charsets.US_ASCII)
+    write(ByteArray(32 - 12)) // pad "Entertainers" (12 bytes) to 32
+    writeIntLe(-1) // prerequisite
+    writeIntLe(3) // luxuries
+    writeIntLe(0) // research
+    writeIntLe(0) // taxes
+    writeIntLe(0) // corruption
+    writeIntLe(0) // construction
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -364,5 +406,39 @@ class Civ3RootParserTest : FunSpec({
             writeAll(oneItemSectionBytes("RACE", raceItemBody()))
         }
         shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
+    test("EXPR section produces a typed ExprSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("EXPR", exprItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(ExprSection(listOf(ExprEntry("Veteran", 10, 20))))
+    }
+
+    test("CULT section produces a typed CultSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("CULT", cultItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            CultSection(listOf(CultEntry("Legendary", 10, 300, 1, 3, 50, 25))),
+        )
+    }
+
+    test("CTZN section produces a typed CtznSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("CTZN", ctznItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            CtznSection(listOf(CtznEntry(1, "Entertainer", "", "Entertainers", -1, 3, 0, 0, 0, 0))),
+        )
     }
 })
