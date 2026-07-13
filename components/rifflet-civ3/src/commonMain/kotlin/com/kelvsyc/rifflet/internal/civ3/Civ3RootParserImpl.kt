@@ -9,6 +9,7 @@ import com.kelvsyc.rifflet.civ3.CultSection
 import com.kelvsyc.rifflet.civ3.DiffSection
 import com.kelvsyc.rifflet.civ3.ErasSection
 import com.kelvsyc.rifflet.civ3.ExprSection
+import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.RaceSection
 import com.kelvsyc.rifflet.civ3.WsizSection
@@ -64,6 +65,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.EXPR -> ExprSection(items.map { ExprEntryParser.parse(it) })
             Civ3SectionIds.CULT -> CultSection(items.map { CultEntryParser.parse(it) })
             Civ3SectionIds.CTZN -> CtznSection(items.map { CtznEntryParser.parse(it) })
+            Civ3SectionIds.GOOD -> GoodSection(items.map { GoodEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
