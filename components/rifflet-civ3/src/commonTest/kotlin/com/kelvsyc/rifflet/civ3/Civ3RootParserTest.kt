@@ -16,8 +16,12 @@ import com.kelvsyc.rifflet.civ3.DiffEntry
 import com.kelvsyc.rifflet.civ3.DiffSection
 import com.kelvsyc.rifflet.civ3.ErasEntry
 import com.kelvsyc.rifflet.civ3.ErasSection
+import com.kelvsyc.rifflet.civ3.EspnEntry
+import com.kelvsyc.rifflet.civ3.EspnSection
 import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.ExprSection
+import com.kelvsyc.rifflet.civ3.GoodEntry
+import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
@@ -214,6 +218,32 @@ private fun ctznItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // taxes
     writeIntLe(0) // corruption
     writeIntLe(0) // construction
+}
+
+/** Builds a well-formed 88-byte GOOD item body. */
+private fun goodItemBody(): Buffer = Buffer().apply {
+    writeString("Wine", Charsets.US_ASCII)
+    write(ByteArray(24 - 4)) // pad "Wine" (4 bytes) to 24
+    write(ByteArray(32)) // civilopediaEntry
+    writeIntLe(1) // type
+    writeIntLe(50) // appearanceRatio
+    writeIntLe(0) // disappearanceProbability
+    writeIntLe(12) // icon
+    writeIntLe(-1) // prerequisite
+    writeIntLe(0) // foodBonus
+    writeIntLe(0) // shieldsBonus
+    writeIntLe(3) // commerceBonus
+}
+
+/** Builds a well-formed 232-byte ESPN item body. */
+private fun espnItemBody(): Buffer = Buffer().apply {
+    writeString("Steal Technology", Charsets.US_ASCII)
+    write(ByteArray(128 - 16)) // pad "Steal Technology" (16 bytes) to 128
+    writeString("Steal Tech", Charsets.US_ASCII)
+    write(ByteArray(64 - 10)) // pad "Steal Tech" (10 bytes) to 64
+    write(ByteArray(32)) // civilopediaEntry
+    writeIntLe(0b10) // missionFlags: spy-only
+    writeIntLe(100) // baseCost
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -439,6 +469,30 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             CtznSection(listOf(CtznEntry(1, "Entertainer", "", "Entertainers", -1, 3, 0, 0, 0, 0))),
+        )
+    }
+
+    test("GOOD section produces a typed GoodSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("GOOD", goodItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            GoodSection(listOf(GoodEntry("Wine", "", 1, 50, 0, 12, -1, 0, 0, 3))),
+        )
+    }
+
+    test("ESPN section produces a typed EspnSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("ESPN", espnItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            EspnSection(listOf(EspnEntry("Steal Technology", "Steal Tech", "", 0b10, 100))),
         )
     }
 })
