@@ -4,8 +4,11 @@ import com.kelvsyc.rifflet.civ3.Civ3File
 import com.kelvsyc.rifflet.civ3.Civ3RawSection
 import com.kelvsyc.rifflet.civ3.Civ3Section
 import com.kelvsyc.rifflet.civ3.Civ3SectionIds
+import com.kelvsyc.rifflet.civ3.CtznSection
+import com.kelvsyc.rifflet.civ3.CultSection
 import com.kelvsyc.rifflet.civ3.DiffSection
 import com.kelvsyc.rifflet.civ3.ErasSection
+import com.kelvsyc.rifflet.civ3.ExprSection
 import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.RaceSection
 import com.kelvsyc.rifflet.civ3.WsizSection
@@ -58,6 +61,9 @@ internal object Civ3RootParserImpl {
                     ?: throw RiffletParseException("RACE section requires an ERAS section to appear first in the file")
                 RaceSection(items.map { RaceEntryParser.parse(it, eras) })
             }
+            Civ3SectionIds.EXPR -> ExprSection(items.map { ExprEntryParser.parse(it) })
+            Civ3SectionIds.CULT -> CultSection(items.map { CultEntryParser.parse(it) })
+            Civ3SectionIds.CTZN -> CtznSection(items.map { CtznEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
