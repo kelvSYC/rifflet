@@ -12,4 +12,5 @@ object Civ3SectionIds {
     val DIFF = ChunkId("DIFF")
     val ERAS = ChunkId("ERAS")
     val GOVT = ChunkId("GOVT")
+    val RACE = ChunkId("RACE")
 }

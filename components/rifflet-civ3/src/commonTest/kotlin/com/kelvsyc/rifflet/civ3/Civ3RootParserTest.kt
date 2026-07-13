@@ -17,6 +17,9 @@ import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtRelationship
 import com.kelvsyc.rifflet.civ3.GovtSection
+import com.kelvsyc.rifflet.civ3.RaceEntry
+import com.kelvsyc.rifflet.civ3.RaceEraFilenames
+import com.kelvsyc.rifflet.civ3.RaceSection
 
 /** Builds a valid 732-byte VER# section: marker, header count/length, version, description, title. */
 private fun verSectionBytes(major: Int = 12, minor: Int = 7): Buffer = Buffer().apply {
@@ -118,6 +121,57 @@ private fun govtItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // warWeariness
     writeIntLe(0) // xenophobic
     writeIntLe(0) // forceResettle
+}
+
+/** Builds a well-formed RACE item body with one city, one great leader, one era, one scientific leader. */
+private fun raceItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // numberOfCities
+    writeString("Roma", Charsets.US_ASCII)
+    write(ByteArray(24 - 4)) // pad "Roma" (4 bytes) to 24
+    writeIntLe(1) // numberOfGreatLeaders
+    writeString("Caesar", Charsets.US_ASCII)
+    write(ByteArray(32 - 6)) // pad "Caesar" (6 bytes) to 32
+    writeString("Caesar Augustus", Charsets.US_ASCII)
+    write(ByteArray(32 - 15)) // pad "Caesar Augustus" (15 bytes) to 32, leaderName
+    writeString("Emperor", Charsets.US_ASCII)
+    write(ByteArray(24 - 7)) // pad "Emperor" (7 bytes) to 24, leaderTitle
+    write(ByteArray(32)) // civilopediaEntry
+    writeString("Roman", Charsets.US_ASCII)
+    write(ByteArray(40 - 5)) // pad "Roman" (5 bytes) to 40, adjective
+    writeString("Rome", Charsets.US_ASCII)
+    write(ByteArray(40 - 4)) // pad "Rome" (4 bytes) to 40, name
+    writeString("Romans", Charsets.US_ASCII)
+    write(ByteArray(40 - 6)) // pad "Romans" (6 bytes) to 40, noun
+    // one era entry, matching the single ERAS section entry parsed before this RACE section
+    writeString("anc_fwd", Charsets.US_ASCII)
+    write(ByteArray(260 - 7))
+    writeString("anc_rev", Charsets.US_ASCII)
+    write(ByteArray(260 - 7))
+    writeIntLe(0) // cultureGroup
+    writeIntLe(0) // leaderGender
+    writeIntLe(0) // civilizationGender
+    writeIntLe(0) // aggressionLevel
+    writeIntLe(0) // uniqueCivilizationCounter
+    writeIntLe(0) // shunnedGovernment
+    writeIntLe(0) // favoriteGovernment
+    writeIntLe(0) // defaultColor
+    writeIntLe(0) // uniqueColor
+    writeIntLe(0) // freeTech1
+    writeIntLe(0) // freeTech2
+    writeIntLe(0) // freeTech3
+    writeIntLe(0) // freeTech4
+    writeIntLe(0) // bonuses
+    writeIntLe(0) // governorSettings
+    writeIntLe(0) // buildNever
+    writeIntLe(0) // buildOften
+    writeIntLe(0) // plurality
+    writeIntLe(0) // unitTypeForKing
+    writeIntLe(0) // flavors
+    write(ByteArray(4)) // unknown
+    writeIntLe(0) // diplomacyTextIndex
+    writeIntLe(1) // numberOfScientificLeaders
+    writeString("Archimedes", Charsets.US_ASCII)
+    write(ByteArray(32 - 10)) // pad "Archimedes" (10 bytes) to 32
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -254,5 +308,61 @@ class Civ3RootParserTest : FunSpec({
                 ),
             ),
         )
+    }
+
+    test("RACE section after an ERAS section produces a typed RaceSection sized from ERAS's entry count") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("ERAS", erasItemBody()))
+            writeAll(oneItemSectionBytes("RACE", raceItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        val raceSection = file.sections.filterIsInstance<RaceSection>().single()
+        raceSection.entries shouldBe listOf(
+            RaceEntry(
+                cityNames = listOf("Roma"),
+                greatLeaderNames = listOf("Caesar"),
+                leaderName = "Caesar Augustus",
+                leaderTitle = "Emperor",
+                civilopediaEntry = "",
+                adjective = "Roman",
+                name = "Rome",
+                noun = "Romans",
+                eras = listOf(RaceEraFilenames("anc_fwd", "anc_rev")),
+                cultureGroup = 0,
+                leaderGender = 0,
+                civilizationGender = 0,
+                aggressionLevel = 0,
+                uniqueCivilizationCounter = 0,
+                shunnedGovernment = 0,
+                favoriteGovernment = 0,
+                defaultColor = 0,
+                uniqueColor = 0,
+                freeTech1 = 0,
+                freeTech2 = 0,
+                freeTech3 = 0,
+                freeTech4 = 0,
+                bonuses = 0,
+                governorSettings = 0,
+                buildNever = 0,
+                buildOften = 0,
+                plurality = 0,
+                unitTypeForKing = 0,
+                flavors = 0,
+                unknown = ByteString.of(0, 0, 0, 0),
+                diplomacyTextIndex = 0,
+                scientificLeaderNames = listOf("Archimedes"),
+            ),
+        )
+    }
+
+    test("RACE section with no preceding ERAS section throws RiffletParseException") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("RACE", raceItemBody()))
+        }
+        shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
     }
 })
