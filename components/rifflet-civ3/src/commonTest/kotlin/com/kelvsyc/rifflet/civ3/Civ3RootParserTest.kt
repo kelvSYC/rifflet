@@ -28,6 +28,8 @@ import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
+import com.kelvsyc.rifflet.civ3.WchrEntry
+import com.kelvsyc.rifflet.civ3.WchrSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
@@ -274,6 +276,23 @@ private fun flavItemBody(): Buffer = Buffer().apply {
     writeIntLe(2) // numberOfFlavors
     writeIntLe(5) // flavorRelationships[0]
     writeIntLe(-3) // flavorRelationships[1]
+}
+
+/** Builds a well-formed 52-byte WCHR item body. */
+private fun wchrItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // selectedClimate
+    writeIntLe(1) // actualClimate
+    writeIntLe(2) // selectedBarbarianActivity
+    writeIntLe(2) // actualBarbarianActivity
+    writeIntLe(1) // selectedLandform
+    writeIntLe(1) // actualLandform
+    writeIntLe(0) // selectedOceanCoverage
+    writeIntLe(0) // actualOceanCoverage
+    writeIntLe(1) // selectedTemperature
+    writeIntLe(1) // actualTemperature
+    writeIntLe(1) // selectedAge
+    writeIntLe(1) // actualAge
+    writeIntLe(3) // worldSize
 }
 
 /** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
@@ -567,6 +586,18 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             FlavSection(listOf(FlavEntry(ByteString.of(0, 0, 0, 0), "Military", listOf(5, -3)))),
+        )
+    }
+
+    test("WCHR section produces a typed WchrSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("WCHR", wchrItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            WchrSection(listOf(WchrEntry(1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 3))),
         )
     }
 })

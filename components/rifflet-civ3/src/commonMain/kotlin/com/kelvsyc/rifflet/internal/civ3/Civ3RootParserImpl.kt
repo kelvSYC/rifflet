@@ -16,6 +16,7 @@ import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.RaceSection
 import com.kelvsyc.rifflet.civ3.SlocSection
+import com.kelvsyc.rifflet.civ3.WchrSection
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.core.RiffletParseException
 import com.kelvsyc.rifflet.internal.core.readChunkId
@@ -82,6 +83,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.ESPN -> EspnSection(items.map { EspnEntryParser.parse(it) })
             Civ3SectionIds.SLOC -> SlocSection(items.map { SlocEntryParser.parse(it) })
             Civ3SectionIds.CONT -> ContSection(items.map { ContEntryParser.parse(it) })
+            Civ3SectionIds.WCHR -> WchrSection(items.map { WchrEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
