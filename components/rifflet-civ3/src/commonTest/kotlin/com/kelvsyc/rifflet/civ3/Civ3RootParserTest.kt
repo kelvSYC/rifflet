@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.ContEntry
+import com.kelvsyc.rifflet.civ3.ContSection
 import com.kelvsyc.rifflet.civ3.CtznEntry
 import com.kelvsyc.rifflet.civ3.CtznSection
 import com.kelvsyc.rifflet.civ3.CultEntry
@@ -254,6 +256,12 @@ private fun slocItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // owner: RACE index 0
     writeIntLe(10) // x
     writeIntLe(20) // y
+}
+
+/** Builds a well-formed 8-byte CONT item body. */
+private fun contItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // type: Land
+    writeIntLe(42) // numberOfTiles
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -515,6 +523,18 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             SlocSection(listOf(SlocEntry(2, 0, 10, 20))),
+        )
+    }
+
+    test("CONT section produces a typed ContSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("CONT", contItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            ContSection(listOf(ContEntry(1, 42))),
         )
     }
 })

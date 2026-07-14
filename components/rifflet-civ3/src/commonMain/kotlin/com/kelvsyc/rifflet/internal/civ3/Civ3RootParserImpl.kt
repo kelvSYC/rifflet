@@ -4,6 +4,7 @@ import com.kelvsyc.rifflet.civ3.Civ3File
 import com.kelvsyc.rifflet.civ3.Civ3RawSection
 import com.kelvsyc.rifflet.civ3.Civ3Section
 import com.kelvsyc.rifflet.civ3.Civ3SectionIds
+import com.kelvsyc.rifflet.civ3.ContSection
 import com.kelvsyc.rifflet.civ3.CtznSection
 import com.kelvsyc.rifflet.civ3.CultSection
 import com.kelvsyc.rifflet.civ3.DiffSection
@@ -70,6 +71,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.GOOD -> GoodSection(items.map { GoodEntryParser.parse(it) })
             Civ3SectionIds.ESPN -> EspnSection(items.map { EspnEntryParser.parse(it) })
             Civ3SectionIds.SLOC -> SlocSection(items.map { SlocEntryParser.parse(it) })
+            Civ3SectionIds.CONT -> ContSection(items.map { ContEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }

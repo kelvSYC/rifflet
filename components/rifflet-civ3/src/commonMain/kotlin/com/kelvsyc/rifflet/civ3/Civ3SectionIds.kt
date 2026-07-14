@@ -19,4 +19,5 @@ object Civ3SectionIds {
     val GOOD = ChunkId("GOOD")
     val ESPN = ChunkId("ESPN")
     val SLOC = ChunkId("SLOC")
+    val CONT = ChunkId("CONT")
 }
