@@ -11,6 +11,7 @@ import com.kelvsyc.rifflet.civ3.DiffSection
 import com.kelvsyc.rifflet.civ3.ErasSection
 import com.kelvsyc.rifflet.civ3.EspnSection
 import com.kelvsyc.rifflet.civ3.ExprSection
+import com.kelvsyc.rifflet.civ3.FlavSection
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.RaceSection
@@ -32,6 +33,12 @@ import okio.BufferedSource
  * `RACE` sections need the entry count of the most recently parsed `ERAS` section, a genuine
  * cross-section parse-order dependency — [parse] tracks this in a local variable across the
  * section loop and passes it to [parseSection].
+ *
+ * `FLAV` is the sole exception to the length-prefixed-item framing described above — its items
+ * have no length field of their own in the file format (confirmed by both Apolyton's
+ * documentation and `QueryCiv3`'s `Flav.cs`, the only section struct without a leading `Length`
+ * field), so [parseSection] reads it as a special case directly off the shared [BufferedSource],
+ * bypassing the generic zero-copy-[Buffer] item slicing entirely.
  */
 internal object Civ3RootParserImpl {
     fun parse(source: BufferedSource): Civ3File {
@@ -49,6 +56,9 @@ internal object Civ3RootParserImpl {
     private fun parseSection(source: BufferedSource, erasCount: Int?): Civ3Section {
         val marker = source.readChunkId()
         val count = source.readIntLe()
+        if (marker == Civ3SectionIds.FLAV) {
+            return FlavSection(List(count) { FlavEntryParser.parse(source) })
+        }
         val items = List(count) {
             val length = source.readIntLe()
             val data = Buffer()

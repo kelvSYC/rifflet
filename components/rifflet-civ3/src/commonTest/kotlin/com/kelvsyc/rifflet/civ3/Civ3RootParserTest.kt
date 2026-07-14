@@ -22,6 +22,8 @@ import com.kelvsyc.rifflet.civ3.EspnEntry
 import com.kelvsyc.rifflet.civ3.EspnSection
 import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.ExprSection
+import com.kelvsyc.rifflet.civ3.FlavEntry
+import com.kelvsyc.rifflet.civ3.FlavSection
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.SlocEntry
@@ -262,6 +264,24 @@ private fun slocItemBody(): Buffer = Buffer().apply {
 private fun contItemBody(): Buffer = Buffer().apply {
     writeIntLe(1) // type: Land
     writeIntLe(42) // numberOfTiles
+}
+
+/** Builds a well-formed FLAV item body with 2 flavor relationships (no length prefix — see Global Constraints). */
+private fun flavItemBody(): Buffer = Buffer().apply {
+    write(ByteArray(4)) // unknown
+    writeString("Military", Charsets.US_ASCII)
+    write(ByteArray(256 - 8)) // pad "Military" (8 bytes) to 256
+    writeIntLe(2) // numberOfFlavors
+    writeIntLe(5) // flavorRelationships[0]
+    writeIntLe(-3) // flavorRelationships[1]
+}
+
+/** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
+ * prefix, unlike [oneItemSectionBytes] (see Global Constraints). */
+private fun oneFlavItemSectionBytes(itemBody: Buffer): Buffer = Buffer().apply {
+    writeString("FLAV", Charsets.US_ASCII)
+    writeIntLe(1)
+    writeAll(itemBody)
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -535,6 +555,18 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             ContSection(listOf(ContEntry(1, 42))),
+        )
+    }
+
+    test("FLAV section produces a typed FlavSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneFlavItemSectionBytes(flavItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            FlavSection(listOf(FlavEntry(ByteString.of(0, 0, 0, 0), "Military", listOf(5, -3)))),
         )
     }
 })
