@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.ClnyEntry
+import com.kelvsyc.rifflet.civ3.ClnySection
 import com.kelvsyc.rifflet.civ3.ContEntry
 import com.kelvsyc.rifflet.civ3.ContSection
 import com.kelvsyc.rifflet.civ3.CtznEntry
@@ -293,6 +295,15 @@ private fun wchrItemBody(): Buffer = Buffer().apply {
     writeIntLe(1) // selectedAge
     writeIntLe(1) // actualAge
     writeIntLe(3) // worldSize
+}
+
+/** Builds a well-formed 20-byte CLNY item body. */
+private fun clnyItemBody(): Buffer = Buffer().apply {
+    writeIntLe(2) // ownerType: Civ
+    writeIntLe(0) // owner: RACE index 0
+    writeIntLe(5) // x
+    writeIntLe(15) // y
+    writeIntLe(3) // improvementType
 }
 
 /** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
@@ -598,6 +609,18 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             WchrSection(listOf(WchrEntry(1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 3))),
+        )
+    }
+
+    test("CLNY section produces a typed ClnySection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("CLNY", clnyItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            ClnySection(listOf(ClnyEntry(2, 0, 5, 15, 3))),
         )
     }
 })

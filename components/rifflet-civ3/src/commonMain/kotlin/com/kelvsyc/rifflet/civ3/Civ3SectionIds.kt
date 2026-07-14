@@ -22,4 +22,5 @@ object Civ3SectionIds {
     val CONT = ChunkId("CONT")
     val FLAV = ChunkId("FLAV")
     val WCHR = ChunkId("WCHR")
+    val CLNY = ChunkId("CLNY")
 }
