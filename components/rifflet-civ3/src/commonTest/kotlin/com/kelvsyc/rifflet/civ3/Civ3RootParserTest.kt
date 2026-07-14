@@ -34,6 +34,8 @@ import com.kelvsyc.rifflet.civ3.TfrmEntry
 import com.kelvsyc.rifflet.civ3.TfrmSection
 import com.kelvsyc.rifflet.civ3.WchrEntry
 import com.kelvsyc.rifflet.civ3.WchrSection
+import com.kelvsyc.rifflet.civ3.WmapEntry
+import com.kelvsyc.rifflet.civ3.WmapSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
@@ -318,6 +320,22 @@ private fun tfrmItemBody(): Buffer = Buffer().apply {
     writeIntLe(-1) // requiredResource1
     writeIntLe(-1) // requiredResource2
     write(ByteArray(32)) // order
+}
+
+/** Builds a well-formed WMAP item body with 2 resource IDs. */
+private fun wmapItemBody(): Buffer = Buffer().apply {
+    writeIntLe(2) // numberOfResources
+    writeIntLe(3) // resourceIds[0]
+    writeIntLe(7) // resourceIds[1]
+    writeIntLe(4) // numberOfContinents
+    writeIntLe(60) // height
+    writeIntLe(6) // distanceBetweenCivs
+    writeIntLe(7) // numberOfCivs
+    write(ByteArray(8)) // unknown1
+    writeIntLe(80) // width
+    write(ByteArray(128)) // unknown2
+    writeIntLe(12345) // mapSeed
+    writeIntLe(0b101) // flags: x-wrapping + polar ice caps
 }
 
 /** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
@@ -647,6 +665,33 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             TfrmSection(listOf(TfrmEntry("Build Road", "", 2, -1, -1, -1, ""))),
+        )
+    }
+
+    test("WMAP section produces a typed WmapSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("WMAP", wmapItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            WmapSection(
+                listOf(
+                    WmapEntry(
+                        resourceIds = listOf(3, 7),
+                        numberOfContinents = 4,
+                        height = 60,
+                        distanceBetweenCivs = 6,
+                        numberOfCivs = 7,
+                        unknown1 = ByteString.of(*ByteArray(8)),
+                        width = 80,
+                        unknown2 = ByteString.of(*ByteArray(128)),
+                        mapSeed = 12345,
+                        flags = 0b101,
+                    ),
+                ),
+            ),
         )
     }
 })
