@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.ContEntry
+import com.kelvsyc.rifflet.civ3.ContSection
 import com.kelvsyc.rifflet.civ3.CtznEntry
 import com.kelvsyc.rifflet.civ3.CtznSection
 import com.kelvsyc.rifflet.civ3.CultEntry
@@ -20,8 +22,12 @@ import com.kelvsyc.rifflet.civ3.EspnEntry
 import com.kelvsyc.rifflet.civ3.EspnSection
 import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.ExprSection
+import com.kelvsyc.rifflet.civ3.FlavEntry
+import com.kelvsyc.rifflet.civ3.FlavSection
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
+import com.kelvsyc.rifflet.civ3.SlocEntry
+import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
@@ -244,6 +250,38 @@ private fun espnItemBody(): Buffer = Buffer().apply {
     write(ByteArray(32)) // civilopediaEntry
     writeIntLe(0b10) // missionFlags: spy-only
     writeIntLe(100) // baseCost
+}
+
+/** Builds a well-formed 16-byte SLOC item body. */
+private fun slocItemBody(): Buffer = Buffer().apply {
+    writeIntLe(2) // ownerType: Civ
+    writeIntLe(0) // owner: RACE index 0
+    writeIntLe(10) // x
+    writeIntLe(20) // y
+}
+
+/** Builds a well-formed 8-byte CONT item body. */
+private fun contItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // type: Land
+    writeIntLe(42) // numberOfTiles
+}
+
+/** Builds a well-formed FLAV item body with 2 flavor relationships (no length prefix — see Global Constraints). */
+private fun flavItemBody(): Buffer = Buffer().apply {
+    write(ByteArray(4)) // unknown
+    writeString("Military", Charsets.US_ASCII)
+    write(ByteArray(256 - 8)) // pad "Military" (8 bytes) to 256
+    writeIntLe(2) // numberOfFlavors
+    writeIntLe(5) // flavorRelationships[0]
+    writeIntLe(-3) // flavorRelationships[1]
+}
+
+/** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
+ * prefix, unlike [oneItemSectionBytes] (see Global Constraints). */
+private fun oneFlavItemSectionBytes(itemBody: Buffer): Buffer = Buffer().apply {
+    writeString("FLAV", Charsets.US_ASCII)
+    writeIntLe(1)
+    writeAll(itemBody)
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -493,6 +531,42 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             EspnSection(listOf(EspnEntry("Steal Technology", "Steal Tech", "", 0b10, 100))),
+        )
+    }
+
+    test("SLOC section produces a typed SlocSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("SLOC", slocItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            SlocSection(listOf(SlocEntry(2, 0, 10, 20))),
+        )
+    }
+
+    test("CONT section produces a typed ContSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("CONT", contItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            ContSection(listOf(ContEntry(1, 42))),
+        )
+    }
+
+    test("FLAV section produces a typed FlavSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneFlavItemSectionBytes(flavItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            FlavSection(listOf(FlavEntry(ByteString.of(0, 0, 0, 0), "Military", listOf(5, -3)))),
         )
     }
 })
