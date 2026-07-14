@@ -22,6 +22,8 @@ import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.ExprSection
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
+import com.kelvsyc.rifflet.civ3.SlocEntry
+import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import com.kelvsyc.rifflet.civ3.WsizSection
 import com.kelvsyc.rifflet.civ3.GovtEntry
@@ -244,6 +246,14 @@ private fun espnItemBody(): Buffer = Buffer().apply {
     write(ByteArray(32)) // civilopediaEntry
     writeIntLe(0b10) // missionFlags: spy-only
     writeIntLe(100) // baseCost
+}
+
+/** Builds a well-formed 16-byte SLOC item body. */
+private fun slocItemBody(): Buffer = Buffer().apply {
+    writeIntLe(2) // ownerType: Civ
+    writeIntLe(0) // owner: RACE index 0
+    writeIntLe(10) // x
+    writeIntLe(20) // y
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -493,6 +503,18 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             EspnSection(listOf(EspnEntry("Steal Technology", "Steal Tech", "", 0b10, 100))),
+        )
+    }
+
+    test("SLOC section produces a typed SlocSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("SLOC", slocItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            SlocSection(listOf(SlocEntry(2, 0, 10, 20))),
         )
     }
 })
