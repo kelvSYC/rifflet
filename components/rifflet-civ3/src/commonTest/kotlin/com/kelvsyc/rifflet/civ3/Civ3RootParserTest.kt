@@ -30,6 +30,8 @@ import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
+import com.kelvsyc.rifflet.civ3.TfrmEntry
+import com.kelvsyc.rifflet.civ3.TfrmSection
 import com.kelvsyc.rifflet.civ3.WchrEntry
 import com.kelvsyc.rifflet.civ3.WchrSection
 import com.kelvsyc.rifflet.civ3.WsizEntry
@@ -304,6 +306,18 @@ private fun clnyItemBody(): Buffer = Buffer().apply {
     writeIntLe(5) // x
     writeIntLe(15) // y
     writeIntLe(3) // improvementType
+}
+
+/** Builds a well-formed 112-byte TFRM item body. */
+private fun tfrmItemBody(): Buffer = Buffer().apply {
+    writeString("Build Road", Charsets.US_ASCII)
+    write(ByteArray(32 - 10)) // pad "Build Road" (10 bytes) to 32
+    write(ByteArray(32)) // civilopediaEntry
+    writeIntLe(2) // turnsToComplete
+    writeIntLe(-1) // required
+    writeIntLe(-1) // requiredResource1
+    writeIntLe(-1) // requiredResource2
+    write(ByteArray(32)) // order
 }
 
 /** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
@@ -621,6 +635,18 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             ClnySection(listOf(ClnyEntry(2, 0, 5, 15, 3))),
+        )
+    }
+
+    test("TFRM section produces a typed TfrmSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("TFRM", tfrmItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            TfrmSection(listOf(TfrmEntry("Build Road", "", 2, -1, -1, -1, ""))),
         )
     }
 })
