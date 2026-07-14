@@ -32,6 +32,8 @@ import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.TfrmEntry
 import com.kelvsyc.rifflet.civ3.TfrmSection
+import com.kelvsyc.rifflet.civ3.UnitEntry
+import com.kelvsyc.rifflet.civ3.UnitSection
 import com.kelvsyc.rifflet.civ3.WchrEntry
 import com.kelvsyc.rifflet.civ3.WchrSection
 import com.kelvsyc.rifflet.civ3.WmapEntry
@@ -336,6 +338,22 @@ private fun wmapItemBody(): Buffer = Buffer().apply {
     write(ByteArray(128)) // unknown2
     writeIntLe(12345) // mapSeed
     writeIntLe(0b101) // flags: x-wrapping + polar ice caps
+}
+
+/** Builds a well-formed 121-byte UNIT item body. */
+private fun unitItemBody(): Buffer = Buffer().apply {
+    writeString("Phalanx", Charsets.US_ASCII)
+    write(ByteArray(32 - 7)) // pad "Phalanx" (7 bytes) to 32
+    writeIntLe(2) // ownerType: Civ
+    writeIntLe(0) // experienceLevel
+    writeIntLe(0) // owner: RACE index 0
+    writeIntLe(5) // unitType: PRTO index 5
+    writeIntLe(0) // aiStrategy
+    writeIntLe(10) // x
+    writeIntLe(20) // y
+    writeString("Legion", Charsets.US_ASCII)
+    write(ByteArray(57 - 6)) // pad "Legion" (6 bytes) to 57
+    writeIntLe(0) // useCivilizationKing
 }
 
 /** Wraps a single FLAV item body into a full section: marker, count=1, item body — no length
@@ -692,6 +710,18 @@ class Civ3RootParserTest : FunSpec({
                     ),
                 ),
             ),
+        )
+    }
+
+    test("UNIT section produces a typed UnitSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("UNIT", unitItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            UnitSection(listOf(UnitEntry("Phalanx", 2, 0, 0, 5, 0, 10, 20, "Legion", 0))),
         )
     }
 })

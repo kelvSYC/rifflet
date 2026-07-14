@@ -18,6 +18,7 @@ import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.RaceSection
 import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.TfrmSection
+import com.kelvsyc.rifflet.civ3.UnitSection
 import com.kelvsyc.rifflet.civ3.WchrSection
 import com.kelvsyc.rifflet.civ3.WmapSection
 import com.kelvsyc.rifflet.civ3.WsizSection
@@ -90,6 +91,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.CLNY -> ClnySection(items.map { ClnyEntryParser.parse(it) })
             Civ3SectionIds.TFRM -> TfrmSection(items.map { TfrmEntryParser.parse(it) })
             Civ3SectionIds.WMAP -> WmapSection(items.map { WmapEntryParser.parse(it) })
+            Civ3SectionIds.UNIT -> UnitSection(items.map { UnitEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
