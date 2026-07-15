@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.CitySection
 import com.kelvsyc.rifflet.civ3.Civ3File
 import com.kelvsyc.rifflet.civ3.Civ3RawSection
 import com.kelvsyc.rifflet.civ3.Civ3Section
@@ -92,6 +93,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.TFRM -> TfrmSection(items.map { TfrmEntryParser.parse(it) })
             Civ3SectionIds.WMAP -> WmapSection(items.map { WmapEntryParser.parse(it) })
             Civ3SectionIds.UNIT -> UnitSection(items.map { UnitEntryParser.parse(it) })
+            Civ3SectionIds.CITY -> CitySection(items.map { CityEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
