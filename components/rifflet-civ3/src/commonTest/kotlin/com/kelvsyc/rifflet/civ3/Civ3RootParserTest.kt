@@ -32,6 +32,8 @@ import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
+import com.kelvsyc.rifflet.civ3.TechEntry
+import com.kelvsyc.rifflet.civ3.TechSection
 import com.kelvsyc.rifflet.civ3.TfrmEntry
 import com.kelvsyc.rifflet.civ3.TfrmSection
 import com.kelvsyc.rifflet.civ3.UnitEntry
@@ -386,6 +388,25 @@ private fun cityItemBody(): Buffer = Buffer().apply {
     writeIntLe(1) // useAutoName
 }
 
+/** Builds a well-formed 112-byte TECH item body. */
+private fun techItemBody(): Buffer = Buffer().apply {
+    writeString("Bronze Working", Charsets.US_ASCII)
+    write(ByteArray(32 - 14)) // pad "Bronze Working" (14 bytes) to 32
+    write(ByteArray(32)) // civilopediaEntry
+    writeIntLe(20) // cost
+    writeIntLe(1) // era
+    writeIntLe(5) // advanceIcon
+    writeIntLe(10) // x
+    writeIntLe(20) // y
+    writeIntLe(-1) // prerequisite1
+    writeIntLe(-1) // prerequisite2
+    writeIntLe(-1) // prerequisite3
+    writeIntLe(-1) // prerequisite4
+    writeIntLe(0b10000001) // flags
+    writeIntLe(0) // flavors
+    write(ByteArray(4)) // unknown
+}
+
 class Civ3RootParserTest : FunSpec({
 
     test("uncompressed BIC file with no trailing sections is parsed") {
@@ -403,10 +424,10 @@ class Civ3RootParserTest : FunSpec({
         val source = Buffer().apply {
             writeString("BICX", Charsets.US_ASCII)
             writeAll(verSectionBytes())
-            writeAll(rawSectionBytes("TECH", listOf(byteArrayOf(1, 2, 3))))
+            writeAll(rawSectionBytes("UNKN", listOf(byteArrayOf(1, 2, 3))))
         }
         val file = Civ3RootParser.parse(source)
-        file.sections shouldBe listOf(Civ3RawSection(ChunkId("TECH"), 1, listOf(ByteString.of(1, 2, 3))))
+        file.sections shouldBe listOf(Civ3RawSection(ChunkId("UNKN"), 1, listOf(ByteString.of(1, 2, 3))))
     }
 
     test("bad leading magic that also fails to decompress into a valid Civ3 file throws") {
@@ -771,6 +792,37 @@ class Civ3RootParserTest : FunSpec({
                         cityLevel = 2,
                         borderLevel = 1,
                         useAutoName = 1,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("TECH section produces a typed TechSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("TECH", techItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            TechSection(
+                listOf(
+                    TechEntry(
+                        name = "Bronze Working",
+                        civilopediaEntry = "",
+                        cost = 20,
+                        era = 1,
+                        advanceIcon = 5,
+                        x = 10,
+                        y = 20,
+                        prerequisite1 = -1,
+                        prerequisite2 = -1,
+                        prerequisite3 = -1,
+                        prerequisite4 = -1,
+                        flags = 0b10000001,
+                        flavors = 0,
+                        unknown = ByteString.of(0, 0, 0, 0),
                     ),
                 ),
             ),
