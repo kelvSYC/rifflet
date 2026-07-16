@@ -33,6 +33,8 @@ import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.LeadSection
 import com.kelvsyc.rifflet.civ3.LeadStartUnit
+import com.kelvsyc.rifflet.civ3.RuleEntry
+import com.kelvsyc.rifflet.civ3.RuleSection
 import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.TechEntry
@@ -435,6 +437,72 @@ private fun leadItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // skipFirstTurn
     write(ByteArray(4)) // unknown2
     writeByte(1) // startEmbassies
+}
+
+/** Builds a well-formed RULE item body with 2 spaceship parts, 2 culture levels, and
+ * `upgradeCost` present. */
+private fun ruleItemBody(): Buffer = Buffer().apply {
+    writeString("Town", Charsets.US_ASCII)
+    write(ByteArray(32 - 4)) // pad "Town" (4 bytes) to 32
+    writeString("City", Charsets.US_ASCII)
+    write(ByteArray(32 - 4)) // pad "City" (4 bytes) to 32
+    writeString("Metropolis", Charsets.US_ASCII)
+    write(ByteArray(32 - 10)) // pad "Metropolis" (10 bytes) to 32
+    writeIntLe(2) // numberOfSpaceshipParts
+    writeIntLe(4) // spaceshipPartQuantities[0]
+    writeIntLe(2) // spaceshipPartQuantities[1]
+    writeIntLe(10) // advancedBarbarianUnitType
+    writeIntLe(9) // basicBarbarianUnitType
+    writeIntLe(11) // barbarianSeaUnitType
+    writeIntLe(2) // citiesNeededToSupportAnArmy
+    writeIntLe(5) // chanceOfRioting
+    writeIntLe(1) // turnPenaltyForEachDraftedCitizen
+    writeIntLe(2) // shieldCostPerGold
+    writeIntLe(50) // fortressDefensiveBonus
+    writeIntLe(1) // citizensAffectedByEachHappyFace
+    write(ByteArray(8)) // unknown
+    writeIntLe(1) // forestValueInShields
+    writeIntLe(2) // shieldValueInGold
+    writeIntLe(1) // citizenValueInShields
+    writeIntLe(2) // defaultDifficultyLevel
+    writeIntLe(15) // battleCreatedUnit
+    writeIntLe(16) // buildArmyUnit
+    writeIntLe(50) // buildingDefensiveBonus
+    writeIntLe(25) // citizenDefensiveBonus
+    writeIntLe(0) // defaultMoneyResource
+    writeIntLe(25) // chanceToInterceptEnemyAirMissions
+    writeIntLe(25) // chanceToInterceptEnemyStealthMissions
+    writeIntLe(50) // startingTreasury
+    write(ByteArray(4)) // unknown2
+    writeIntLe(2) // foodConsumptionPerCitizen
+    writeIntLe(25) // riverDefensiveBonus
+    writeIntLe(1) // turnPenaltyForEachHurrySacrifice
+    writeIntLe(17) // scout
+    writeIntLe(18) // slave
+    writeIntLe(3) // movementAlongRoads
+    writeIntLe(1) // startUnit1
+    writeIntLe(2) // startUnit2
+    writeIntLe(6) // minimumPopulationForWeLoveTheKing
+    writeIntLe(25) // townDefenseBonus
+    writeIntLe(50) // cityDefenseBonus
+    writeIntLe(100) // metropolisDefenseBonus
+    writeIntLe(8) // maximumLevel1CitySize
+    writeIntLe(16) // maximumLevel2CitySize
+    write(ByteArray(4)) // unknown3
+    writeIntLe(25) // fortificationsDefensiveBonus
+    writeIntLe(2) // numberOfCultureLevels
+    writeString("Emerging", Charsets.US_ASCII)
+    write(ByteArray(64 - 8)) // pad "Emerging" (8 bytes) to 64
+    writeString("Legendary", Charsets.US_ASCII)
+    write(ByteArray(64 - 9)) // pad "Legendary" (9 bytes) to 64
+    writeIntLe(2) // borderExpansionMultiplier
+    writeIntLe(3) // borderFactor
+    writeIntLe(1000) // futureTechCost
+    writeIntLe(16) // goldenAgeDuration
+    writeIntLe(4) // maximumResearchTime
+    writeIntLe(1) // minimumResearchTime
+    writeIntLe(20) // flagUnitType
+    writeIntLe(15) // upgradeCost
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -886,6 +954,75 @@ class Civ3RootParserTest : FunSpec({
                         skipFirstTurn = 0,
                         unknown2 = ByteString.of(*ByteArray(4)),
                         startEmbassies = 1,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("RULE section produces a typed RuleSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("RULE", ruleItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            RuleSection(
+                listOf(
+                    RuleEntry(
+                        citySizeLevel1Name = "Town",
+                        citySizeLevel2Name = "City",
+                        citySizeLevel3Name = "Metropolis",
+                        spaceshipPartQuantities = listOf(4, 2),
+                        advancedBarbarianUnitType = 10,
+                        basicBarbarianUnitType = 9,
+                        barbarianSeaUnitType = 11,
+                        citiesNeededToSupportAnArmy = 2,
+                        chanceOfRioting = 5,
+                        turnPenaltyForEachDraftedCitizen = 1,
+                        shieldCostPerGold = 2,
+                        fortressDefensiveBonus = 50,
+                        citizensAffectedByEachHappyFace = 1,
+                        unknown = ByteString.of(*ByteArray(8)),
+                        forestValueInShields = 1,
+                        shieldValueInGold = 2,
+                        citizenValueInShields = 1,
+                        defaultDifficultyLevel = 2,
+                        battleCreatedUnit = 15,
+                        buildArmyUnit = 16,
+                        buildingDefensiveBonus = 50,
+                        citizenDefensiveBonus = 25,
+                        defaultMoneyResource = 0,
+                        chanceToInterceptEnemyAirMissions = 25,
+                        chanceToInterceptEnemyStealthMissions = 25,
+                        startingTreasury = 50,
+                        unknown2 = ByteString.of(*ByteArray(4)),
+                        foodConsumptionPerCitizen = 2,
+                        riverDefensiveBonus = 25,
+                        turnPenaltyForEachHurrySacrifice = 1,
+                        scout = 17,
+                        slave = 18,
+                        movementAlongRoads = 3,
+                        startUnit1 = 1,
+                        startUnit2 = 2,
+                        minimumPopulationForWeLoveTheKing = 6,
+                        townDefenseBonus = 25,
+                        cityDefenseBonus = 50,
+                        metropolisDefenseBonus = 100,
+                        maximumLevel1CitySize = 8,
+                        maximumLevel2CitySize = 16,
+                        unknown3 = ByteString.of(*ByteArray(4)),
+                        fortificationsDefensiveBonus = 25,
+                        cultureLevelNames = listOf("Emerging", "Legendary"),
+                        borderExpansionMultiplier = 2,
+                        borderFactor = 3,
+                        futureTechCost = 1000,
+                        goldenAgeDuration = 16,
+                        maximumResearchTime = 4,
+                        minimumResearchTime = 1,
+                        flagUnitType = 20,
+                        upgradeCost = 15,
                     ),
                 ),
             ),
