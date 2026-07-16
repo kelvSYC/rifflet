@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.CityEntry
+import com.kelvsyc.rifflet.civ3.CitySection
 import com.kelvsyc.rifflet.civ3.ClnyEntry
 import com.kelvsyc.rifflet.civ3.ClnySection
 import com.kelvsyc.rifflet.civ3.ContEntry
@@ -362,6 +364,26 @@ private fun oneFlavItemSectionBytes(itemBody: Buffer): Buffer = Buffer().apply {
     writeString("FLAV", Charsets.US_ASCII)
     writeIntLe(1)
     writeAll(itemBody)
+}
+
+/** Builds a well-formed CITY item body with 2 building IDs. */
+private fun cityItemBody(): Buffer = Buffer().apply {
+    writeByte(1) // hasWalls
+    writeByte(0) // hasPalace
+    writeString("Rome", Charsets.US_ASCII)
+    write(ByteArray(24 - 4)) // pad "Rome" (4 bytes) to 24
+    writeIntLe(2) // ownerType: Civ
+    writeIntLe(2) // numberOfBuildings
+    writeIntLe(3) // buildingIds[0]
+    writeIntLe(7) // buildingIds[1]
+    writeIntLe(150) // culture
+    writeIntLe(0) // owner: RACE index 0
+    writeIntLe(4) // size
+    writeIntLe(10) // x
+    writeIntLe(20) // y
+    writeIntLe(2) // cityLevel
+    writeIntLe(1) // borderLevel
+    writeIntLe(1) // useAutoName
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -722,6 +744,36 @@ class Civ3RootParserTest : FunSpec({
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
             UnitSection(listOf(UnitEntry("Phalanx", 2, 0, 0, 5, 0, 10, 20, "Legion", 0))),
+        )
+    }
+
+    test("CITY section produces a typed CitySection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("CITY", cityItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            CitySection(
+                listOf(
+                    CityEntry(
+                        hasWalls = 1,
+                        hasPalace = 0,
+                        name = "Rome",
+                        ownerType = 2,
+                        buildingIds = listOf(3, 7),
+                        culture = 150,
+                        owner = 0,
+                        size = 4,
+                        x = 10,
+                        y = 20,
+                        cityLevel = 2,
+                        borderLevel = 1,
+                        useAutoName = 1,
+                    ),
+                ),
+            ),
         )
     }
 })

@@ -26,4 +26,5 @@ object Civ3SectionIds {
     val TFRM = ChunkId("TFRM")
     val WMAP = ChunkId("WMAP")
     val UNIT = ChunkId("UNIT")
+    val CITY = ChunkId("CITY")
 }
