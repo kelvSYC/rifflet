@@ -30,6 +30,9 @@ import com.kelvsyc.rifflet.civ3.FlavEntry
 import com.kelvsyc.rifflet.civ3.FlavSection
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
+import com.kelvsyc.rifflet.civ3.LeadEntry
+import com.kelvsyc.rifflet.civ3.LeadSection
+import com.kelvsyc.rifflet.civ3.LeadStartUnit
 import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.TechEntry
@@ -405,6 +408,33 @@ private fun techItemBody(): Buffer = Buffer().apply {
     writeIntLe(0b10000001) // flags
     writeIntLe(0) // flavors
     write(ByteArray(4)) // unknown
+}
+
+/** Builds a well-formed LEAD item body with 2 start unit types and 2 starting technologies. */
+private fun leadItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // customCivData
+    writeIntLe(1) // humanPlayer
+    writeString("Caesar", Charsets.US_ASCII)
+    write(ByteArray(32 - 6)) // pad "Caesar" (6 bytes) to 32
+    write(ByteArray(8)) // unknown
+    writeIntLe(2) // numberOfStartUnitTypes
+    writeIntLe(2) // startUnits[0].quantity
+    writeIntLe(5) // startUnits[0].unitType
+    writeIntLe(1) // startUnits[1].quantity
+    writeIntLe(8) // startUnits[1].unitType
+    writeIntLe(0) // genderOfLeaderName
+    writeIntLe(2) // numberOfStartingTechnologies
+    writeIntLe(3) // startingTechnologyIds[0]
+    writeIntLe(7) // startingTechnologyIds[1]
+    writeIntLe(2) // difficulty
+    writeIntLe(0) // initialEra
+    writeIntLe(50) // startCash
+    writeIntLe(0) // government
+    writeIntLe(0) // civ
+    writeIntLe(1) // color
+    writeIntLe(0) // skipFirstTurn
+    write(ByteArray(4)) // unknown2
+    writeByte(1) // startEmbassies
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -823,6 +853,39 @@ class Civ3RootParserTest : FunSpec({
                         flags = 0b10000001,
                         flavors = 0,
                         unknown = ByteString.of(0, 0, 0, 0),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("LEAD section produces a typed LeadSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("LEAD", leadItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            LeadSection(
+                listOf(
+                    LeadEntry(
+                        customCivData = 1,
+                        humanPlayer = 1,
+                        name = "Caesar",
+                        unknown = ByteString.of(*ByteArray(8)),
+                        startUnits = listOf(LeadStartUnit(2, 5), LeadStartUnit(1, 8)),
+                        genderOfLeaderName = 0,
+                        startingTechnologyIds = listOf(3, 7),
+                        difficulty = 2,
+                        initialEra = 0,
+                        startCash = 50,
+                        government = 0,
+                        civ = 0,
+                        color = 1,
+                        skipFirstTurn = 0,
+                        unknown2 = ByteString.of(*ByteArray(4)),
+                        startEmbassies = 1,
                     ),
                 ),
             ),
