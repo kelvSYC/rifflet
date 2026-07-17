@@ -33,6 +33,8 @@ import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.LeadSection
 import com.kelvsyc.rifflet.civ3.LeadStartUnit
+import com.kelvsyc.rifflet.civ3.PrtoEntry
+import com.kelvsyc.rifflet.civ3.PrtoSection
 import com.kelvsyc.rifflet.civ3.RuleEntry
 import com.kelvsyc.rifflet.civ3.RuleSection
 import com.kelvsyc.rifflet.civ3.SlocEntry
@@ -503,6 +505,52 @@ private fun ruleItemBody(): Buffer = Buffer().apply {
     writeIntLe(1) // minimumResearchTime
     writeIntLe(20) // flagUnitType
     writeIntLe(15) // upgradeCost
+}
+
+/** Builds a well-formed PRTO item body with 2 stealth targets. */
+private fun prtoItemBody(): Buffer = Buffer().apply {
+    writeIntLe(0) // zoneOfControl
+    writeString("Warrior", Charsets.US_ASCII)
+    write(ByteArray(32 - 7)) // pad "Warrior" (7 bytes) to 32
+    writeString("Warrior", Charsets.US_ASCII)
+    write(ByteArray(32 - 7)) // pad "Warrior" (7 bytes) to 32
+    writeIntLe(0) // bombardStrength
+    writeIntLe(0) // bombardRange
+    writeIntLe(0) // capacity
+    writeIntLe(10) // shieldCost
+    writeIntLe(1) // defense
+    writeIntLe(5) // iconIndex
+    writeIntLe(1) // attack
+    writeIntLe(0) // operationalRange
+    writeIntLe(0) // populationCost
+    writeIntLe(1) // rateOfFire
+    writeIntLe(1) // movement
+    writeIntLe(0) // required
+    writeIntLe(3) // upgradeTo
+    writeIntLe(-1) // requiredResource1
+    writeIntLe(-1) // requiredResource2
+    writeIntLe(-1) // requiredResource3
+    write(ByteArray(8)) // flags1
+    writeIntLe(-1) // availableTo
+    write(ByteArray(8)) // flags2
+    writeIntLe(0) // type
+    writeIntLe(-1) // otherStrategy
+    writeIntLe(0) // hpBonus
+    write(ByteArray(20)) // flags3
+    writeIntLe(0) // bombardEffects
+    write(ByteArray(14)) // ignoreMovementCost
+    writeIntLe(0) // requireSupport
+    write(ByteArray(16)) // unknown
+    writeIntLe(0) // enslaveResults
+    write(ByteArray(4)) // unknown2
+    writeIntLe(2) // numberOfStealthTargets
+    writeIntLe(4) // stealthTargetUnitTypes[0]
+    writeIntLe(9) // stealthTargetUnitTypes[1]
+    write(ByteArray(8)) // unknown3
+    writeByte(0) // createCraters
+    writeIntLe(1.5f.toRawBits()) // workerStrength
+    write(ByteArray(4)) // unknown4
+    writeIntLe(0) // airDefense
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -1023,6 +1071,61 @@ class Civ3RootParserTest : FunSpec({
                         minimumResearchTime = 1,
                         flagUnitType = 20,
                         upgradeCost = 15,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("PRTO section produces a typed PrtoSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("PRTO", prtoItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            PrtoSection(
+                listOf(
+                    PrtoEntry(
+                        zoneOfControl = 0,
+                        name = "Warrior",
+                        civilopediaEntry = "Warrior",
+                        bombardStrength = 0,
+                        bombardRange = 0,
+                        capacity = 0,
+                        shieldCost = 10,
+                        defense = 1,
+                        iconIndex = 5,
+                        attack = 1,
+                        operationalRange = 0,
+                        populationCost = 0,
+                        rateOfFire = 1,
+                        movement = 1,
+                        required = 0,
+                        upgradeTo = 3,
+                        requiredResource1 = -1,
+                        requiredResource2 = -1,
+                        requiredResource3 = -1,
+                        flags1 = ByteString.of(*ByteArray(8)),
+                        availableTo = -1,
+                        flags2 = ByteString.of(*ByteArray(8)),
+                        type = 0,
+                        otherStrategy = -1,
+                        hpBonus = 0,
+                        flags3 = ByteString.of(*ByteArray(20)),
+                        bombardEffects = 0,
+                        ignoreMovementCost = ByteString.of(*ByteArray(14)),
+                        requireSupport = 0,
+                        unknown = ByteString.of(*ByteArray(16)),
+                        enslaveResults = 0,
+                        unknown2 = ByteString.of(*ByteArray(4)),
+                        stealthTargetUnitTypes = listOf(4, 9),
+                        unknown3 = ByteString.of(*ByteArray(8)),
+                        createCraters = 0,
+                        workerStrength = 1.5f,
+                        unknown4 = ByteString.of(*ByteArray(4)),
+                        airDefense = 0,
                     ),
                 ),
             ),
