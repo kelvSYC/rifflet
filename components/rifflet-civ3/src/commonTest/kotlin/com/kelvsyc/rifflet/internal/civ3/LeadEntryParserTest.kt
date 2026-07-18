@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.LeadStartUnit
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -100,5 +101,29 @@ class LeadEntryParserTest : FunSpec({
                 ByteString.of(0, 0, 0), 0,
             )
         }
+    }
+
+    test("an implausibly large numberOfStartUnitTypes throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(1) // customCivData
+            writeIntLe(1) // humanPlayer
+            write(ByteArray(32)) // name
+            write(ByteArray(8)) // unknown
+            writeIntLe(Int.MAX_VALUE) // numberOfStartUnitTypes
+        }
+        shouldThrow<RiffletParseException> { LeadEntryParser.parse(buffer) }
+    }
+
+    test("an implausibly large numberOfStartingTechnologies throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(1) // customCivData
+            writeIntLe(1) // humanPlayer
+            write(ByteArray(32)) // name
+            write(ByteArray(8)) // unknown
+            writeIntLe(0) // numberOfStartUnitTypes
+            writeIntLe(0) // genderOfLeaderName
+            writeIntLe(Int.MAX_VALUE) // numberOfStartingTechnologies
+        }
+        shouldThrow<RiffletParseException> { LeadEntryParser.parse(buffer) }
     }
 })

@@ -11,6 +11,9 @@ import okio.Buffer
  * type, matching `GovtEntryParser`'s `relationships` read) and [LeadEntry.startingTechnologyIds]
  * (a flat `Int` list, matching `WmapEntryParser`/`CityEntryParser`) — with a preceding count
  * field each, same local-array pattern used throughout this codebase.
+ *
+ * Both counts are validated via [requireSaneCount] before sizing their respective lists — see
+ * that function's KDoc for why.
  */
 internal object LeadEntryParser {
     fun parse(item: Buffer): LeadEntry {
@@ -18,14 +21,18 @@ internal object LeadEntryParser {
         val humanPlayer = item.readIntLe()
         val name = item.readByteString(32L).truncateAtFirstNull()
         val unknown = item.readByteString(8L)
-        val numberOfStartUnitTypes = item.readIntLe()
+        val numberOfStartUnitTypes = item.requireSaneCount(item.readIntLe(), 8L, "LeadEntry.startUnits")
         val startUnits = List(numberOfStartUnitTypes) {
             val quantity = item.readIntLe()
             val unitType = item.readIntLe()
             LeadStartUnit(quantity, unitType)
         }
         val genderOfLeaderName = item.readIntLe()
-        val numberOfStartingTechnologies = item.readIntLe()
+        val numberOfStartingTechnologies = item.requireSaneCount(
+            item.readIntLe(),
+            4L,
+            "LeadEntry.startingTechnologyIds",
+        )
         val startingTechnologyIds = List(numberOfStartingTechnologies) { item.readIntLe() }
         val difficulty = item.readIntLe()
         val initialEra = item.readIntLe()

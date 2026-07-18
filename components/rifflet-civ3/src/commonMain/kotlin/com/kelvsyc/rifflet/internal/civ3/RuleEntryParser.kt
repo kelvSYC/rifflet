@@ -13,13 +13,17 @@ import okio.Buffer
  * generic section loop in `Civ3RootParserImpl` already slices [item] to the file's own
  * declared length, `item.size` reliably reflects how many bytes actually remain for this
  * specific file.
+ *
+ * Both dynamic-array counts (`numberOfSpaceshipParts`, `numberOfCultureLevels`) are validated
+ * via [requireSaneCount] before sizing their respective lists — see that function's KDoc for
+ * why.
  */
 internal object RuleEntryParser {
     fun parse(item: Buffer): RuleEntry {
         val citySizeLevel1Name = item.readByteString(32L).truncateAtFirstNull()
         val citySizeLevel2Name = item.readByteString(32L).truncateAtFirstNull()
         val citySizeLevel3Name = item.readByteString(32L).truncateAtFirstNull()
-        val numberOfSpaceshipParts = item.readIntLe()
+        val numberOfSpaceshipParts = item.requireSaneCount(item.readIntLe(), 4L, "RuleEntry.spaceshipPartQuantities")
         val spaceshipPartQuantities = List(numberOfSpaceshipParts) { item.readIntLe() }
         val advancedBarbarianUnitType = item.readIntLe()
         val basicBarbarianUnitType = item.readIntLe()
@@ -60,7 +64,7 @@ internal object RuleEntryParser {
         val maximumLevel2CitySize = item.readIntLe()
         val unknown3 = item.readByteString(4L)
         val fortificationsDefensiveBonus = item.readIntLe()
-        val numberOfCultureLevels = item.readIntLe()
+        val numberOfCultureLevels = item.requireSaneCount(item.readIntLe(), 64L, "RuleEntry.cultureLevelNames")
         val cultureLevelNames = List(numberOfCultureLevels) {
             item.readByteString(64L).truncateAtFirstNull()
         }
