@@ -13,9 +13,9 @@ import com.kelvsyc.rifflet.core.ChunkId
  * coarser era grouping used elsewhere in this codebase's KDoc.
  *
  * Only combinations with a directly-observed real sample are listed. Any other combination —
- * including every major=2/3 case for `DIFF`/`ERAS`/`BLDG`/`CTZN`, which this project has zero
- * real samples for — intentionally has no entry, so [maxSizeFor] returns `null` and no limit is
- * enforced. `TECH`/`UNIT`/`RULE` also have defensive parsing but documentation-derived (not
+ * including every major=2/3 case for `DIFF`/`ERAS`/`BLDG`/`CTZN`/`GOVT`, which this project has
+ * zero real samples for — intentionally has no entry, so [maxSizeFor] returns `null` and no limit
+ * is enforced. `TECH`/`UNIT`/`RULE` also have defensive parsing but documentation-derived (not
  * real-data-confirmed) tier sizes, so they are deliberately excluded here entirely.
  */
 internal object Civ3ItemSizeLimits {
@@ -46,6 +46,11 @@ internal object Civ3ItemSizeLimits {
             (BIC_MAGIC to 4) to 260,
             (BICX_MAGIC to 11) to 260,
             (BICX_MAGIC to 12) to 264,
+        ),
+        Civ3SectionIds.GOVT to mapOf(
+            (BIC_MAGIC to 4) to 536,
+            (BICX_MAGIC to 11) to 536,
+            (BICX_MAGIC to 12) to 568,
         ),
     )
 
