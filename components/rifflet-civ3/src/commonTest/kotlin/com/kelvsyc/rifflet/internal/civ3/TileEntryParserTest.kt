@@ -19,8 +19,16 @@ import okio.ByteString
  * [includeVictoryPointAndRuin] additionally controls whether `victoryPointLocation`/`ruin` are
  * written when `tier >= 2` — set to `false` to build the real major=3/4 vanilla-revision shape
  * (23 bytes: `unknown2` present, but `victoryPointLocation`/`ruin` genuinely absent until PTW).
+ *
+ * [includeUnknown6] additionally controls whether `unknown6` is written when `tier >= 3` — set to
+ * `false` (the default tier=3 shape) for the ordinary 45-byte Conquests item; `true` builds the
+ * real 49-byte Conquests sub-tier confirmed in exactly 2 of 21 sampled real Conquests files.
  */
-private fun tileItemBinary(tier: Int = 3, includeVictoryPointAndRuin: Boolean = true): Buffer = Buffer().apply {
+private fun tileItemBinary(
+    tier: Int = 3,
+    includeVictoryPointAndRuin: Boolean = true,
+    includeUnknown6: Boolean = false,
+): Buffer = Buffer().apply {
     writeByte(0b00001111) // riverConnections
     writeByte(1) // border
     writeIntLe(3) // resource
@@ -50,6 +58,9 @@ private fun tileItemBinary(tier: Int = 3, includeVictoryPointAndRuin: Boolean = 
         writeShortLe(3) // fogOfWar
         write(byteArrayOf(0x07, 0x08, 0x09, 0x0A)) // c3cBonuses
         write(byteArrayOf(0x77, 0x12)) // unknown5
+        if (includeUnknown6) {
+            write(byteArrayOf(0x13, 0x14, 0x15, 0x16)) // unknown6
+        }
     }
 }
 
@@ -82,6 +93,7 @@ class TileEntryParserTest : FunSpec({
             fogOfWar = 0,
             c3cBonuses = ByteString.of(0, 0, 0, 0),
             unknown5 = ByteString.of(0, 0),
+            unknown6 = ByteString.of(0, 0, 0, 0),
         )
     }
 
@@ -120,6 +132,7 @@ class TileEntryParserTest : FunSpec({
             fogOfWar = 0,
             c3cBonuses = ByteString.of(0, 0, 0, 0),
             unknown5 = ByteString.of(0, 0),
+            unknown6 = ByteString.of(0, 0, 0, 0),
         )
     }
 
@@ -150,6 +163,38 @@ class TileEntryParserTest : FunSpec({
             fogOfWar = 3,
             c3cBonuses = ByteString.of(0x07, 0x08, 0x09, 0x0A),
             unknown5 = ByteString.of(0x77, 0x12),
+            unknown6 = ByteString.of(0, 0, 0, 0),
+        )
+    }
+
+    test("Conquests-sub-tier-length item (49 bytes, unknown6 present) is parsed into all fields") {
+        val entry = TileEntryParser.parse(tileItemBinary(tier = 3, includeUnknown6 = true))
+        entry shouldBe TileEntry(
+            riverConnections = 0b00001111,
+            border = 1,
+            resource = 3,
+            textureLocation = 42,
+            textureFile = 5,
+            unknown = ByteString.of(0x11, 0x22),
+            overlayFlags = 2,
+            terrain = 0x21,
+            bonusFlags = 4,
+            riverCrossingFlags = 0,
+            barbarianTribe = 7,
+            colony = 2,
+            city = 9,
+            continent = 1,
+            unknown2 = ByteString.of(0x33),
+            victoryPointLocation = -1,
+            ruin = 100,
+            c3cOverlays = ByteString.of(0x01, 0x02, 0x03, 0x04),
+            unknown3 = ByteString.of(0x44),
+            c3cTerrain = 0x21,
+            unknown4 = ByteString.of(0x55, 0x66),
+            fogOfWar = 3,
+            c3cBonuses = ByteString.of(0x07, 0x08, 0x09, 0x0A),
+            unknown5 = ByteString.of(0x77, 0x12),
+            unknown6 = ByteString.of(0x13, 0x14, 0x15, 0x16),
         )
     }
 
@@ -194,6 +239,12 @@ class TileEntryParserTest : FunSpec({
             wellFormedTileEntry(unknown5 = ByteString.of(0))
         }
     }
+
+    test("TileEntry rejects an unknown6 field that is not exactly 4 bytes") {
+        shouldThrow<IllegalArgumentException> {
+            wellFormedTileEntry(unknown6 = ByteString.of(0, 0))
+        }
+    }
 })
 
 /** Builds a well-formed [TileEntry] with all-zero/empty values, for domain-invariant tests that
@@ -206,6 +257,7 @@ private fun wellFormedTileEntry(
     unknown4: ByteString = ByteString.of(0, 0),
     c3cBonuses: ByteString = ByteString.of(0, 0, 0, 0),
     unknown5: ByteString = ByteString.of(0, 0),
+    unknown6: ByteString = ByteString.of(0, 0, 0, 0),
 ): TileEntry = TileEntry(
     riverConnections = 0, border = 0, resource = 0, textureLocation = 0, textureFile = 0,
     unknown = unknown,
@@ -220,4 +272,5 @@ private fun wellFormedTileEntry(
     fogOfWar = 0,
     c3cBonuses = c3cBonuses,
     unknown5 = unknown5,
+    unknown6 = unknown6,
 )

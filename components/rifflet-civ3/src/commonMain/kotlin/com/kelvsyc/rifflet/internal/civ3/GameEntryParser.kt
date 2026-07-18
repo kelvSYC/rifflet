@@ -13,6 +13,11 @@ import okio.Buffer
  * it, and [GameEntry.civAllianceStatuses] much later, after [GameEntry.scenarioSearchFolders].
  * A 4-byte BIX-only `mapVisible (long)` field documented by Apolyton between those two gaps is
  * deliberately NOT read here — see [GameEntry]'s class-level KDoc for why.
+ *
+ * The last 3 fields ([GameEntry.mpBasetime]/[GameEntry.mpCityTime]/[GameEntry.mpUnitTime]) are
+ * read defensively: confirmed absent from every real Conquests file with `VER#` header
+ * `minor=6` (11/11 sampled), present in every `minor=7`/`minor=8` file (14/14 sampled) — a real
+ * Conquests-internal patch-level split, evidently added by a mid-lifecycle Conquests patch.
  */
 internal object GameEntryParser {
     fun parse(item: Buffer): GameEntry {
@@ -68,9 +73,9 @@ internal object GameEntryParser {
         val retainCulture = item.readByte()
         val unknown3 = item.readByteString(4L)
         val eruptionPeriod = item.readIntLe()
-        val mpBasetime = item.readIntLe()
-        val mpCityTime = item.readIntLe()
-        val mpUnitTime = item.readIntLe()
+        val mpBasetime = if (item.size >= 4L) item.readIntLe() else 0
+        val mpCityTime = if (item.size >= 4L) item.readIntLe() else 0
+        val mpUnitTime = if (item.size >= 4L) item.readIntLe() else 0
         return GameEntry(
             defaultGameRules,
             defaultVictoryConditions,

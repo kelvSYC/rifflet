@@ -19,6 +19,10 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
  * numberOfPlayableCivs = 2 (a small, non-zero count) to prove playableCivIds and
  * civAllianceStatuses — read from two independent locations in the layout, sharing the same
  * size — are both genuinely dynamic, not hardcoded.
+ *
+ * [includeMpTimingFields] controls whether the last 3 fields (`mpBasetime`/`mpCityTime`/
+ * `mpUnitTime`) are written, matching the real Conquests `minor=6` (absent) vs `minor=7`/`8`
+ * (present) split confirmed against real files.
  */
 private fun gameItemBinary(
     defaultGameRules: Int = 1,
@@ -76,6 +80,7 @@ private fun gameItemBinary(
     mpBasetime: Int = 0,
     mpCityTime: Int = 0,
     mpUnitTime: Int = 0,
+    includeMpTimingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(defaultGameRules)
     writeIntLe(defaultVictoryConditions)
@@ -129,9 +134,11 @@ private fun gameItemBinary(
     writeByte(retainCulture.toInt())
     write(unknown3)
     writeIntLe(eruptionPeriod)
-    writeIntLe(mpBasetime)
-    writeIntLe(mpCityTime)
-    writeIntLe(mpUnitTime)
+    if (includeMpTimingFields) {
+        writeIntLe(mpBasetime)
+        writeIntLe(mpCityTime)
+        writeIntLe(mpUnitTime)
+    }
 }
 
 class GameEntryParserTest : FunSpec({
@@ -204,6 +211,13 @@ class GameEntryParserTest : FunSpec({
         entry.numberOfPlayableCivs shouldBe 0
         entry.playableCivIds shouldBe emptyList()
         entry.civAllianceStatuses shouldBe emptyList()
+    }
+
+    test("item with mp timing fields absent (confirmed real Conquests minor=6 shape) defaults them to zero") {
+        val entry = GameEntryParser.parse(gameItemBinary(includeMpTimingFields = false))
+        entry.mpBasetime shouldBe 0
+        entry.mpCityTime shouldBe 0
+        entry.mpUnitTime shouldBe 0
     }
 
     test("GameEntry rejects a playableCivIds size that doesn't match numberOfPlayableCivs") {

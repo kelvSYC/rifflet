@@ -16,6 +16,10 @@ import okio.ByteString
  * `item.size` on their own, not as a combined tier. The same length-aware defensive parsing
  * pattern is already used by `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/
  * `ErasEntryParser`/`TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`.
+ *
+ * `unknown6` is a further, genuinely-unexplained 49-byte Conquests sub-tier — see
+ * [TileEntry.unknown6]'s KDoc for what's confirmed and what isn't. It is guarded the same
+ * defensive way as every other optional field here.
  */
 internal object TileEntryParser {
     fun parse(item: Buffer): TileEntry {
@@ -43,6 +47,7 @@ internal object TileEntryParser {
         val fogOfWar = if (item.size >= 2L) item.readShortLe() else 0.toShort()
         val c3cBonuses = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         val unknown5 = if (item.size >= 2L) item.readByteString(2L) else ByteString.of(0, 0)
+        val unknown6 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         return TileEntry(
             riverConnections,
             border,
@@ -68,6 +73,7 @@ internal object TileEntryParser {
             fogOfWar,
             c3cBonuses,
             unknown5,
+            unknown6,
         )
     }
 }
