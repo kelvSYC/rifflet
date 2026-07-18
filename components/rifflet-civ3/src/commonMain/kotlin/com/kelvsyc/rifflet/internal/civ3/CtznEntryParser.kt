@@ -7,6 +7,13 @@ import okio.Buffer
  * Parses one `CTZN` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
+ *
+ * The trailing two fields (`corruption`, `construction`) are read defensively: real vanilla/PTW
+ * files omit them entirely (confirmed by decoding real `CTZN` items from a genuine PTW `.bix`
+ * scenario file — the 116-byte vanilla/PTW record is an exact prefix of the 124-byte Conquests
+ * record), so each read checks `item.size` first and defaults when absent, matching
+ * `BldgEntryParser`/`TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`'s established
+ * length-aware defensive parsing pattern.
  */
 internal object CtznEntryParser {
     fun parse(item: Buffer): CtznEntry {
@@ -18,8 +25,8 @@ internal object CtznEntryParser {
         val luxuries = item.readIntLe()
         val research = item.readIntLe()
         val taxes = item.readIntLe()
-        val corruption = item.readIntLe()
-        val construction = item.readIntLe()
+        val corruption = if (item.size >= 4L) item.readIntLe() else 0
+        val construction = if (item.size >= 4L) item.readIntLe() else 0
         return CtznEntry(
             defaultCitizen,
             singularName,

@@ -24,6 +24,7 @@ private fun ctznItemBinary(
     taxes: Int = 0,
     corruption: Int = 0,
     construction: Int = 0,
+    includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(defaultCitizen)
     writePaddedField(singularName, 32)
@@ -33,8 +34,10 @@ private fun ctznItemBinary(
     writeIntLe(luxuries)
     writeIntLe(research)
     writeIntLe(taxes)
-    writeIntLe(corruption)
-    writeIntLe(construction)
+    if (includeTrailingFields) {
+        writeIntLe(corruption)
+        writeIntLe(construction)
+    }
 }
 
 class CtznEntryParserTest : FunSpec({
@@ -53,5 +56,11 @@ class CtznEntryParserTest : FunSpec({
             corruption = 0,
             construction = 0,
         )
+    }
+
+    test("vanilla/PTW-length item (116 bytes, trailing fields absent) defaults them to zero") {
+        val entry = CtznEntryParser.parse(ctznItemBinary(includeTrailingFields = false))
+        entry.corruption shouldBe 0
+        entry.construction shouldBe 0
     }
 })
