@@ -20,8 +20,12 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
  * `upgradeCost` present. Uses small (2-element) dynamic-array sizes for both
  * `spaceshipPartQuantities` and `cultureLevelNames` to prove both dynamic reads are genuine,
  * not hardcoded.
+ *
+ * [includeFlagUnitType] controls whether `flagUnitType` (and, nested inside it, `upgradeCost` —
+ * real files never have `upgradeCost` without `flagUnitType`) is written — `false` produces the
+ * real vanilla shape confirmed against real files: neither field is present.
  */
-private fun ruleItemBinary(upgradeCost: Int? = 15): Buffer = Buffer().apply {
+private fun ruleItemBinary(upgradeCost: Int? = 15, includeFlagUnitType: Boolean = true): Buffer = Buffer().apply {
     writePaddedField("Town", 32) // citySizeLevel1Name
     writePaddedField("City", 32) // citySizeLevel2Name
     writePaddedField("Metropolis", 32) // citySizeLevel3Name
@@ -76,8 +80,10 @@ private fun ruleItemBinary(upgradeCost: Int? = 15): Buffer = Buffer().apply {
     writeIntLe(16) // goldenAgeDuration
     writeIntLe(4) // maximumResearchTime
     writeIntLe(1) // minimumResearchTime
-    writeIntLe(20) // flagUnitType
-    if (upgradeCost != null) writeIntLe(upgradeCost)
+    if (includeFlagUnitType) {
+        writeIntLe(20) // flagUnitType
+        if (upgradeCost != null) writeIntLe(upgradeCost)
+    }
 }
 
 class RuleEntryParserTest : FunSpec({
@@ -144,6 +150,12 @@ class RuleEntryParserTest : FunSpec({
         val entry = RuleEntryParser.parse(ruleItemBinary(upgradeCost = null))
         entry.upgradeCost shouldBe 0
         entry.flagUnitType shouldBe 20
+    }
+
+    test("vanilla-shape item (flagUnitType and upgradeCost both absent, confirmed real vanilla shape) defaults both to zero") {
+        val entry = RuleEntryParser.parse(ruleItemBinary(includeFlagUnitType = false))
+        entry.flagUnitType shouldBe 0
+        entry.upgradeCost shouldBe 0
     }
 
     test("RuleEntry rejects an unknown field that is not exactly 8 bytes") {

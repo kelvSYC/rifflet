@@ -8,11 +8,16 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * Like `TechEntryParser`, this checks [item]'s remaining size before reading its trailing
- * `upgradeCost` field: `QueryCiv3`'s struct comments it `// Only in conquests`. Because the
- * generic section loop in `Civ3RootParserImpl` already slices [item] to the file's own
- * declared length, `item.size` reliably reflects how many bytes actually remain for this
- * specific file.
+ * Both trailing fields are read defensively, confirmed via byte-count algebra across all 45
+ * real files with a `RULE` section (correctly accounting for the section's two dynamic-array
+ * counts so genuine content differences aren't mistaken for structural ones), zero anomalies:
+ * real vanilla files have neither [RuleEntry.flagUnitType] nor [RuleEntry.upgradeCost]; real PTW
+ * files (`VER#` header `minor=18`, unanimous across all 15 real PTW files) have
+ * [RuleEntry.flagUnitType] but not [RuleEntry.upgradeCost] (`QueryCiv3`'s struct comments the
+ * latter `// Only in conquests`); real Conquests files (unanimous across all 29 real Conquests
+ * files) have both. Because the generic section loop in `Civ3RootParserImpl` already slices
+ * [item] to the file's own declared length, `item.size` reliably reflects how many bytes
+ * actually remain for this specific file.
  *
  * Both dynamic-array counts (`numberOfSpaceshipParts`, `numberOfCultureLevels`) are validated
  * via [requireSaneCount] before sizing their respective lists — see that function's KDoc for
@@ -74,7 +79,7 @@ internal object RuleEntryParser {
         val goldenAgeDuration = item.readIntLe()
         val maximumResearchTime = item.readIntLe()
         val minimumResearchTime = item.readIntLe()
-        val flagUnitType = item.readIntLe()
+        val flagUnitType = if (item.size >= 4L) item.readIntLe() else 0
         val upgradeCost = if (item.size >= 4L) item.readIntLe() else 0
         return RuleEntry(
             citySizeLevel1Name, citySizeLevel2Name, citySizeLevel3Name, spaceshipPartQuantities,
