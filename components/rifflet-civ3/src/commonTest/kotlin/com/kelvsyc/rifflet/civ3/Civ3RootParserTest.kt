@@ -1434,6 +1434,15 @@ class Civ3RootParserTest : FunSpec({
         )
     }
 
+    test("PRTO section with no preceding TERR section throws RiffletParseException") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("PRTO", prtoItemBody()))
+        }
+        shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
     test("BLDG section produces a typed BldgSection, not a raw fallback") {
         val source = Buffer().apply {
             writeString("BIC ", Charsets.US_ASCII)
