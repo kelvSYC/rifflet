@@ -20,14 +20,31 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
  * civAllianceStatuses — read from two independent locations in the layout, sharing the same
  * size — are both genuinely dynamic, not hardcoded.
  *
- * [includeMpTimingFields] controls whether the last 3 fields (`mpBasetime`/`mpCityTime`/
- * `mpUnitTime`) are written, matching the real Conquests `minor=6` (absent) vs `minor=7`/`8`
- * (present) split confirmed against real files.
+ * The 3 new nested parameters below extend the existing nesting chain outward, matching every
+ * real-data-confirmed `GAME` cutoff shape found across the full version spectrum:
+ *
+ * [includeGameSettingsFields] controls whether everything from `placeCaptureUnits` through
+ * `scenarioSearchFolders` (and, transitively, everything nested inside it) is written — `false`
+ * produces the real vanilla 16-byte shape (item ends right after `flags`).
+ *
+ * [includeDebugModeOnward], nested one level inside [includeGameSettingsFields], controls
+ * whether `debugMode` through `scenarioSearchFolders` (and everything nested inside it) is
+ * written — `false` (with the outer flag `true`) produces the real PTW `minor=6`/`9`/`10` shape
+ * (`28+4N`, item ends after `autoPlaceVictoryLocations`).
+ *
+ * [includeUseTimeLimitOnward], nested one level inside [includeDebugModeOnward], controls
+ * whether `useTimeLimit` through `scenarioSearchFolders` (and everything nested inside it) is
+ * written — `false` (with both outer flags `true`) produces the real PTW `minor=13` shape
+ * (`32+4N`, item ends after `debugMode`).
  *
  * [includeConquestsOnlyFields] controls whether everything from `civAllianceStatuses` onward
  * (including the `includeMpTimingFields`-guarded tail, which can only be present if this whole
  * block is) is written — set to `false` to build the real PTW `minor=18` shape confirmed against
  * real files: the item ends immediately after `scenarioSearchFolders`.
+ *
+ * [includeMpTimingFields] controls whether the last 3 fields (`mpBasetime`/`mpCityTime`/
+ * `mpUnitTime`) are written, matching the real Conquests `minor=6` (absent) vs `minor=7`/`8`
+ * (present) split confirmed against real files.
  */
 private fun gameItemBinary(
     defaultGameRules: Int = 1,
@@ -85,29 +102,35 @@ private fun gameItemBinary(
     mpBasetime: Int = 0,
     mpCityTime: Int = 0,
     mpUnitTime: Int = 0,
-    includeMpTimingFields: Boolean = true,
+    includeGameSettingsFields: Boolean = true,
+    includeDebugModeOnward: Boolean = true,
+    includeUseTimeLimitOnward: Boolean = true,
     includeConquestsOnlyFields: Boolean = true,
+    includeMpTimingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(defaultGameRules)
     writeIntLe(defaultVictoryConditions)
     writeIntLe(numberOfPlayableCivs)
     playableCivIds.forEach { writeIntLe(it) }
     write(flags)
-    writeIntLe(placeCaptureUnits)
-    writeIntLe(autoPlaceKings)
-    writeIntLe(autoPlaceVictoryLocations)
-    writeIntLe(debugMode)
-    writeIntLe(useTimeLimit)
-    writeIntLe(baseTimeUnit)
-    writeIntLe(startMonth)
-    writeIntLe(startWeek)
-    writeIntLe(startYear)
-    writeIntLe(minuteTimeLimit)
-    writeIntLe(turnTimeLimit)
-    timescaleNumberOfTurns.forEach { writeIntLe(it) }
-    turnNumberOfTimeUnits.forEach { writeIntLe(it) }
-    writePaddedField(scenarioSearchFolders, 5200)
-    if (includeConquestsOnlyFields) {
+    if (includeGameSettingsFields) {
+        writeIntLe(placeCaptureUnits)
+        writeIntLe(autoPlaceKings)
+        writeIntLe(autoPlaceVictoryLocations)
+        if (includeDebugModeOnward) {
+            writeIntLe(debugMode)
+            if (includeUseTimeLimitOnward) {
+                writeIntLe(useTimeLimit)
+                writeIntLe(baseTimeUnit)
+                writeIntLe(startMonth)
+                writeIntLe(startWeek)
+                writeIntLe(startYear)
+                writeIntLe(minuteTimeLimit)
+                writeIntLe(turnTimeLimit)
+                timescaleNumberOfTurns.forEach { writeIntLe(it) }
+                turnNumberOfTimeUnits.forEach { writeIntLe(it) }
+                writePaddedField(scenarioSearchFolders, 5200)
+                if (includeConquestsOnlyFields) {
         civAllianceStatuses.forEach { writeIntLe(it) }
         writeIntLe(victoryPointLimit)
         writeIntLe(cityEliminationCount)
@@ -145,6 +168,9 @@ private fun gameItemBinary(
             writeIntLe(mpBasetime)
             writeIntLe(mpCityTime)
             writeIntLe(mpUnitTime)
+        }
+                }
+            }
         }
     }
 }
@@ -238,6 +264,40 @@ class GameEntryParserTest : FunSpec({
         entry.allianceNames shouldBe List(5) { "" }
         entry.plagueName shouldBe ""
         entry.mpBasetime shouldBe 0
+    }
+
+    test("vanilla-shape item (ends right after flags, confirmed real 16-byte vanilla shape) defaults every remaining field") {
+        val entry = GameEntryParser.parse(
+            gameItemBinary(
+                numberOfPlayableCivs = 0,
+                playableCivIds = emptyList(),
+                civAllianceStatuses = emptyList(),
+                includeGameSettingsFields = false,
+            ),
+        )
+        entry.placeCaptureUnits shouldBe 0
+        entry.timescaleNumberOfTurns shouldBe List(7) { 0 }
+        entry.scenarioSearchFolders shouldBe ""
+        entry.civAllianceStatuses shouldBe emptyList()
+        entry.mpBasetime shouldBe 0
+    }
+
+    test("PTW minor=6/9/10 shape item (ends after autoPlaceVictoryLocations, formula 28+4N) defaults debugMode onward") {
+        val entry = GameEntryParser.parse(
+            gameItemBinary(autoPlaceVictoryLocations = 30, includeDebugModeOnward = false),
+        )
+        entry.autoPlaceVictoryLocations shouldBe 30
+        entry.debugMode shouldBe 0
+        entry.scenarioSearchFolders shouldBe ""
+    }
+
+    test("PTW minor=13 shape item (ends after debugMode, formula 32+4N) defaults useTimeLimit onward") {
+        val entry = GameEntryParser.parse(
+            gameItemBinary(debugMode = 99, includeUseTimeLimitOnward = false),
+        )
+        entry.debugMode shouldBe 99
+        entry.useTimeLimit shouldBe 0
+        entry.scenarioSearchFolders shouldBe ""
     }
 
     test("GameEntry rejects a playableCivIds size that doesn't match numberOfPlayableCivs") {

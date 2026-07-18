@@ -15,21 +15,32 @@ import okio.ByteString
  * Do not confuse this skipped field with [mapVisible] below, an unconditional 1-byte field that
  * IS modeled.
  *
- * Confirmed against real PTW files (`VER#` header `minor=18`, the dominant PTW sub-tier): every
- * field from [civAllianceStatuses] onward — the rest of this class's properties, in declared
- * order, through [mpUnitTime] — is entirely absent; the item ends immediately after
- * [scenarioSearchFolders]. Evidently alliances, plagues, victory scoring, and multiplayer timing
- * were all introduced together as a single Conquests-era `GAME` expansion. Each of those fields
- * is read defensively — see `GameEntryParser`.
+ * Every field after the fixed 5-field header ([defaultGameRules]/[defaultVictoryConditions]/
+ * [numberOfPlayableCivs]/[playableCivIds]/[flags]) is confirmed version-dependent, via an
+ * exhaustive byte-count scan across all 92 real files with a `GAME` section grouped by exact
+ * `VER#` header `(magic, major, minor)`, zero anomalies:
+ * - Real vanilla files (`major=3`/`4`) can end immediately after [flags] — a bare 16-byte item.
+ * - Real PTW files (`major=11`) end at one of 3 different points depending on `minor`:
+ *   [autoPlaceVictoryLocations] for `minor=6`/`9`/`10`, [debugMode] for `minor=13`, or
+ *   [scenarioSearchFolders] for the dominant `minor=18` tier.
+ * - Real Conquests files (`major=12`) always include everything through [scenarioSearchFolders]
+ *   and the entire alliance/plague/victory-scoring block through [eruptionPeriod]; they
+ *   additionally omit only the trailing mp-timing fields ([mpBasetime]/[mpCityTime]/
+ *   [mpUnitTime]) on `minor=6` (present on `minor=7`/`8`).
+ *
+ * Evidently alliances, plagues, victory scoring, and multiplayer timing were all introduced
+ * together as a single Conquests-era `GAME` expansion, and PTW itself grew the fixed
+ * game-settings block ([placeCaptureUnits] through [scenarioSearchFolders]) incrementally across
+ * several PTW patch revisions before Conquests' larger expansion. Every field from
+ * [placeCaptureUnits] onward is read defensively — see `GameEntryParser`.
  *
  * @param numberOfPlayableCivs The number of civs enumerated in [playableCivIds] and
  *   [civAllianceStatuses] (0 means "all civs playable"); stored explicitly because its value
  *   0 carries distinct semantic meaning beyond mere list-size recoverability.
  * @param playableCivIds Likely `RACE` section indices (naming convention only); not confirmed
- *   by either cross-referenced source. Sized by [numberOfPlayableCivs].
- * @param flags 4 bytes with ~19 named booleans across both cross-referenced sources (victory
- *   condition toggles, game rule toggles); preserved raw, not decomposed. Same treatment as
- *   `RaceEntry.bonuses`.
+ *   by either cross-referenced source. Sized by [numberOfPlayableCivs]. Stays unconditional even
+ *   after this class's other defensive-parsing extensions: every real cutoff tier confirmed so
+ *   far includes it, and vanilla's behavior when `numberOfPlayableCivs > 0` remains unsampled.
  * @param civAllianceStatuses One alliance-status value (0-4, 0=none) per civ, in the same order
  *   as [playableCivIds]; sized by [numberOfPlayableCivs], not separately counted. Confirmed
  *   absent from real PTW files — defaults to [numberOfPlayableCivs] zeros ("no alliance", which
