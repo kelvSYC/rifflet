@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.FlavorEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -46,5 +47,15 @@ class FlavorEntryParserTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             FlavorEntry(ByteString.of(0, 0, 0), "Military", listOf(1, 2, 3))
         }
+    }
+
+    test("an implausibly large relations count throws RiffletParseException before attempting to allocate") {
+        val source = Buffer().apply {
+            write(ByteString.of(*ByteArray(4)))
+            write(ByteArray(256))
+            writeIntLe(1_000_000)
+            write(ByteArray(10))
+        }
+        shouldThrow<RiffletParseException> { FlavorEntryParser.parse(source) }
     }
 })

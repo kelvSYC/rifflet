@@ -56,6 +56,9 @@ import okio.BufferedSource
  * field), so [parseSection] reads it as a special case directly off the shared [BufferedSource],
  * bypassing the generic zero-copy-[Buffer] item slicing entirely. Each FLAV item is itself a
  * "flavor group" containing a nested dynamic list of flavors — see [FlavGroupEntryParser].
+ *
+ * Every section's own item count (and `FLAV`'s group count) is passed through
+ * [requireSaneCount] before it sizes any allocation — see that function's KDoc for why.
  */
 internal object Civ3RootParserImpl {
     fun parse(source: BufferedSource, magic: ChunkId): Civ3File {
@@ -82,9 +85,11 @@ internal object Civ3RootParserImpl {
         val marker = source.readChunkId()
         val count = source.readIntLe()
         if (marker == Civ3SectionIds.FLAV) {
-            return FlavSection(List(count) { FlavGroupEntryParser.parse(source) })
+            val flavGroupCount = source.requireSaneCount(count, 4L, "FLAV")
+            return FlavSection(List(flavGroupCount) { FlavGroupEntryParser.parse(source) })
         }
-        val items = List(count) {
+        val itemCount = source.requireSaneCount(count, 4L, "${marker.name} item count")
+        val items = List(itemCount) {
             val length = source.readIntLe()
             val limit = Civ3ItemSizeLimits.maxSizeFor(marker, magic, major)
             if (limit != null && length > limit) {

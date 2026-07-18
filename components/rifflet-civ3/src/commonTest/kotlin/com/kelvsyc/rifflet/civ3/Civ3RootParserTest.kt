@@ -1443,6 +1443,26 @@ class Civ3RootParserTest : FunSpec({
         shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
     }
 
+    test("a section with an implausibly large item count throws RiffletParseException before attempting to allocate") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeString("BLDG", Charsets.US_ASCII)
+            writeIntLe(Int.MAX_VALUE)
+        }
+        shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
+    test("FLAV section with an implausibly large group count throws RiffletParseException before attempting to allocate") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeString("FLAV", Charsets.US_ASCII)
+            writeIntLe(Int.MAX_VALUE)
+        }
+        shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
     test("BLDG section produces a typed BldgSection, not a raw fallback") {
         val source = Buffer().apply {
             writeString("BIC ", Charsets.US_ASCII)

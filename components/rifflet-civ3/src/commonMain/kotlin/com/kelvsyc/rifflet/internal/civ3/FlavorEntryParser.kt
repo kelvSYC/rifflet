@@ -11,12 +11,15 @@ import okio.BufferedSource
  * cannot pre-slice them the way it does for every other section; see that file's `parseSection`
  * for the special-cased dispatch. Called repeatedly by [FlavGroupEntryParser], which reads the
  * flavor count that sizes each call.
+ *
+ * `numberOfRelations` is validated via [requireSaneCount] before sizing [FlavorEntry.relations]
+ * — see that function's KDoc for why.
  */
 internal object FlavorEntryParser {
     fun parse(source: BufferedSource): FlavorEntry {
         val unknown = source.readByteString(4L)
         val name = source.readByteString(256L).truncateAtFirstNull()
-        val numberOfRelations = source.readIntLe()
+        val numberOfRelations = source.requireSaneCount(source.readIntLe(), 4L, "FlavorEntry.relations")
         val relations = List(numberOfRelations) { source.readIntLe() }
         return FlavorEntry(unknown, name, relations)
     }
