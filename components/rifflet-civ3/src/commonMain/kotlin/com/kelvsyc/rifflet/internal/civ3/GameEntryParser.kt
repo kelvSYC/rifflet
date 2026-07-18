@@ -15,6 +15,10 @@ import okio.ByteString
  * A 4-byte BIX-only `mapVisible (long)` field documented by Apolyton between those two gaps is
  * deliberately NOT read here — see [GameEntry]'s class-level KDoc for why.
  *
+ * [GameEntry.numberOfPlayableCivs] is validated via [requireSaneCount] immediately after being
+ * read, before it sizes [GameEntry.playableCivIds] or (much later) [GameEntry.civAllianceStatuses]
+ * — see that function's KDoc for why.
+ *
  * Every field after the fixed 5-field header ([GameEntry.defaultGameRules]/
  * [GameEntry.defaultVictoryConditions]/[GameEntry.numberOfPlayableCivs]/
  * [GameEntry.playableCivIds]/[GameEntry.flags]) is read defensively — confirmed via an
@@ -33,7 +37,7 @@ internal object GameEntryParser {
     fun parse(item: Buffer): GameEntry {
         val defaultGameRules = item.readIntLe()
         val defaultVictoryConditions = item.readIntLe()
-        val numberOfPlayableCivs = item.readIntLe()
+        val numberOfPlayableCivs = item.requireSaneCount(item.readIntLe(), 4L, "GameEntry.playableCivIds")
         val playableCivIds = List(numberOfPlayableCivs) { item.readIntLe() }
         val flags = item.readByteString(4L)
         val placeCaptureUnits = if (item.size >= 4L) item.readIntLe() else 0

@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.PrtoEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -235,6 +236,21 @@ class PrtoEntryParserTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             wellFormedPrtoEntry(unknown4 = ByteString.of(0, 0))
         }
+    }
+
+    test("an implausibly large terrCount throws RiffletParseException before attempting to allocate") {
+        shouldThrow<RiffletParseException> {
+            PrtoEntryParser.parse(prtoItemBinary(), terrCount = Int.MAX_VALUE)
+        }
+    }
+
+    test("an implausibly large numberOfStealthTargets throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            // zoneOfControl through unknown2, all-zero/valid (with terrCount=14-sized ignoreMovementCost)
+            write(ByteArray(230))
+            writeIntLe(Int.MAX_VALUE) // numberOfStealthTargets
+        }
+        shouldThrow<RiffletParseException> { PrtoEntryParser.parse(buffer, terrCount = 14) }
     }
 })
 

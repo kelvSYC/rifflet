@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.GameEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -362,6 +363,15 @@ class GameEntryParserTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             wellFormedGameEntry(unknown3 = ByteString.of(0, 0))
         }
+    }
+
+    test("an implausibly large numberOfPlayableCivs throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(1) // defaultGameRules
+            writeIntLe(1) // defaultVictoryConditions
+            writeIntLe(Int.MAX_VALUE) // numberOfPlayableCivs
+        }
+        shouldThrow<RiffletParseException> { GameEntryParser.parse(buffer) }
     }
 })
 

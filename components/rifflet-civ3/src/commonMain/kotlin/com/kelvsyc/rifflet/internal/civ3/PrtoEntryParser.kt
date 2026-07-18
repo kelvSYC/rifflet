@@ -25,7 +25,13 @@ import okio.ByteString
  * modeled `ignoreMovementCost` as a hardcoded 14 bytes, which happened to be correct only for
  * Conquests; cross-checking [PrtoEntry.requireSupport]'s value at the terrCount-corrected offset
  * against a real Conquests file's value for the same-named unit matched on 100 of 101 real
- * units, confirming the fix.
+ * units, confirming the fix. [terrCount] is validated via [requireSaneCount] immediately upon
+ * entry, before it sizes [PrtoEntry.ignoreMovementCost] — see that function's KDoc for why.
+ *
+ * [PrtoEntry.numberOfStealthTargets] (not stored on [PrtoEntry] directly —
+ * `stealthTargetUnitTypes.size` is already that count) is likewise validated via
+ * [requireSaneCount] immediately after being read, before it sizes
+ * [PrtoEntry.stealthTargetUnitTypes] in either of its two branches.
  *
  * Every field from [PrtoEntry.flags3] onward is read defensively: real vanilla files end
  * immediately after [PrtoEntry.hpBonus]; real PTW files (confirmed only at `VER#` header
@@ -36,6 +42,7 @@ import okio.ByteString
  */
 internal object PrtoEntryParser {
     fun parse(item: Buffer, terrCount: Int): PrtoEntry {
+        val terrCount = item.requireSaneCount(terrCount, 1L, "PrtoEntry.ignoreMovementCost")
         val zoneOfControl = item.readIntLe()
         val name = item.readByteString(32L).truncateAtFirstNull()
         val civilopediaEntry = item.readByteString(32L).truncateAtFirstNull()
@@ -72,7 +79,11 @@ internal object PrtoEntryParser {
         val unknown = if (item.size >= 16L) item.readByteString(16L) else ByteString.of(*ByteArray(16))
         val enslaveResults = if (item.size >= 4L) item.readIntLe() else 0
         val unknown2 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
-        val numberOfStealthTargets = if (item.size >= 4L) item.readIntLe() else 0
+        val numberOfStealthTargets = item.requireSaneCount(
+            if (item.size >= 4L) item.readIntLe() else 0,
+            4L,
+            "PrtoEntry.stealthTargetUnitTypes",
+        )
         val stealthTargetUnitTypes = if (item.size >= 4L * numberOfStealthTargets) {
             List(numberOfStealthTargets) { item.readIntLe() }
         } else {
