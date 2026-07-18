@@ -50,6 +50,8 @@ import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.TerrSection
 import com.kelvsyc.rifflet.civ3.TfrmEntry
 import com.kelvsyc.rifflet.civ3.TfrmSection
+import com.kelvsyc.rifflet.civ3.TileEntry
+import com.kelvsyc.rifflet.civ3.TileSection
 import com.kelvsyc.rifflet.civ3.UnitEntry
 import com.kelvsyc.rifflet.civ3.UnitSection
 import com.kelvsyc.rifflet.civ3.WchrEntry
@@ -718,6 +720,34 @@ private fun gameItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // mpBasetime
     writeIntLe(0) // mpCityTime
     writeIntLe(0) // mpUnitTime
+}
+
+/** Builds a well-formed 45-byte (Conquests-tier) TILE item body. */
+private fun tileItemBody(): Buffer = Buffer().apply {
+    writeByte(0b00001111) // riverConnections
+    writeByte(1) // border
+    writeIntLe(3) // resource
+    writeByte(42) // textureLocation
+    writeByte(5) // textureFile
+    write(byteArrayOf(0x11, 0x22)) // unknown
+    writeByte(2) // overlayFlags
+    writeByte(0x21) // terrain: base=1, overlay=2 packed nibbles
+    writeByte(4) // bonusFlags
+    writeByte(0) // riverCrossingFlags
+    writeShortLe(7) // barbarianTribe
+    writeShortLe(2) // colony
+    writeShortLe(9) // city
+    writeShortLe(1) // continent
+    write(byteArrayOf(0x33)) // unknown2
+    writeShortLe(-1) // victoryPointLocation
+    writeIntLe(100) // ruin
+    write(byteArrayOf(0x01, 0x02, 0x03, 0x04)) // c3cOverlays
+    write(byteArrayOf(0x44)) // unknown3
+    writeByte(0x21) // c3cTerrain
+    write(byteArrayOf(0x55, 0x66)) // unknown4
+    writeShortLe(3) // fogOfWar
+    write(byteArrayOf(0x07, 0x08, 0x09, 0x0A)) // c3cBonuses
+    write(byteArrayOf(0x77, 0x12)) // unknown5
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -1480,6 +1510,47 @@ class Civ3RootParserTest : FunSpec({
                         mpBasetime = 0,
                         mpCityTime = 0,
                         mpUnitTime = 0,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("TILE section produces a typed TileSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("TILE", tileItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            TileSection(
+                listOf(
+                    TileEntry(
+                        riverConnections = 0b00001111,
+                        border = 1,
+                        resource = 3,
+                        textureLocation = 42,
+                        textureFile = 5,
+                        unknown = ByteString.of(0x11, 0x22),
+                        overlayFlags = 2,
+                        terrain = 0x21,
+                        bonusFlags = 4,
+                        riverCrossingFlags = 0,
+                        barbarianTribe = 7,
+                        colony = 2,
+                        city = 9,
+                        continent = 1,
+                        unknown2 = ByteString.of(0x33),
+                        victoryPointLocation = -1,
+                        ruin = 100,
+                        c3cOverlays = ByteString.of(0x01, 0x02, 0x03, 0x04),
+                        unknown3 = ByteString.of(0x44),
+                        c3cTerrain = 0x21,
+                        unknown4 = ByteString.of(0x55, 0x66),
+                        fogOfWar = 3,
+                        c3cBonuses = ByteString.of(0x07, 0x08, 0x09, 0x0A),
+                        unknown5 = ByteString.of(0x77, 0x12),
                     ),
                 ),
             ),
