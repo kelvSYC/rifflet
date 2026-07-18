@@ -15,6 +15,7 @@ import com.kelvsyc.rifflet.civ3.ErasSection
 import com.kelvsyc.rifflet.civ3.EspnSection
 import com.kelvsyc.rifflet.civ3.ExprSection
 import com.kelvsyc.rifflet.civ3.FlavSection
+import com.kelvsyc.rifflet.civ3.GameSection
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.GovtSection
 import com.kelvsyc.rifflet.civ3.LeadSection
@@ -106,6 +107,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.PRTO -> PrtoSection(items.map { PrtoEntryParser.parse(it) })
             Civ3SectionIds.BLDG -> BldgSection(items.map { BldgEntryParser.parse(it) })
             Civ3SectionIds.TERR -> TerrSection(items.map { TerrEntryParser.parse(it) })
+            Civ3SectionIds.GAME -> GameSection(items.map { GameEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
