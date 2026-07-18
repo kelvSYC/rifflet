@@ -9,8 +9,14 @@ import okio.Buffer
  * generic section loop. The embedded `numberOfGovernments`-sized relationship array is read as
  * a loop resuming the same cursor; `numberOfGovernments` itself is not stored on [GovtEntry] —
  * `relationships.size` is already that count. The 8 ruler-title fields are always read
- * unconditionally (see this plan's Global Constraints) — they do not vary with any other
- * section's entry count.
+ * unconditionally — they do not vary with any other section's entry count.
+ *
+ * The trailing 2 fields (`xenophobic`, `forceResettle`) are read defensively: real vanilla
+ * (major=4) and PTW (major=11) files omit them entirely — confirmed via byte-count algebra
+ * across 4 real samples with different government counts, cross-checked against the fixed
+ * 12-byte [GovtRelationship] size — so each read checks `item.size` first and defaults when
+ * absent, matching `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`'s
+ * established length-aware defensive parsing pattern.
  */
 internal object GovtEntryParser {
     fun parse(item: Buffer): GovtEntry {
@@ -53,8 +59,8 @@ internal object GovtEntryParser {
         val freeUnitsPerMetropolis = item.readIntLe()
         val unitCost = item.readIntLe()
         val warWeariness = item.readIntLe()
-        val xenophobic = item.readIntLe()
-        val forceResettle = item.readIntLe()
+        val xenophobic = if (item.size >= 4L) item.readIntLe() else 0
+        val forceResettle = if (item.size >= 4L) item.readIntLe() else 0
         return GovtEntry(
             defaultType,
             transitionType,

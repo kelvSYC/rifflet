@@ -14,11 +14,14 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
     write(ByteArray((fieldSize - (size - start)).toInt()))
 }
 
-/** Builds a well-formed GOVT item body (length prefix excluded, as with prior sections). */
+/** Builds a well-formed GOVT item body (length prefix excluded, as with prior sections).
+ * [includeTrailingFields] controls whether the last 2 fields (`xenophobic`, `forceResettle`) are
+ * written, matching the real vanilla/PTW (536 bytes) vs Conquests (568 bytes) split. */
 private fun govtItemBinary(
     name: String = "Despotism",
     relationships: List<Triple<Int, Int, Int>> = listOf(Triple(1, 20, 30), Triple(0, 5, 10)),
     unknown: ByteArray = ByteArray(4),
+    includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(0) // defaultType
     writeIntLe(0) // transitionType
@@ -56,8 +59,10 @@ private fun govtItemBinary(
     writeIntLe(0) // freeUnitsPerMetropolis
     writeIntLe(0) // unitCost
     writeIntLe(0) // warWeariness
-    writeIntLe(0) // xenophobic
-    writeIntLe(0) // forceResettle
+    if (includeTrailingFields) {
+        writeIntLe(0) // xenophobic
+        writeIntLe(0) // forceResettle
+    }
 }
 
 class GovtEntryParserTest : FunSpec({
@@ -117,5 +122,11 @@ class GovtEntryParserTest : FunSpec({
     test("unknown trailing field is preserved raw, not validated") {
         val entry = GovtEntryParser.parse(govtItemBinary(unknown = byteArrayOf(9, 9, 9, 9)))
         entry.unknown shouldBe ByteString.of(9, 9, 9, 9)
+    }
+
+    test("vanilla/PTW-length item (536 bytes, xenophobic/forceResettle absent) defaults them to zero") {
+        val entry = GovtEntryParser.parse(govtItemBinary(includeTrailingFields = false))
+        entry.xenophobic shouldBe 0
+        entry.forceResettle shouldBe 0
     }
 })
