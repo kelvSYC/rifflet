@@ -7,10 +7,13 @@ import okio.Buffer
  * Parses one `WMAP` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop — `WMAP` retains a normal length prefix, unlike `FLAV`.
+ *
+ * `numberOfResources` is validated via [requireSaneCount] before sizing
+ * [WmapEntry.resourceIds] — see that function's KDoc for why.
  */
 internal object WmapEntryParser {
     fun parse(item: Buffer): WmapEntry {
-        val numberOfResources = item.readIntLe()
+        val numberOfResources = item.requireSaneCount(item.readIntLe(), 4L, "WmapEntry.resourceIds")
         val resourceIds = List(numberOfResources) { item.readIntLe() }
         val numberOfContinents = item.readIntLe()
         val height = item.readIntLe()

@@ -2,6 +2,8 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.FlavGroupEntry
 import com.kelvsyc.rifflet.civ3.FlavorEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -46,5 +48,13 @@ class FlavGroupEntryParserTest : FunSpec({
                 FlavorEntry(ByteString.of(*ByteArray(4)), "Eastern Civ", listOf(10, 100)),
             ),
         )
+    }
+
+    test("an implausibly large flavor count throws RiffletParseException before attempting to allocate") {
+        val source = Buffer().apply {
+            writeIntLe(1_000_000)
+            write(ByteArray(10))
+        }
+        shouldThrow<RiffletParseException> { FlavGroupEntryParser.parse(source) }
     }
 })

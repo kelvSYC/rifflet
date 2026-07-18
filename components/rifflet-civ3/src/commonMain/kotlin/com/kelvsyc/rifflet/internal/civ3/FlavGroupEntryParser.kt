@@ -11,10 +11,14 @@ import okio.BufferedSource
  * flavorgroups" count is almost always 1) — confirmed against a real Conquests scenario file,
  * where `numberOfFlavors=7` decodes cleanly into 7 named flavors before landing exactly on the
  * next section's marker with zero byte drift.
+ *
+ * `numberOfFlavors` is validated via [requireSaneCount] before sizing [FlavGroupEntry.flavors] —
+ * see that function's KDoc for why. `264L` is [FlavorEntry]'s own minimum possible byte width
+ * (4-byte `unknown` + 256-byte `name` + a 4-byte relations count, with zero relations).
  */
 internal object FlavGroupEntryParser {
     fun parse(source: BufferedSource): FlavGroupEntry {
-        val numberOfFlavors = source.readIntLe()
+        val numberOfFlavors = source.requireSaneCount(source.readIntLe(), 264L, "FlavGroupEntry.flavors")
         val flavors = List(numberOfFlavors) { FlavorEntryParser.parse(source) }
         return FlavGroupEntry(flavors)
     }

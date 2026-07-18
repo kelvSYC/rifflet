@@ -11,12 +11,16 @@ import okio.Buffer
  * the four dynamic-array counts (`numberOfCities`, `numberOfGreatLeaders`, `erasCount`,
  * `numberOfScientificLeaders`) are stored on [RaceEntry] — each list's own `.size` is already
  * that count. `scientificLeaderNames` is the record's last field; nothing follows it.
+ *
+ * All four counts are validated via [requireSaneCount] before sizing their respective lists —
+ * see that function's KDoc for why. `520L` is [RaceEraFilenames]' fixed width (two 260-byte
+ * fields).
  */
 internal object RaceEntryParser {
     fun parse(item: Buffer, erasCount: Int): RaceEntry {
-        val numberOfCities = item.readIntLe()
+        val numberOfCities = item.requireSaneCount(item.readIntLe(), 24L, "RaceEntry.cityNames")
         val cityNames = List(numberOfCities) { item.readByteString(24L).truncateAtFirstNull() }
-        val numberOfGreatLeaders = item.readIntLe()
+        val numberOfGreatLeaders = item.requireSaneCount(item.readIntLe(), 32L, "RaceEntry.greatLeaderNames")
         val greatLeaderNames = List(numberOfGreatLeaders) { item.readByteString(32L).truncateAtFirstNull() }
         val leaderName = item.readByteString(32L).truncateAtFirstNull()
         val leaderTitle = item.readByteString(24L).truncateAtFirstNull()
@@ -24,7 +28,8 @@ internal object RaceEntryParser {
         val adjective = item.readByteString(40L).truncateAtFirstNull()
         val name = item.readByteString(40L).truncateAtFirstNull()
         val noun = item.readByteString(40L).truncateAtFirstNull()
-        val eras = List(erasCount) { RaceEraFilenamesParser.parse(item) }
+        val validatedErasCount = item.requireSaneCount(erasCount, 520L, "RaceEntry.eras")
+        val eras = List(validatedErasCount) { RaceEraFilenamesParser.parse(item) }
         val cultureGroup = item.readIntLe()
         val leaderGender = item.readIntLe()
         val civilizationGender = item.readIntLe()
@@ -47,7 +52,11 @@ internal object RaceEntryParser {
         val flavors = item.readIntLe()
         val unknown = item.readByteString(4L)
         val diplomacyTextIndex = item.readIntLe()
-        val numberOfScientificLeaders = item.readIntLe()
+        val numberOfScientificLeaders = item.requireSaneCount(
+            item.readIntLe(),
+            32L,
+            "RaceEntry.scientificLeaderNames",
+        )
         val scientificLeaderNames = List(numberOfScientificLeaders) { item.readByteString(32L).truncateAtFirstNull() }
         return RaceEntry(
             cityNames,

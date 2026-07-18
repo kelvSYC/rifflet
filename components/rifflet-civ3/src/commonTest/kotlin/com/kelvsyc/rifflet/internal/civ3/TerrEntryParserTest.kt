@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.TerrEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -162,6 +163,22 @@ class TerrEntryParserTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             wellFormedTerrEntry(unknown2 = ByteString.of(0, 0))
         }
+    }
+
+    test("a numberOfPossibleResources whose ceiling-divided byte requirement exceeds remaining data throws RiffletParseException") {
+        val buffer = Buffer().apply {
+            writeIntLe(1_000_000) // numberOfPossibleResources -> 125,000 bytes required
+            write(ByteArray(10))
+        }
+        shouldThrow<RiffletParseException> { TerrEntryParser.parse(buffer) }
+    }
+
+    test("a numberOfPossibleResources near Int.MAX_VALUE does not overflow the ceiling-division arithmetic") {
+        val buffer = Buffer().apply {
+            writeIntLe(Int.MAX_VALUE - 3) // +7 would overflow Int arithmetic if not computed as Long
+            write(ByteArray(10))
+        }
+        shouldThrow<RiffletParseException> { TerrEntryParser.parse(buffer) }
     }
 })
 

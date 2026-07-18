@@ -2,6 +2,8 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtRelationship
+import com.kelvsyc.rifflet.core.RiffletParseException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -128,5 +130,17 @@ class GovtEntryParserTest : FunSpec({
         val entry = GovtEntryParser.parse(govtItemBinary(includeTrailingFields = false))
         entry.xenophobic shouldBe 0
         entry.forceResettle shouldBe 0
+    }
+
+    test("an implausibly large numberOfGovernments throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            write(ByteArray(24)) // defaultType..tradeBonus (6 ints)
+            write(ByteArray(64)) // name
+            write(ByteArray(32)) // civilopediaEntry
+            repeat(8) { write(ByteArray(32)) } // ruler titles
+            write(ByteArray(16)) // corruption..spiesAre (4 ints)
+            writeIntLe(Int.MAX_VALUE) // numberOfGovernments
+        }
+        shouldThrow<RiffletParseException> { GovtEntryParser.parse(buffer) }
     }
 })

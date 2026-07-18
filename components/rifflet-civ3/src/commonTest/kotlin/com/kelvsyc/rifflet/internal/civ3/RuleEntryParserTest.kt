@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.RuleEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -161,6 +162,26 @@ class RuleEntryParserTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             wellFormedRuleEntry(unknown3 = ByteString.of(0, 0))
         }
+    }
+
+    test("an implausibly large numberOfSpaceshipParts throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            write(ByteArray(96)) // citySizeLevel1Name..3Name (3 * 32)
+            writeIntLe(Int.MAX_VALUE) // numberOfSpaceshipParts
+        }
+        shouldThrow<RiffletParseException> { RuleEntryParser.parse(buffer) }
+    }
+
+    test("an implausibly large numberOfCultureLevels throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            write(ByteArray(96)) // citySizeLevel1Name..3Name (3 * 32)
+            writeIntLe(0) // numberOfSpaceshipParts
+            // advancedBarbarianUnitType..fortificationsDefensiveBonus: 9 ints (36B) + unknown (8B) +
+            // 12 ints (48B) + unknown2 (4B) + 14 ints (56B) + unknown3 (4B) + 1 int (4B) = 160B
+            write(ByteArray(160))
+            writeIntLe(Int.MAX_VALUE) // numberOfCultureLevels
+        }
+        shouldThrow<RiffletParseException> { RuleEntryParser.parse(buffer) }
     }
 })
 

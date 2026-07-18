@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.TerrEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import okio.Buffer
 
 /**
@@ -13,13 +14,24 @@ import okio.Buffer
  * [TerrEntry.possibleResources] is this codebase's first dynamically-sized opaque `ByteString`:
  * its length is computed from the preceding [TerrEntry.numberOfPossibleResources] count via
  * ceiling division to bytes (`(numberOfPossibleResources + 7) / 8`), rather than being a fixed
- * constant or a count-prefixed element list.
+ * constant or a count-prefixed element list. The ceiling division is computed in `Long`
+ * arithmetic specifically to avoid `Int` overflow when [TerrEntry.numberOfPossibleResources] is
+ * within 7 of `Int.MAX_VALUE` (an `Int + Int` addition there would wrap to a large negative
+ * number before the division ever ran). The result is validated against [item]'s actual
+ * remaining size via [okio.BufferedSource.request] — the same technique [requireSaneCount] uses
+ * — before [TerrEntry.possibleResources] is read, since this field's ceiling-division shape
+ * doesn't fit `requireSaneCount`'s `count * minBytesPerElement` model directly.
  */
 internal object TerrEntryParser {
     fun parse(item: Buffer): TerrEntry {
         val numberOfPossibleResources = item.readIntLe()
-        val possibleResourcesLength = (numberOfPossibleResources + 7) / 8
-        val possibleResources = item.readByteString(possibleResourcesLength.toLong())
+        val possibleResourcesLength = (numberOfPossibleResources.toLong() + 7) / 8
+        if (possibleResourcesLength < 0 || !item.request(possibleResourcesLength)) {
+            throw RiffletParseException(
+                "TerrEntry.possibleResources requires $possibleResourcesLength bytes, but insufficient data remains",
+            )
+        }
+        val possibleResources = item.readByteString(possibleResourcesLength)
         val name = item.readByteString(32L).truncateAtFirstNull()
         val civilopediaEntry = item.readByteString(32L).truncateAtFirstNull()
         val irrigationBonus = item.readIntLe()

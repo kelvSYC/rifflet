@@ -1,6 +1,8 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.CityEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -67,5 +69,16 @@ class CityEntryParserTest : FunSpec({
             borderLevel = 1,
             useAutoName = 1,
         )
+    }
+
+    test("an implausibly large numberOfBuildings throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeByte(1) // hasWalls
+            writeByte(0) // hasPalace
+            write(ByteArray(24)) // name
+            writeIntLe(2) // ownerType
+            writeIntLe(Int.MAX_VALUE) // numberOfBuildings
+        }
+        shouldThrow<RiffletParseException> { CityEntryParser.parse(buffer) }
     }
 })
