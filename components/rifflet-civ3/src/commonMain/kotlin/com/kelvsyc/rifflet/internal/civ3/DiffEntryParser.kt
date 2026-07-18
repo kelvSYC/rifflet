@@ -7,6 +7,12 @@ import okio.Buffer
  * Parses one `DIFF` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
+ *
+ * The trailing field (`militaryLaw`) is read defensively: real vanilla files (major=4, confirmed
+ * against a genuine default-rules `.bic` file) omit it entirely — the 116-byte vanilla record is
+ * an exact prefix of the 120-byte PTW/Conquests record — so the read checks `item.size` first and
+ * defaults when absent, matching `BldgEntryParser`/`CtznEntryParser`/`TileEntryParser`'s
+ * established length-aware defensive parsing pattern.
  */
 internal object DiffEntryParser {
     fun parse(item: Buffer): DiffEntry {
@@ -24,7 +30,7 @@ internal object DiffEntryParser {
         val percentageOfOptimalCities = item.readIntLe()
         val aiToAiTradeRate = item.readIntLe()
         val corruptionPercentage = item.readIntLe()
-        val militaryLaw = item.readIntLe()
+        val militaryLaw = if (item.size >= 4L) item.readIntLe() else 0
         return DiffEntry(
             name,
             numberOfCitizensBornContent,

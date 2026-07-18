@@ -12,10 +12,17 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
     write(ByteArray((fieldSize - (size - start)).toInt()))
 }
 
-/** Builds a well-formed 120-byte DIFF item body (length prefix excluded, as with WSIZ). */
-private fun diffItemBinary(name: String = "Chieftain", values: List<Int> = (0..13).toList()): Buffer = Buffer().apply {
+/** Builds a well-formed 120-byte DIFF item body (length prefix excluded, as with WSIZ).
+ * [includeTrailingField] controls whether the last value (`militaryLaw`) is written, matching
+ * the real vanilla (major=4, 116 bytes) vs PTW/Conquests (120 bytes) split. */
+private fun diffItemBinary(
+    name: String = "Chieftain",
+    values: List<Int> = (0..13).toList(),
+    includeTrailingField: Boolean = true,
+): Buffer = Buffer().apply {
     writePaddedField(name, 64)
-    values.forEach { writeIntLe(it) }
+    val written = if (includeTrailingField) values else values.dropLast(1)
+    written.forEach { writeIntLe(it) }
 }
 
 class DiffEntryParserTest : FunSpec({
@@ -39,5 +46,10 @@ class DiffEntryParserTest : FunSpec({
             corruptionPercentage = 12,
             militaryLaw = 13,
         )
+    }
+
+    test("vanilla-length item (116 bytes, militaryLaw absent) defaults it to zero") {
+        val entry = DiffEntryParser.parse(diffItemBinary(includeTrailingField = false))
+        entry.militaryLaw shouldBe 0
     }
 })

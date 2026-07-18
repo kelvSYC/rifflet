@@ -1556,4 +1556,52 @@ class Civ3RootParserTest : FunSpec({
             ),
         )
     }
+
+    test("oversized item at a confirmed (magic, major) throws RiffletParseException") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes(major = 4))
+            writeAll(rawSectionBytes("BLDG", listOf(ByteArray(268))))
+        }
+        shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
+    test("item at exactly the confirmed max for a real Conquests (magic, major) parses fine") {
+        val source = Buffer().apply {
+            writeString("BICX", Charsets.US_ASCII)
+            writeAll(verSectionBytes(major = 12))
+            writeAll(rawSectionBytes("BLDG", listOf(ByteArray(268))))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections.filterIsInstance<BldgSection>().single().entries.size shouldBe 1
+    }
+
+    test("TILE item exceeding the confirmed max for its exact major throws") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes(major = 3))
+            writeAll(rawSectionBytes("TILE", listOf(ByteArray(24))))
+        }
+        shouldThrow<RiffletParseException> { Civ3RootParser.parse(source) }
+    }
+
+    test("TILE item at exactly the confirmed max for its exact major parses fine") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes(major = 3))
+            writeAll(rawSectionBytes("TILE", listOf(ByteArray(23))))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections.filterIsInstance<TileSection>().single().entries.size shouldBe 1
+    }
+
+    test("oversized item at an unconfirmed (magic, major) combination does not throw") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes(major = 2))
+            writeAll(rawSectionBytes("BLDG", listOf(ByteArray(268))))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections.filterIsInstance<BldgSection>().single().entries.size shouldBe 1
+    }
 })

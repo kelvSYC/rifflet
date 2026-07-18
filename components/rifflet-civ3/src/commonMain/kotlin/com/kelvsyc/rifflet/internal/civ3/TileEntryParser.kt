@@ -9,11 +9,13 @@ import okio.ByteString
  * Civ3 format eras. Reads directly off [item], a zero-copy-transferred [Buffer] already stripped
  * of its own length prefix by the generic section loop.
  *
- * The three-tier version split (vanilla 22 bytes / PTW 29 bytes / Conquests 45 bytes) is handled
- * by reading the 10 PTW-and-later fields defensively, each independently guarded by
- * `item.size` — the same length-aware defensive parsing pattern already used by
- * `BldgEntryParser`/`CtznEntryParser`/`TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`,
- * just spanning two tiers of optional trailing fields instead of one.
+ * The real version ladder has (at least) four steps by exact header `major` value — major=2 (22
+ * bytes), major=3/4 (23 bytes, +`unknown2`), major=11/PTW (29 bytes, +`victoryPointLocation`/
+ * `ruin`), major=12/Conquests (45 bytes, +7 more fields) — but the code only needs three
+ * independent guards, since `unknown2`/`victoryPointLocation`/`ruin` are each checked against
+ * `item.size` on their own, not as a combined tier. The same length-aware defensive parsing
+ * pattern is already used by `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/
+ * `ErasEntryParser`/`TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`.
  */
 internal object TileEntryParser {
     fun parse(item: Buffer): TileEntry {

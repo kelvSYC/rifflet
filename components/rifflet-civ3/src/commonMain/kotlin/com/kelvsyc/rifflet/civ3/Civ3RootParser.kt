@@ -11,8 +11,8 @@ import okio.IOException
 import okio.Source
 import okio.buffer
 
-private val BIC_MAGIC = ChunkId("BIC ")
-private val BICX_MAGIC = ChunkId("BICX")
+internal val BIC_MAGIC = ChunkId("BIC ")
+internal val BICX_MAGIC = ChunkId("BICX")
 
 /**
  * Parses a Civ3 BIC/BIX/BIQ file — compressed with PKWare DCL "Implode" or not — into a
@@ -27,8 +27,8 @@ object Civ3RootParser {
         return buffered.use {
             try {
                 if (hasCiv3Magic(buffered)) {
-                    buffered.readChunkId()
-                    Civ3RootParserImpl.parse(buffered)
+                    val magic = buffered.readChunkId()
+                    Civ3RootParserImpl.parse(buffered, magic)
                 } else {
                     val decompressed = Buffer().write(explode(buffered))
                     if (!hasCiv3Magic(decompressed)) {
@@ -36,8 +36,8 @@ object Civ3RootParser {
                             "Not a Civ3 BIC/BIX/BIQ file: bad magic signature after decompression",
                         )
                     }
-                    decompressed.readChunkId()
-                    Civ3RootParserImpl.parse(decompressed)
+                    val magic = decompressed.readChunkId()
+                    Civ3RootParserImpl.parse(decompressed, magic)
                 }
             } catch (e: RiffletParseException) {
                 throw e
