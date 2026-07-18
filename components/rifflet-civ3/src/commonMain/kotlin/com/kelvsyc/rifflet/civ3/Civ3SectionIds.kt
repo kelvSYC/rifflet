@@ -33,4 +33,5 @@ object Civ3SectionIds {
     val PRTO = ChunkId("PRTO")
     val BLDG = ChunkId("BLDG")
     val TERR = ChunkId("TERR")
+    val GAME = ChunkId("GAME")
 }

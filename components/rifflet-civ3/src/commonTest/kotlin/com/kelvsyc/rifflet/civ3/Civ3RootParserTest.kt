@@ -30,6 +30,8 @@ import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.ExprSection
 import com.kelvsyc.rifflet.civ3.FlavEntry
 import com.kelvsyc.rifflet.civ3.FlavSection
+import com.kelvsyc.rifflet.civ3.GameEntry
+import com.kelvsyc.rifflet.civ3.GameSection
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodSection
 import com.kelvsyc.rifflet.civ3.LeadEntry
@@ -640,6 +642,73 @@ private fun terrItemBody(): Buffer = Buffer().apply {
     write(ByteArray(4)) // unknown2
     writeIntLe(0) // terrainFlags
     writeIntLe(0) // diseaseStrength
+}
+
+/** Builds a well-formed GAME item body with 2 playable civs, proving both civ-count-sized
+ * lists (playableCivIds, civAllianceStatuses) are read from their independent positions. */
+private fun gameItemBody(): Buffer = Buffer().apply {
+    writeIntLe(1) // defaultGameRules
+    writeIntLe(1) // defaultVictoryConditions
+    writeIntLe(2) // numberOfPlayableCivs
+    writeIntLe(3) // playableCivIds[0]
+    writeIntLe(7) // playableCivIds[1]
+    write(ByteArray(4)) // flags
+    writeIntLe(0) // placeCaptureUnits
+    writeIntLe(0) // autoPlaceKings
+    writeIntLe(0) // autoPlaceVictoryLocations
+    writeIntLe(0) // debugMode
+    writeIntLe(0) // useTimeLimit
+    writeIntLe(0) // baseTimeUnit
+    writeIntLe(1) // startMonth
+    writeIntLe(1) // startWeek
+    writeIntLe(-4000) // startYear
+    writeIntLe(0) // minuteTimeLimit
+    writeIntLe(0) // turnTimeLimit
+    for (i in 1..7) writeIntLe(i) // timescaleNumberOfTurns
+    for (i in 1..7) writeIntLe(i * 10) // turnNumberOfTimeUnits
+    writeString("Conquests", Charsets.US_ASCII)
+    write(ByteArray(5200 - 9)) // pad "Conquests" (9 bytes) to 5200
+    writeIntLe(0) // civAllianceStatuses[0]
+    writeIntLe(2) // civAllianceStatuses[1]
+    writeIntLe(0) // victoryPointLimit
+    writeIntLe(0) // cityEliminationCount
+    writeIntLe(0) // oneCityCultureWin
+    writeIntLe(0) // allCitiesCultureWin
+    writeIntLe(0) // dominationTerrain
+    writeIntLe(0) // dominationPopulation
+    writeIntLe(0) // wonderCost
+    writeIntLe(0) // defeatingOpposingUnitCost
+    writeIntLe(0) // advancementCost
+    writeIntLe(0) // cityConquestPopulation
+    writeIntLe(0) // victoryPointScoring
+    writeIntLe(0) // capturingSpecialUnit
+    write(ByteArray(5)) // unknown
+    write(ByteArray(256)) // allianceNames[0]
+    write(ByteArray(256)) // allianceNames[1]
+    write(ByteArray(256)) // allianceNames[2]
+    write(ByteArray(256)) // allianceNames[3]
+    write(ByteArray(256)) // allianceNames[4]
+    for (i in 1..25) writeIntLe(0) // allianceWars
+    writeIntLe(0) // allianceVictoryType
+    write(ByteArray(260)) // plagueName
+    writeByte(0) // permitPlagues
+    writeIntLe(0) // plagueEarliestStart
+    writeIntLe(0) // plagueVariation
+    writeIntLe(0) // plagueDuration
+    writeIntLe(0) // plagueStrength
+    writeIntLe(0) // plagueGracePeriod
+    writeIntLe(0) // plagueMaxOccurrence
+    write(ByteArray(264)) // unknown2
+    writeIntLe(0) // respawnFlagUnits
+    writeByte(0) // captureAnyFlag
+    writeIntLe(0) // goldForCapture
+    writeByte(1) // mapVisible
+    writeByte(0) // retainCulture
+    write(ByteArray(4)) // unknown3
+    writeIntLe(0) // eruptionPeriod
+    writeIntLe(0) // mpBasetime
+    writeIntLe(0) // mpCityTime
+    writeIntLe(0) // mpUnitTime
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -1321,6 +1390,78 @@ class Civ3RootParserTest : FunSpec({
                         unknown2 = ByteString.of(*ByteArray(4)),
                         terrainFlags = 0,
                         diseaseStrength = 0,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("GAME section produces a typed GameSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("GAME", gameItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            GameSection(
+                listOf(
+                    GameEntry(
+                        defaultGameRules = 1,
+                        defaultVictoryConditions = 1,
+                        numberOfPlayableCivs = 2,
+                        playableCivIds = listOf(3, 7),
+                        flags = ByteString.of(*ByteArray(4)),
+                        placeCaptureUnits = 0,
+                        autoPlaceKings = 0,
+                        autoPlaceVictoryLocations = 0,
+                        debugMode = 0,
+                        useTimeLimit = 0,
+                        baseTimeUnit = 0,
+                        startMonth = 1,
+                        startWeek = 1,
+                        startYear = -4000,
+                        minuteTimeLimit = 0,
+                        turnTimeLimit = 0,
+                        timescaleNumberOfTurns = listOf(1, 2, 3, 4, 5, 6, 7),
+                        turnNumberOfTimeUnits = listOf(10, 20, 30, 40, 50, 60, 70),
+                        scenarioSearchFolders = "Conquests",
+                        civAllianceStatuses = listOf(0, 2),
+                        victoryPointLimit = 0,
+                        cityEliminationCount = 0,
+                        oneCityCultureWin = 0,
+                        allCitiesCultureWin = 0,
+                        dominationTerrain = 0,
+                        dominationPopulation = 0,
+                        wonderCost = 0,
+                        defeatingOpposingUnitCost = 0,
+                        advancementCost = 0,
+                        cityConquestPopulation = 0,
+                        victoryPointScoring = 0,
+                        capturingSpecialUnit = 0,
+                        unknown = ByteString.of(*ByteArray(5)),
+                        allianceNames = listOf("", "", "", "", ""),
+                        allianceWars = List(25) { 0 },
+                        allianceVictoryType = 0,
+                        plagueName = "",
+                        permitPlagues = 0,
+                        plagueEarliestStart = 0,
+                        plagueVariation = 0,
+                        plagueDuration = 0,
+                        plagueStrength = 0,
+                        plagueGracePeriod = 0,
+                        plagueMaxOccurrence = 0,
+                        unknown2 = ByteString.of(*ByteArray(264)),
+                        respawnFlagUnits = 0,
+                        captureAnyFlag = 0,
+                        goldForCapture = 0,
+                        mapVisible = 1,
+                        retainCulture = 0,
+                        unknown3 = ByteString.of(*ByteArray(4)),
+                        eruptionPeriod = 0,
+                        mpBasetime = 0,
+                        mpCityTime = 0,
+                        mpUnitTime = 0,
                     ),
                 ),
             ),
