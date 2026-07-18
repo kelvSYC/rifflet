@@ -8,10 +8,14 @@ import okio.ByteString
  * real Civ3 data was available — `QueryCiv3`'s own authors flag this as their least-complete,
  * most tangled struct.
  *
- * Confirmed against real files of all three format eras to have a three-tier version split:
- * vanilla (22 bytes, [riverConnections] through [continent]), PTW (+7 bytes: [unknown2],
- * [victoryPointLocation], [ruin]), and Conquests (+16 bytes: [c3cOverlays] through [unknown5]).
- * The PTW/Conquests-only fields are read defensively — see `TileEntryParser`.
+ * Confirmed against real files to have (at least) a four-step version ladder keyed by the exact
+ * `VER#` header `major` value: major=2 (22 bytes, [riverConnections] through [continent]),
+ * major=3 or 4 (23 bytes, +[unknown2] only), major=11/PTW (29 bytes, +[victoryPointLocation]/
+ * [ruin] on top of [unknown2]), and major=12/Conquests (45 bytes, +[c3cOverlays] through
+ * [unknown5]). Each trailing field is read defensively and independently — see
+ * `TileEntryParser` — which is why the major=3/4 intermediate step (undiscovered until a later
+ * real-data investigation covering all 120 files in a real Civ III install) parses correctly
+ * without any code change: the guards were never coupled into a single all-or-nothing tier.
  *
  * @param resource Likely a `GOOD` section index (naming convention only); not confirmed by
  *   either cross-referenced source.
@@ -28,10 +32,11 @@ import okio.ByteString
  * @param continent Likely a `CONT` section index (naming convention only); not confirmed by
  *   either cross-referenced source.
  * @param unknown2 1 byte with zero documented behavior from either cross-referenced source;
- *   present only in PTW and later files, read defensively; preserved raw, not validated.
+ *   confirmed absent only in the earliest vanilla revision (major=2) — present from major=3
+ *   onward (including PTW and Conquests), read defensively; preserved raw, not validated.
  * @param victoryPointLocation `0` if this tile is a Victory Point Location, `-1` otherwise, per
- *   `QueryCiv3`; present only in PTW and later files, read defensively.
- * @param ruin Present only in PTW and later files, read defensively.
+ *   `QueryCiv3`; present only from PTW (major=11) onward, read defensively.
+ * @param ruin Present only from PTW (major=11) onward, read defensively.
  * @param c3cOverlays 4 bytes with ~13 named booleans across both cross-referenced sources
  *   (roads, railroads, improvements, barbarian camps, craters, etc.); present only in Conquests
  *   files, read defensively; preserved raw, not decomposed.

@@ -15,8 +15,12 @@ import okio.ByteString
  * write, not a differently-ordered one. Uses distinct, non-default values throughout to prove
  * genuine field-order correctness, matching `BldgEntryParserTest`'s established precedent (no
  * dynamic-array landmarks in this section to otherwise catch ordering bugs).
+ *
+ * [includeVictoryPointAndRuin] additionally controls whether `victoryPointLocation`/`ruin` are
+ * written when `tier >= 2` — set to `false` to build the real major=3/4 vanilla-revision shape
+ * (23 bytes: `unknown2` present, but `victoryPointLocation`/`ruin` genuinely absent until PTW).
  */
-private fun tileItemBinary(tier: Int = 3): Buffer = Buffer().apply {
+private fun tileItemBinary(tier: Int = 3, includeVictoryPointAndRuin: Boolean = true): Buffer = Buffer().apply {
     writeByte(0b00001111) // riverConnections
     writeByte(1) // border
     writeIntLe(3) // resource
@@ -33,8 +37,10 @@ private fun tileItemBinary(tier: Int = 3): Buffer = Buffer().apply {
     writeShortLe(1) // continent
     if (tier >= 2) {
         write(byteArrayOf(0x33)) // unknown2
-        writeShortLe(-1) // victoryPointLocation
-        writeIntLe(100) // ruin
+        if (includeVictoryPointAndRuin) {
+            writeShortLe(-1) // victoryPointLocation
+            writeIntLe(100) // ruin
+        }
     }
     if (tier >= 3) {
         write(byteArrayOf(0x01, 0x02, 0x03, 0x04)) // c3cOverlays
@@ -77,6 +83,14 @@ class TileEntryParserTest : FunSpec({
             c3cBonuses = ByteString.of(0, 0, 0, 0),
             unknown5 = ByteString.of(0, 0),
         )
+    }
+
+    test("major=3/4-length item (23 bytes, unknown2 present but victoryPointLocation/ruin absent) parses unknown2 and defaults the rest") {
+        val entry = TileEntryParser.parse(tileItemBinary(tier = 2, includeVictoryPointAndRuin = false))
+        entry.unknown2 shouldBe ByteString.of(0x33)
+        entry.victoryPointLocation shouldBe 0
+        entry.ruin shouldBe 0
+        entry.c3cOverlays shouldBe ByteString.of(0, 0, 0, 0)
     }
 
     test("PTW-length item (29 bytes, Conquests fields absent) defaults them to zero") {
