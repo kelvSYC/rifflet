@@ -17,6 +17,9 @@ import okio.Buffer
  * 12-byte [GovtRelationship] size — so each read checks `item.size` first and defaults when
  * absent, matching `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`'s
  * established length-aware defensive parsing pattern.
+ *
+ * `numberOfGovernments` is validated via [requireSaneCount] before sizing
+ * [GovtEntry.relationships] — see that function's KDoc for why.
  */
 internal object GovtEntryParser {
     fun parse(item: Buffer): GovtEntry {
@@ -40,7 +43,7 @@ internal object GovtEntryParser {
         val immuneTo = item.readIntLe()
         val diplomatsAre = item.readIntLe()
         val spiesAre = item.readIntLe()
-        val numberOfGovernments = item.readIntLe()
+        val numberOfGovernments = item.requireSaneCount(item.readIntLe(), 12L, "GovtEntry.relationships")
         val relationships = List(numberOfGovernments) { GovtRelationshipParser.parse(item) }
         val hurrying = item.readIntLe()
         val assimilationChance = item.readIntLe()

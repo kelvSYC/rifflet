@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.WmapEntry
+import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -65,5 +66,12 @@ class WmapEntryParserTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             WmapEntry(emptyList(), 0, 0, 0, 0, ByteString.of(*ByteArray(8)), 0, ByteString.of(0, 0, 0), 0, 0)
         }
+    }
+
+    test("an implausibly large numberOfResources throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(Int.MAX_VALUE)
+        }
+        shouldThrow<RiffletParseException> { WmapEntryParser.parse(buffer) }
     }
 })
