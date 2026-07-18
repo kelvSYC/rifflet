@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import okio.Buffer
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import com.kelvsyc.rifflet.civ3.BldgEntry
+import com.kelvsyc.rifflet.civ3.BldgSection
 import com.kelvsyc.rifflet.civ3.CityEntry
 import com.kelvsyc.rifflet.civ3.CitySection
 import com.kelvsyc.rifflet.civ3.ClnyEntry
@@ -551,6 +553,48 @@ private fun prtoItemBody(): Buffer = Buffer().apply {
     writeIntLe(1.5f.toRawBits()) // workerStrength
     write(ByteArray(4)) // unknown4
     writeIntLe(0) // airDefense
+}
+
+/** Builds a well-formed BLDG item body. BLDG has no dynamic-length regions. */
+private fun bldgItemBody(): Buffer = Buffer().apply {
+    writeString("Provides defense", Charsets.US_ASCII)
+    write(ByteArray(64 - 16)) // pad "Provides defense" (16 bytes) to 64
+    writeString("City Walls", Charsets.US_ASCII)
+    write(ByteArray(32 - 10)) // pad "City Walls" (10 bytes) to 32
+    writeString("City Walls", Charsets.US_ASCII)
+    write(ByteArray(32 - 10)) // pad "City Walls" (10 bytes) to 32
+    writeIntLe(0) // doublesHappiness
+    writeIntLe(0) // gainInEveryCity
+    writeIntLe(0) // gainInEveryCityOnContinent
+    writeIntLe(-1) // requiredBuilding
+    writeIntLe(60) // cost
+    writeIntLe(1) // culture
+    writeIntLe(0) // bombardDefense
+    writeIntLe(0) // navalBombardDefense
+    writeIntLe(100) // defenseBonus
+    writeIntLe(0) // navalDefenseBonus
+    writeIntLe(0) // maintenanceCost
+    writeIntLe(0) // contentFacesAllCities
+    writeIntLe(0) // contentFaces
+    writeIntLe(0) // unhappyFacesAllCities
+    writeIntLe(0) // unhappyFaces
+    writeIntLe(0) // numberOfRequiredBuildings
+    writeIntLe(0) // airPower
+    writeIntLe(0) // navalPower
+    writeIntLe(0) // pollution
+    writeIntLe(0) // production
+    writeIntLe(-1) // requiredGovernment
+    writeIntLe(0) // spaceshipPart
+    writeIntLe(5) // requiredAdvance
+    writeIntLe(-1) // renderedObsoleteBy
+    writeIntLe(-1) // requiredResource1
+    writeIntLe(-1) // requiredResource2
+    write(ByteArray(16)) // flags
+    writeIntLe(0) // numberOfArmiesRequired
+    writeIntLe(0) // flavors
+    write(ByteArray(4)) // unknown
+    writeIntLe(-1) // unitProduced
+    writeIntLe(0) // unitFrequency
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -1126,6 +1170,58 @@ class Civ3RootParserTest : FunSpec({
                         workerStrength = 1.5f,
                         unknown4 = ByteString.of(*ByteArray(4)),
                         airDefense = 0,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("BLDG section produces a typed BldgSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("BLDG", bldgItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            BldgSection(
+                listOf(
+                    BldgEntry(
+                        description = "Provides defense",
+                        name = "City Walls",
+                        civilopediaEntry = "City Walls",
+                        doublesHappiness = 0,
+                        gainInEveryCity = 0,
+                        gainInEveryCityOnContinent = 0,
+                        requiredBuilding = -1,
+                        cost = 60,
+                        culture = 1,
+                        bombardDefense = 0,
+                        navalBombardDefense = 0,
+                        defenseBonus = 100,
+                        navalDefenseBonus = 0,
+                        maintenanceCost = 0,
+                        contentFacesAllCities = 0,
+                        contentFaces = 0,
+                        unhappyFacesAllCities = 0,
+                        unhappyFaces = 0,
+                        numberOfRequiredBuildings = 0,
+                        airPower = 0,
+                        navalPower = 0,
+                        pollution = 0,
+                        production = 0,
+                        requiredGovernment = -1,
+                        spaceshipPart = 0,
+                        requiredAdvance = 5,
+                        renderedObsoleteBy = -1,
+                        requiredResource1 = -1,
+                        requiredResource2 = -1,
+                        flags = ByteString.of(*ByteArray(16)),
+                        numberOfArmiesRequired = 0,
+                        flavors = 0,
+                        unknown = ByteString.of(*ByteArray(4)),
+                        unitProduced = -1,
+                        unitFrequency = 0,
                     ),
                 ),
             ),
