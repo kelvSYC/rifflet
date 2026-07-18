@@ -28,8 +28,9 @@ import com.kelvsyc.rifflet.civ3.EspnEntry
 import com.kelvsyc.rifflet.civ3.EspnSection
 import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.ExprSection
-import com.kelvsyc.rifflet.civ3.FlavEntry
+import com.kelvsyc.rifflet.civ3.FlavGroupEntry
 import com.kelvsyc.rifflet.civ3.FlavSection
+import com.kelvsyc.rifflet.civ3.FlavorEntry
 import com.kelvsyc.rifflet.civ3.GameEntry
 import com.kelvsyc.rifflet.civ3.GameSection
 import com.kelvsyc.rifflet.civ3.GoodEntry
@@ -293,14 +294,22 @@ private fun contItemBody(): Buffer = Buffer().apply {
     writeIntLe(42) // numberOfTiles
 }
 
-/** Builds a well-formed FLAV item body with 2 flavor relationships (no length prefix — see Global Constraints). */
+/** Builds a well-formed FLAV group body with 2 flavors, each with 2 relations (no length
+ * prefix — see Global Constraints). */
 private fun flavItemBody(): Buffer = Buffer().apply {
-    write(ByteArray(4)) // unknown
-    writeString("Military", Charsets.US_ASCII)
-    write(ByteArray(256 - 8)) // pad "Military" (8 bytes) to 256
     writeIntLe(2) // numberOfFlavors
-    writeIntLe(5) // flavorRelationships[0]
-    writeIntLe(-3) // flavorRelationships[1]
+    write(ByteArray(4)) // flavors[0].unknown
+    writeString("Barbarian", Charsets.US_ASCII)
+    write(ByteArray(256 - 9)) // pad "Barbarian" (9 bytes) to 256
+    writeIntLe(2) // flavors[0].numberOfRelations
+    writeIntLe(80) // flavors[0].relations[0]
+    writeIntLe(20) // flavors[0].relations[1]
+    write(ByteArray(4)) // flavors[1].unknown
+    writeString("Eastern Civ", Charsets.US_ASCII)
+    write(ByteArray(256 - 11)) // pad "Eastern Civ" (11 bytes) to 256
+    writeIntLe(2) // flavors[1].numberOfRelations
+    writeIntLe(10) // flavors[1].relations[0]
+    writeIntLe(100) // flavors[1].relations[1]
 }
 
 /** Builds a well-formed 52-byte WCHR item body. */
@@ -993,7 +1002,16 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            FlavSection(listOf(FlavEntry(ByteString.of(0, 0, 0, 0), "Military", listOf(5, -3)))),
+            FlavSection(
+                listOf(
+                    FlavGroupEntry(
+                        listOf(
+                            FlavorEntry(ByteString.of(*ByteArray(4)), "Barbarian", listOf(80, 20)),
+                            FlavorEntry(ByteString.of(*ByteArray(4)), "Eastern Civ", listOf(10, 100)),
+                        ),
+                    ),
+                ),
+            ),
         )
     }
 

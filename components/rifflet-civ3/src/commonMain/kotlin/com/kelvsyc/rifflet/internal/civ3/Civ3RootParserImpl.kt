@@ -51,7 +51,8 @@ import okio.BufferedSource
  * have no length field of their own in the file format (confirmed by both Apolyton's
  * documentation and `QueryCiv3`'s `Flav.cs`, the only section struct without a leading `Length`
  * field), so [parseSection] reads it as a special case directly off the shared [BufferedSource],
- * bypassing the generic zero-copy-[Buffer] item slicing entirely.
+ * bypassing the generic zero-copy-[Buffer] item slicing entirely. Each FLAV item is itself a
+ * "flavor group" containing a nested dynamic list of flavors — see [FlavGroupEntryParser].
  */
 internal object Civ3RootParserImpl {
     fun parse(source: BufferedSource): Civ3File {
@@ -70,7 +71,7 @@ internal object Civ3RootParserImpl {
         val marker = source.readChunkId()
         val count = source.readIntLe()
         if (marker == Civ3SectionIds.FLAV) {
-            return FlavSection(List(count) { FlavEntryParser.parse(source) })
+            return FlavSection(List(count) { FlavGroupEntryParser.parse(source) })
         }
         val items = List(count) {
             val length = source.readIntLe()
