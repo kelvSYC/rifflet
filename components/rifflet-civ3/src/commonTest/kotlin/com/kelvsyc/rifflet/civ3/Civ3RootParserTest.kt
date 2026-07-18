@@ -1551,6 +1551,7 @@ class Civ3RootParserTest : FunSpec({
                         fogOfWar = 3,
                         c3cBonuses = ByteString.of(0x07, 0x08, 0x09, 0x0A),
                         unknown5 = ByteString.of(0x77, 0x12),
+                        unknown6 = ByteString.of(0, 0, 0, 0),
                     ),
                 ),
             ),

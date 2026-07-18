@@ -35,7 +35,7 @@ internal object Civ3ItemSizeLimits {
             (BIC_MAGIC to 3) to 23,
             (BIC_MAGIC to 4) to 23,
             (BICX_MAGIC to 11) to 29,
-            (BICX_MAGIC to 12) to 45,
+            (BICX_MAGIC to 12) to 49,
         ),
         Civ3SectionIds.DIFF to mapOf(
             (BIC_MAGIC to 4) to 116,

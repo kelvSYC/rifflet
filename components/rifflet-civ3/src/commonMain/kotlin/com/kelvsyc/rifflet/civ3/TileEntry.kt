@@ -53,6 +53,16 @@ import okio.ByteString
  *   only in Conquests files, read defensively; preserved raw, not decomposed.
  * @param unknown5 2 bytes with zero documented behavior from either cross-referenced source;
  *   present only in Conquests files, read defensively; preserved raw, not validated.
+ * @param unknown6 4 bytes, undocumented by any cross-referenced source and not part of
+ *   `QueryCiv3`'s struct at all. Confirmed present in exactly 2 of 21 sampled real Conquests
+ *   (`major=12`) files — `7 Sengoku - Sword of the Shogun.biq` and `Intro3 New Alliances.biq` —
+ *   always exactly zero-valued across every one of 11,040 sampled tiles in both files. Requires
+ *   the file's `VER#` header `minor=6`, but `minor=6` alone is not sufficient (most `minor=6`
+ *   Conquests files do NOT have this field) — genuinely unexplained beyond that partial
+ *   correlation despite extensive investigation (ruled out: file modification time, header
+ *   description text, `GAME` rule flags, and direct cross-reference against Apolyton's actual
+ *   published `TILE` field documentation, which matches this codebase's model exactly through 45
+ *   bytes with no further fields). Read defensively; preserved raw, not validated.
  */
 data class TileEntry(
     val riverConnections: Byte,
@@ -79,6 +89,7 @@ data class TileEntry(
     val fogOfWar: Short,
     val c3cBonuses: ByteString,
     val unknown5: ByteString,
+    val unknown6: ByteString,
 ) {
     init {
         require(unknown.size == 2) { "TileEntry.unknown must be exactly 2 bytes, was ${unknown.size}" }
@@ -88,5 +99,6 @@ data class TileEntry(
         require(unknown4.size == 2) { "TileEntry.unknown4 must be exactly 2 bytes, was ${unknown4.size}" }
         require(c3cBonuses.size == 4) { "TileEntry.c3cBonuses must be exactly 4 bytes, was ${c3cBonuses.size}" }
         require(unknown5.size == 2) { "TileEntry.unknown5 must be exactly 2 bytes, was ${unknown5.size}" }
+        require(unknown6.size == 4) { "TileEntry.unknown6 must be exactly 4 bytes, was ${unknown6.size}" }
     }
 }
