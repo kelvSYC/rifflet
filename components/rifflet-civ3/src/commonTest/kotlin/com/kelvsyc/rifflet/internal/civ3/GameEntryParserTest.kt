@@ -23,6 +23,11 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
  * [includeMpTimingFields] controls whether the last 3 fields (`mpBasetime`/`mpCityTime`/
  * `mpUnitTime`) are written, matching the real Conquests `minor=6` (absent) vs `minor=7`/`8`
  * (present) split confirmed against real files.
+ *
+ * [includeConquestsOnlyFields] controls whether everything from `civAllianceStatuses` onward
+ * (including the `includeMpTimingFields`-guarded tail, which can only be present if this whole
+ * block is) is written — set to `false` to build the real PTW `minor=18` shape confirmed against
+ * real files: the item ends immediately after `scenarioSearchFolders`.
  */
 private fun gameItemBinary(
     defaultGameRules: Int = 1,
@@ -81,6 +86,7 @@ private fun gameItemBinary(
     mpCityTime: Int = 0,
     mpUnitTime: Int = 0,
     includeMpTimingFields: Boolean = true,
+    includeConquestsOnlyFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(defaultGameRules)
     writeIntLe(defaultVictoryConditions)
@@ -101,43 +107,45 @@ private fun gameItemBinary(
     timescaleNumberOfTurns.forEach { writeIntLe(it) }
     turnNumberOfTimeUnits.forEach { writeIntLe(it) }
     writePaddedField(scenarioSearchFolders, 5200)
-    civAllianceStatuses.forEach { writeIntLe(it) }
-    writeIntLe(victoryPointLimit)
-    writeIntLe(cityEliminationCount)
-    writeIntLe(oneCityCultureWin)
-    writeIntLe(allCitiesCultureWin)
-    writeIntLe(dominationTerrain)
-    writeIntLe(dominationPopulation)
-    writeIntLe(wonderCost)
-    writeIntLe(defeatingOpposingUnitCost)
-    writeIntLe(advancementCost)
-    writeIntLe(cityConquestPopulation)
-    writeIntLe(victoryPointScoring)
-    writeIntLe(capturingSpecialUnit)
-    write(unknown)
-    allianceNames.forEach { writePaddedField(it, 256) }
-    allianceWars.forEach { writeIntLe(it) }
-    writeIntLe(allianceVictoryType)
-    writePaddedField(plagueName, 260)
-    writeByte(permitPlagues.toInt())
-    writeIntLe(plagueEarliestStart)
-    writeIntLe(plagueVariation)
-    writeIntLe(plagueDuration)
-    writeIntLe(plagueStrength)
-    writeIntLe(plagueGracePeriod)
-    writeIntLe(plagueMaxOccurrence)
-    write(unknown2)
-    writeIntLe(respawnFlagUnits)
-    writeByte(captureAnyFlag.toInt())
-    writeIntLe(goldForCapture)
-    writeByte(mapVisible.toInt())
-    writeByte(retainCulture.toInt())
-    write(unknown3)
-    writeIntLe(eruptionPeriod)
-    if (includeMpTimingFields) {
-        writeIntLe(mpBasetime)
-        writeIntLe(mpCityTime)
-        writeIntLe(mpUnitTime)
+    if (includeConquestsOnlyFields) {
+        civAllianceStatuses.forEach { writeIntLe(it) }
+        writeIntLe(victoryPointLimit)
+        writeIntLe(cityEliminationCount)
+        writeIntLe(oneCityCultureWin)
+        writeIntLe(allCitiesCultureWin)
+        writeIntLe(dominationTerrain)
+        writeIntLe(dominationPopulation)
+        writeIntLe(wonderCost)
+        writeIntLe(defeatingOpposingUnitCost)
+        writeIntLe(advancementCost)
+        writeIntLe(cityConquestPopulation)
+        writeIntLe(victoryPointScoring)
+        writeIntLe(capturingSpecialUnit)
+        write(unknown)
+        allianceNames.forEach { writePaddedField(it, 256) }
+        allianceWars.forEach { writeIntLe(it) }
+        writeIntLe(allianceVictoryType)
+        writePaddedField(plagueName, 260)
+        writeByte(permitPlagues.toInt())
+        writeIntLe(plagueEarliestStart)
+        writeIntLe(plagueVariation)
+        writeIntLe(plagueDuration)
+        writeIntLe(plagueStrength)
+        writeIntLe(plagueGracePeriod)
+        writeIntLe(plagueMaxOccurrence)
+        write(unknown2)
+        writeIntLe(respawnFlagUnits)
+        writeByte(captureAnyFlag.toInt())
+        writeIntLe(goldForCapture)
+        writeByte(mapVisible.toInt())
+        writeByte(retainCulture.toInt())
+        write(unknown3)
+        writeIntLe(eruptionPeriod)
+        if (includeMpTimingFields) {
+            writeIntLe(mpBasetime)
+            writeIntLe(mpCityTime)
+            writeIntLe(mpUnitTime)
+        }
     }
 }
 
@@ -218,6 +226,18 @@ class GameEntryParserTest : FunSpec({
         entry.mpBasetime shouldBe 0
         entry.mpCityTime shouldBe 0
         entry.mpUnitTime shouldBe 0
+    }
+
+    test("PTW-length item (ends after scenarioSearchFolders, confirmed real minor=18 shape) defaults every Conquests-only field") {
+        val entry = GameEntryParser.parse(
+            gameItemBinary(numberOfPlayableCivs = 3, playableCivIds = listOf(1, 2, 3), includeConquestsOnlyFields = false),
+        )
+        entry.civAllianceStatuses shouldBe listOf(0, 0, 0)
+        entry.victoryPointLimit shouldBe 0
+        entry.unknown2 shouldBe ByteString.of(*ByteArray(264))
+        entry.allianceNames shouldBe List(5) { "" }
+        entry.plagueName shouldBe ""
+        entry.mpBasetime shouldBe 0
     }
 
     test("GameEntry rejects a playableCivIds size that doesn't match numberOfPlayableCivs") {

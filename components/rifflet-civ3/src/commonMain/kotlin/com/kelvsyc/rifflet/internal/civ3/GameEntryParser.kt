@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.GameEntry
 import okio.Buffer
+import okio.ByteString
 
 /**
  * Parses one `GAME` item, per the Apolyton BIX/BIQ format documentation cross-validated against
@@ -14,10 +15,14 @@ import okio.Buffer
  * A 4-byte BIX-only `mapVisible (long)` field documented by Apolyton between those two gaps is
  * deliberately NOT read here — see [GameEntry]'s class-level KDoc for why.
  *
- * The last 3 fields ([GameEntry.mpBasetime]/[GameEntry.mpCityTime]/[GameEntry.mpUnitTime]) are
- * read defensively: confirmed absent from every real Conquests file with `VER#` header
- * `minor=6` (11/11 sampled), present in every `minor=7`/`minor=8` file (14/14 sampled) — a real
- * Conquests-internal patch-level split, evidently added by a mid-lifecycle Conquests patch.
+ * Every field from [GameEntry.civAllianceStatuses] onward is read defensively: confirmed absent
+ * entirely from real PTW files with `VER#` header `minor=18` (the dominant PTW sub-tier, 51 of
+ * ~91 sampled PTW files) — the item simply ends right after [GameEntry.scenarioSearchFolders].
+ * `civAllianceStatuses` defaults to `numberOfPlayableCivs` zeros (not an empty list) to satisfy
+ * its own size invariant; every other newly-guarded field defaults to the same full-sized
+ * zero/empty placeholder already used throughout this codebase. [GameEntry.mpBasetime]/
+ * [GameEntry.mpCityTime]/[GameEntry.mpUnitTime] were already guarded independently by an earlier
+ * fix for a separate, narrower Conquests-internal `minor=6` split — unchanged here.
  */
 internal object GameEntryParser {
     fun parse(item: Buffer): GameEntry {
@@ -40,39 +45,47 @@ internal object GameEntryParser {
         val timescaleNumberOfTurns = List(7) { item.readIntLe() }
         val turnNumberOfTimeUnits = List(7) { item.readIntLe() }
         val scenarioSearchFolders = item.readByteString(5200L).truncateAtFirstNull()
-        val civAllianceStatuses = List(numberOfPlayableCivs) { item.readIntLe() }
-        val victoryPointLimit = item.readIntLe()
-        val cityEliminationCount = item.readIntLe()
-        val oneCityCultureWin = item.readIntLe()
-        val allCitiesCultureWin = item.readIntLe()
-        val dominationTerrain = item.readIntLe()
-        val dominationPopulation = item.readIntLe()
-        val wonderCost = item.readIntLe()
-        val defeatingOpposingUnitCost = item.readIntLe()
-        val advancementCost = item.readIntLe()
-        val cityConquestPopulation = item.readIntLe()
-        val victoryPointScoring = item.readIntLe()
-        val capturingSpecialUnit = item.readIntLe()
-        val unknown = item.readByteString(5L)
-        val allianceNames = List(5) { item.readByteString(256L).truncateAtFirstNull() }
-        val allianceWars = List(25) { item.readIntLe() }
-        val allianceVictoryType = item.readIntLe()
-        val plagueName = item.readByteString(260L).truncateAtFirstNull()
-        val permitPlagues = item.readByte()
-        val plagueEarliestStart = item.readIntLe()
-        val plagueVariation = item.readIntLe()
-        val plagueDuration = item.readIntLe()
-        val plagueStrength = item.readIntLe()
-        val plagueGracePeriod = item.readIntLe()
-        val plagueMaxOccurrence = item.readIntLe()
-        val unknown2 = item.readByteString(264L)
-        val respawnFlagUnits = item.readIntLe()
-        val captureAnyFlag = item.readByte()
-        val goldForCapture = item.readIntLe()
-        val mapVisible = item.readByte()
-        val retainCulture = item.readByte()
-        val unknown3 = item.readByteString(4L)
-        val eruptionPeriod = item.readIntLe()
+        val civAllianceStatuses = if (item.size >= 4L * numberOfPlayableCivs) {
+            List(numberOfPlayableCivs) { item.readIntLe() }
+        } else {
+            List(numberOfPlayableCivs) { 0 }
+        }
+        val victoryPointLimit = if (item.size >= 4L) item.readIntLe() else 0
+        val cityEliminationCount = if (item.size >= 4L) item.readIntLe() else 0
+        val oneCityCultureWin = if (item.size >= 4L) item.readIntLe() else 0
+        val allCitiesCultureWin = if (item.size >= 4L) item.readIntLe() else 0
+        val dominationTerrain = if (item.size >= 4L) item.readIntLe() else 0
+        val dominationPopulation = if (item.size >= 4L) item.readIntLe() else 0
+        val wonderCost = if (item.size >= 4L) item.readIntLe() else 0
+        val defeatingOpposingUnitCost = if (item.size >= 4L) item.readIntLe() else 0
+        val advancementCost = if (item.size >= 4L) item.readIntLe() else 0
+        val cityConquestPopulation = if (item.size >= 4L) item.readIntLe() else 0
+        val victoryPointScoring = if (item.size >= 4L) item.readIntLe() else 0
+        val capturingSpecialUnit = if (item.size >= 4L) item.readIntLe() else 0
+        val unknown = if (item.size >= 5L) item.readByteString(5L) else ByteString.of(0, 0, 0, 0, 0)
+        val allianceNames = if (item.size >= 1280L) {
+            List(5) { item.readByteString(256L).truncateAtFirstNull() }
+        } else {
+            List(5) { "" }
+        }
+        val allianceWars = if (item.size >= 100L) List(25) { item.readIntLe() } else List(25) { 0 }
+        val allianceVictoryType = if (item.size >= 4L) item.readIntLe() else 0
+        val plagueName = if (item.size >= 260L) item.readByteString(260L).truncateAtFirstNull() else ""
+        val permitPlagues = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val plagueEarliestStart = if (item.size >= 4L) item.readIntLe() else 0
+        val plagueVariation = if (item.size >= 4L) item.readIntLe() else 0
+        val plagueDuration = if (item.size >= 4L) item.readIntLe() else 0
+        val plagueStrength = if (item.size >= 4L) item.readIntLe() else 0
+        val plagueGracePeriod = if (item.size >= 4L) item.readIntLe() else 0
+        val plagueMaxOccurrence = if (item.size >= 4L) item.readIntLe() else 0
+        val unknown2 = if (item.size >= 264L) item.readByteString(264L) else ByteString.of(*ByteArray(264))
+        val respawnFlagUnits = if (item.size >= 4L) item.readIntLe() else 0
+        val captureAnyFlag = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val goldForCapture = if (item.size >= 4L) item.readIntLe() else 0
+        val mapVisible = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val retainCulture = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val unknown3 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
+        val eruptionPeriod = if (item.size >= 4L) item.readIntLe() else 0
         val mpBasetime = if (item.size >= 4L) item.readIntLe() else 0
         val mpCityTime = if (item.size >= 4L) item.readIntLe() else 0
         val mpUnitTime = if (item.size >= 4L) item.readIntLe() else 0

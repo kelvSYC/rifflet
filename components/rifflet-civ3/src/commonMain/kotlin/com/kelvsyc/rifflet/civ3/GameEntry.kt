@@ -15,6 +15,13 @@ import okio.ByteString
  * Do not confuse this skipped field with [mapVisible] below, an unconditional 1-byte field that
  * IS modeled.
  *
+ * Confirmed against real PTW files (`VER#` header `minor=18`, the dominant PTW sub-tier): every
+ * field from [civAllianceStatuses] onward — the rest of this class's properties, in declared
+ * order, through [mpUnitTime] — is entirely absent; the item ends immediately after
+ * [scenarioSearchFolders]. Evidently alliances, plagues, victory scoring, and multiplayer timing
+ * were all introduced together as a single Conquests-era `GAME` expansion. Each of those fields
+ * is read defensively — see `GameEntryParser`.
+ *
  * @param numberOfPlayableCivs The number of civs enumerated in [playableCivIds] and
  *   [civAllianceStatuses] (0 means "all civs playable"); stored explicitly because its value
  *   0 carries distinct semantic meaning beyond mere list-size recoverability.
@@ -24,25 +31,35 @@ import okio.ByteString
  *   condition toggles, game rule toggles); preserved raw, not decomposed. Same treatment as
  *   `RaceEntry.bonuses`.
  * @param civAllianceStatuses One alliance-status value (0-4, 0=none) per civ, in the same order
- *   as [playableCivIds]; sized by [numberOfPlayableCivs], not separately counted.
+ *   as [playableCivIds]; sized by [numberOfPlayableCivs], not separately counted. Confirmed
+ *   absent from real PTW files — defaults to [numberOfPlayableCivs] zeros ("no alliance", which
+ *   is accurate: PTW has no alliance concept at all) rather than an empty list, to satisfy this
+ *   property's own size invariant.
  * @param unknown 5 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
+ *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`. Confirmed absent from
+ *   real PTW files, read defensively.
  * @param allianceNames 5 fixed alliance-name slots (256 bytes each), index 0 conventionally
- *   "unallied"/blank, confirmed explicitly by Apolyton.
+ *   "unallied"/blank, confirmed explicitly by Apolyton. Confirmed absent from real PTW files
+ *   (alliances are a Conquests-only feature), read defensively.
  * @param allianceWars A flat, row-major 5×5 matrix of war-status values between alliances;
  *   index `[i, j]` is `allianceWars[i * 5 + j]`. Confirmed explicitly by Apolyton's nested
- *   "for each alliance: war with alliance #0..#4" documentation.
+ *   "for each alliance: war with alliance #0..#4" documentation. Confirmed absent from real PTW
+ *   files, read defensively.
  * @param unknown2 264 bytes with zero documented *meaning* from either cross-referenced source,
  *   though both sources agree on its byte sub-structure (a 4-byte int followed by a 260-byte
  *   string region) without confirming what either part represents; preserved raw as a single
- *   opaque region, not split, matching `QueryCiv3`'s own grouping.
- * @param mapVisible An unconditional 1-byte field, confirmed present in every file variant by
- *   both sources — distinct from the BIX-only `mapVisible (long)` field this codebase does not
- *   parse (see the class-level note above).
+ *   opaque region, not split, matching `QueryCiv3`'s own grouping. Confirmed absent from real
+ *   PTW files, read defensively.
+ * @param mapVisible An unconditional 1-byte field per both cross-referenced sources' original
+ *   documentation — but confirmed absent from real PTW files along with every other field from
+ *   [civAllianceStatuses] onward, so "unconditional" only holds for Conquests. Distinct from the
+ *   BIX-only `mapVisible (long)` field this codebase does not parse (see the class-level note
+ *   above).
  * @param unknown3 4 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated.
- * @param eruptionPeriod Unconditionally present in every sampled real file (unlike the 3 fields
- *   below) — the last field before the confirmed Conquests-internal `minor=6` cutoff.
+ *   preserved raw, not validated. Confirmed absent from real PTW files, read defensively.
+ * @param eruptionPeriod The last field confirmed present in every sampled real Conquests file
+ *   regardless of the `minor=6` mp-timing-fields cutoff below — but, like every field since
+ *   [civAllianceStatuses], confirmed absent from real PTW files, read defensively.
  * @param mpBasetime Present only in real Conquests files with `VER#` header `minor=7` or
  *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
  * @param mpCityTime Present only in real Conquests files with `VER#` header `minor=7` or
