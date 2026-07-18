@@ -41,6 +41,14 @@ import okio.ByteString
  *   parse (see the class-level note above).
  * @param unknown3 4 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated.
+ * @param eruptionPeriod Unconditionally present in every sampled real file (unlike the 3 fields
+ *   below) — the last field before the confirmed Conquests-internal `minor=6` cutoff.
+ * @param mpBasetime Present only in real Conquests files with `VER#` header `minor=7` or
+ *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
+ * @param mpCityTime Present only in real Conquests files with `VER#` header `minor=7` or
+ *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
+ * @param mpUnitTime Present only in real Conquests files with `VER#` header `minor=7` or
+ *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
  */
 data class GameEntry(
     val defaultGameRules: Int,
