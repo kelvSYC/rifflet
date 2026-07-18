@@ -23,6 +23,7 @@ import com.kelvsyc.rifflet.civ3.RaceSection
 import com.kelvsyc.rifflet.civ3.RuleSection
 import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.TechSection
+import com.kelvsyc.rifflet.civ3.TerrSection
 import com.kelvsyc.rifflet.civ3.TfrmSection
 import com.kelvsyc.rifflet.civ3.UnitSection
 import com.kelvsyc.rifflet.civ3.WchrSection
@@ -104,6 +105,7 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.RULE -> RuleSection(items.map { RuleEntryParser.parse(it) })
             Civ3SectionIds.PRTO -> PrtoSection(items.map { PrtoEntryParser.parse(it) })
             Civ3SectionIds.BLDG -> BldgSection(items.map { BldgEntryParser.parse(it) })
+            Civ3SectionIds.TERR -> TerrSection(items.map { TerrEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
     }
