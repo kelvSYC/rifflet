@@ -41,6 +41,9 @@ import okio.ByteString
  *   by either cross-referenced source. Sized by [numberOfPlayableCivs]. Stays unconditional even
  *   after this class's other defensive-parsing extensions: every real cutoff tier confirmed so
  *   far includes it, and vanilla's behavior when `numberOfPlayableCivs > 0` remains unsampled.
+ * @param flags 4 bytes with ~19 named booleans across both cross-referenced sources (victory
+ *   condition toggles, game rule toggles); preserved raw, not decomposed. Same treatment as
+ *   `RaceEntry.bonuses`.
  * @param civAllianceStatuses One alliance-status value (0-4, 0=none) per civ, in the same order
  *   as [playableCivIds]; sized by [numberOfPlayableCivs], not separately counted. Confirmed
  *   absent from real PTW files — defaults to [numberOfPlayableCivs] zeros ("no alliance", which
