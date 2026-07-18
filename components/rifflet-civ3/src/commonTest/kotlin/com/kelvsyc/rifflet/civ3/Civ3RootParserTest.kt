@@ -43,6 +43,8 @@ import com.kelvsyc.rifflet.civ3.SlocEntry
 import com.kelvsyc.rifflet.civ3.SlocSection
 import com.kelvsyc.rifflet.civ3.TechEntry
 import com.kelvsyc.rifflet.civ3.TechSection
+import com.kelvsyc.rifflet.civ3.TerrEntry
+import com.kelvsyc.rifflet.civ3.TerrSection
 import com.kelvsyc.rifflet.civ3.TfrmEntry
 import com.kelvsyc.rifflet.civ3.TfrmSection
 import com.kelvsyc.rifflet.civ3.UnitEntry
@@ -595,6 +597,49 @@ private fun bldgItemBody(): Buffer = Buffer().apply {
     write(ByteArray(4)) // unknown
     writeIntLe(-1) // unitProduced
     writeIntLe(0) // unitFrequency
+}
+
+/** Builds a well-formed TERR item body with a non-byte-aligned resource count (5 -> 1 byte). */
+private fun terrItemBody(): Buffer = Buffer().apply {
+    writeIntLe(5) // numberOfPossibleResources
+    writeByte(0b00010101) // possibleResources
+    writeString("Plains", Charsets.US_ASCII)
+    write(ByteArray(32 - 6)) // pad "Plains" (6 bytes) to 32
+    writeString("Plains", Charsets.US_ASCII)
+    write(ByteArray(32 - 6)) // pad "Plains" (6 bytes) to 32
+    writeIntLe(1) // irrigationBonus
+    writeIntLe(0) // miningBonus
+    writeIntLe(1) // roadBonus
+    writeIntLe(0) // defenseBonus
+    writeIntLe(1) // movementCost
+    writeIntLe(1) // food
+    writeIntLe(1) // shields
+    writeIntLe(0) // commerce
+    writeIntLe(-1) // workerJobAllowed
+    writeIntLe(-1) // pollutionEffect
+    writeByte(1) // allowCities
+    writeByte(1) // allowColonies
+    writeByte(0) // impassable
+    writeByte(0) // impassableByWheeled
+    writeByte(1) // allowAirfields
+    writeByte(1) // allowForts
+    writeByte(1) // allowOutposts
+    writeByte(1) // allowRadarTowers
+    write(ByteArray(4)) // unknown
+    writeByte(0) // landmarkEnabled
+    writeIntLe(0) // landmarkFood
+    writeIntLe(0) // landmarkShields
+    writeIntLe(0) // landmarkCommerce
+    writeIntLe(0) // landmarkIrrigationBonus
+    writeIntLe(0) // landmarkMiningBonus
+    writeIntLe(0) // landmarkRoadBonus
+    writeIntLe(0) // landmarkMovementBonus
+    writeIntLe(0) // landmarkDefensiveBonus
+    write(ByteArray(32)) // landmarkName
+    write(ByteArray(32)) // landmarkCivilopediaEntry
+    write(ByteArray(4)) // unknown2
+    writeIntLe(0) // terrainFlags
+    writeIntLe(0) // diseaseStrength
 }
 
 class Civ3RootParserTest : FunSpec({
@@ -1222,6 +1267,60 @@ class Civ3RootParserTest : FunSpec({
                         unknown = ByteString.of(*ByteArray(4)),
                         unitProduced = -1,
                         unitFrequency = 0,
+                    ),
+                ),
+            ),
+        )
+    }
+
+    test("TERR section produces a typed TerrSection, not a raw fallback") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("TERR", terrItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            TerrSection(
+                listOf(
+                    TerrEntry(
+                        numberOfPossibleResources = 5,
+                        possibleResources = ByteString.of(0b00010101.toByte()),
+                        name = "Plains",
+                        civilopediaEntry = "Plains",
+                        irrigationBonus = 1,
+                        miningBonus = 0,
+                        roadBonus = 1,
+                        defenseBonus = 0,
+                        movementCost = 1,
+                        food = 1,
+                        shields = 1,
+                        commerce = 0,
+                        workerJobAllowed = -1,
+                        pollutionEffect = -1,
+                        allowCities = 1,
+                        allowColonies = 1,
+                        impassable = 0,
+                        impassableByWheeled = 0,
+                        allowAirfields = 1,
+                        allowForts = 1,
+                        allowOutposts = 1,
+                        allowRadarTowers = 1,
+                        unknown = ByteString.of(*ByteArray(4)),
+                        landmarkEnabled = 0,
+                        landmarkFood = 0,
+                        landmarkShields = 0,
+                        landmarkCommerce = 0,
+                        landmarkIrrigationBonus = 0,
+                        landmarkMiningBonus = 0,
+                        landmarkRoadBonus = 0,
+                        landmarkMovementBonus = 0,
+                        landmarkDefensiveBonus = 0,
+                        landmarkName = "",
+                        landmarkCivilopediaEntry = "",
+                        unknown2 = ByteString.of(*ByteArray(4)),
+                        terrainFlags = 0,
+                        diseaseStrength = 0,
                     ),
                 ),
             ),
