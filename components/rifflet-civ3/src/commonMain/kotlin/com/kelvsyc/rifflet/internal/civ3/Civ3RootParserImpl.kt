@@ -31,6 +31,7 @@ import com.kelvsyc.rifflet.civ3.UnitSection
 import com.kelvsyc.rifflet.civ3.WchrSection
 import com.kelvsyc.rifflet.civ3.WmapSection
 import com.kelvsyc.rifflet.civ3.WsizSection
+import com.kelvsyc.rifflet.core.ChunkId
 import com.kelvsyc.rifflet.core.RiffletParseException
 import com.kelvsyc.rifflet.internal.core.readChunkId
 import okio.Buffer
@@ -56,19 +57,19 @@ import okio.BufferedSource
  * "flavor group" containing a nested dynamic list of flavors — see [FlavGroupEntryParser].
  */
 internal object Civ3RootParserImpl {
-    fun parse(source: BufferedSource): Civ3File {
+    fun parse(source: BufferedSource, magic: ChunkId): Civ3File {
         val header = Civ3HeaderParser.parse(source)
         val sections = mutableListOf<Civ3Section>()
         var erasCount: Int? = null
         while (!source.exhausted()) {
-            val section = parseSection(source, erasCount)
+            val section = parseSection(source, erasCount, magic, header.major)
             if (section is ErasSection) erasCount = section.entries.size
             sections += section
         }
         return Civ3File(header, sections)
     }
 
-    private fun parseSection(source: BufferedSource, erasCount: Int?): Civ3Section {
+    private fun parseSection(source: BufferedSource, erasCount: Int?, magic: ChunkId, major: Int): Civ3Section {
         val marker = source.readChunkId()
         val count = source.readIntLe()
         if (marker == Civ3SectionIds.FLAV) {
@@ -76,6 +77,13 @@ internal object Civ3RootParserImpl {
         }
         val items = List(count) {
             val length = source.readIntLe()
+            val limit = Civ3ItemSizeLimits.maxSizeFor(marker, magic, major)
+            if (limit != null && length > limit) {
+                throw RiffletParseException(
+                    "${marker.name} item is $length bytes, exceeding the confirmed maximum of " +
+                        "$limit bytes for magic=${magic.name} major=$major",
+                )
+            }
             val data = Buffer()
             source.readFully(data, length.toLong())
             data
