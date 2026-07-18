@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.BldgEntry
 import okio.Buffer
+import okio.ByteString
 
 /**
  * Parses one `BLDG` item, per the Apolyton BIX/BIQ format documentation cross-validated against
@@ -9,8 +10,14 @@ import okio.Buffer
  * `requiredResource2` and `numberOfArmiesRequired` reconcile exactly at 16 bytes, confirming
  * `QueryCiv3`'s consolidated `Flags[16]` grouping matches Apolyton's four separate 4-byte
  * binary-flag fields for the same region). Reads directly off [item], a zero-copy-transferred
- * [Buffer] already stripped of its own length prefix by the generic section loop. Unlike most
- * recently-modeled sections, `BLDG` has no dynamic-length regions.
+ * [Buffer] already stripped of its own length prefix by the generic section loop.
+ *
+ * The trailing four fields (`flavors`, `unknown`, `unitProduced`, `unitFrequency`) are read
+ * defensively: real vanilla/PTW files omit them entirely (confirmed by diffing real `BLDG`
+ * items byte-for-byte — vanilla's 252-byte record is an exact prefix of Conquests's 268-byte
+ * record), so each read checks `item.size` first and defaults when absent, matching
+ * `TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`'s established length-aware defensive
+ * parsing pattern.
  */
 internal object BldgEntryParser {
     fun parse(item: Buffer): BldgEntry {
@@ -45,10 +52,10 @@ internal object BldgEntryParser {
         val requiredResource2 = item.readIntLe()
         val flags = item.readByteString(16L)
         val numberOfArmiesRequired = item.readIntLe()
-        val flavors = item.readIntLe()
-        val unknown = item.readByteString(4L)
-        val unitProduced = item.readIntLe()
-        val unitFrequency = item.readIntLe()
+        val flavors = if (item.size >= 4L) item.readIntLe() else 0
+        val unknown = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(*ByteArray(4))
+        val unitProduced = if (item.size >= 4L) item.readIntLe() else 0
+        val unitFrequency = if (item.size >= 4L) item.readIntLe() else 0
         return BldgEntry(
             description,
             name,

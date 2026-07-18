@@ -55,6 +55,7 @@ private fun bldgItemBinary(
     unknown: ByteString = ByteString.of(*ByteArray(4)),
     unitProduced: Int = -1,
     unitFrequency: Int = 0,
+    includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writePaddedField(description, 64)
     writePaddedField(name, 32)
@@ -87,10 +88,12 @@ private fun bldgItemBinary(
     writeIntLe(requiredResource2)
     write(flags)
     writeIntLe(numberOfArmiesRequired)
-    writeIntLe(flavors)
-    write(unknown)
-    writeIntLe(unitProduced)
-    writeIntLe(unitFrequency)
+    if (includeTrailingFields) {
+        writeIntLe(flavors)
+        write(unknown)
+        writeIntLe(unitProduced)
+        writeIntLe(unitFrequency)
+    }
 }
 
 class BldgEntryParserTest : FunSpec({
@@ -134,6 +137,14 @@ class BldgEntryParserTest : FunSpec({
             unitProduced = -1,
             unitFrequency = 0,
         )
+    }
+
+    test("vanilla/PTW-length item (252 bytes, trailing fields absent) defaults them to zero") {
+        val entry = BldgEntryParser.parse(bldgItemBinary(includeTrailingFields = false))
+        entry.flavors shouldBe 0
+        entry.unknown shouldBe ByteString.of(*ByteArray(4))
+        entry.unitProduced shouldBe 0
+        entry.unitFrequency shouldBe 0
     }
 
     test("BldgEntry rejects a flags field that is not exactly 16 bytes") {
