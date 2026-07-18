@@ -18,6 +18,15 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
  * Builds a well-formed PRTO item body (length prefix excluded, as with prior sections). Uses a
  * small (2-element) `stealthTargetUnitTypes` list to prove the dynamic read is genuine, not
  * hardcoded.
+ *
+ * [includeFlags3Onward] controls whether everything from `flags3` through the end is written —
+ * `false` produces the real vanilla shape confirmed against real files: the item ends
+ * immediately after `hpBonus`.
+ *
+ * [includeUnknownOnward], nested inside [includeFlags3Onward], controls whether everything from
+ * `unknown` through the end is written — `false` (with the outer flag `true`) produces the real
+ * PTW shape confirmed against real files (`VER#` header `minor=18`): the item ends immediately
+ * after `requireSupport`.
  */
 private fun prtoItemBinary(
     zoneOfControl: Int = 0,
@@ -58,6 +67,8 @@ private fun prtoItemBinary(
     workerStrength: Float = 1.5f,
     unknown4: ByteString = ByteString.of(*ByteArray(4)),
     airDefense: Int = 0,
+    includeFlags3Onward: Boolean = true,
+    includeUnknownOnward: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(zoneOfControl)
     writePaddedField(name, 32)
@@ -84,26 +95,30 @@ private fun prtoItemBinary(
     writeIntLe(type)
     writeIntLe(otherStrategy)
     writeIntLe(hpBonus)
-    write(flags3)
-    writeIntLe(bombardEffects)
-    write(ignoreMovementCost)
-    writeIntLe(requireSupport)
-    write(unknown)
-    writeIntLe(enslaveResults)
-    write(unknown2)
-    writeIntLe(stealthTargetUnitTypes.size)
-    stealthTargetUnitTypes.forEach { writeIntLe(it) }
-    write(unknown3)
-    writeByte(createCraters.toInt())
-    writeIntLe(workerStrength.toRawBits())
-    write(unknown4)
-    writeIntLe(airDefense)
+    if (includeFlags3Onward) {
+        write(flags3)
+        writeIntLe(bombardEffects)
+        write(ignoreMovementCost)
+        writeIntLe(requireSupport)
+        if (includeUnknownOnward) {
+            write(unknown)
+            writeIntLe(enslaveResults)
+            write(unknown2)
+            writeIntLe(stealthTargetUnitTypes.size)
+            stealthTargetUnitTypes.forEach { writeIntLe(it) }
+            write(unknown3)
+            writeByte(createCraters.toInt())
+            writeIntLe(workerStrength.toRawBits())
+            write(unknown4)
+            writeIntLe(airDefense)
+        }
+    }
 }
 
 class PrtoEntryParserTest : FunSpec({
 
     test("well-formed item is parsed into all fields, including the dynamic stealth-target list") {
-        val entry = PrtoEntryParser.parse(prtoItemBinary())
+        val entry = PrtoEntryParser.parse(prtoItemBinary(), terrCount = 14)
         entry shouldBe PrtoEntry(
             zoneOfControl = 0,
             name = "Warrior",
@@ -146,6 +161,40 @@ class PrtoEntryParserTest : FunSpec({
         )
     }
 
+    test("well-formed item with terrCount = 12 (confirmed real vanilla/PTW terrain count) parses a 12-byte ignoreMovementCost") {
+        val entry = PrtoEntryParser.parse(
+            prtoItemBinary(ignoreMovementCost = ByteString.of(*ByteArray(12))),
+            terrCount = 12,
+        )
+        entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
+    }
+
+    test("vanilla-shape item (ends right after hpBonus, confirmed real vanilla shape) defaults flags3 onward") {
+        val entry = PrtoEntryParser.parse(
+            prtoItemBinary(includeFlags3Onward = false),
+            terrCount = 12,
+        )
+        entry.flags3 shouldBe ByteString.of(*ByteArray(20))
+        entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
+        entry.requireSupport shouldBe 0
+        entry.unknown shouldBe ByteString.of(*ByteArray(16))
+    }
+
+    test("PTW-shape item (ends right after requireSupport, confirmed real minor=18 shape) defaults unknown onward") {
+        val entry = PrtoEntryParser.parse(
+            prtoItemBinary(
+                ignoreMovementCost = ByteString.of(*ByteArray(12)),
+                requireSupport = 1,
+                includeUnknownOnward = false,
+            ),
+            terrCount = 12,
+        )
+        entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
+        entry.requireSupport shouldBe 1
+        entry.unknown shouldBe ByteString.of(*ByteArray(16))
+        entry.stealthTargetUnitTypes shouldBe emptyList()
+    }
+
     test("PrtoEntry rejects a flags1 field that is not exactly 8 bytes") {
         shouldThrow<IllegalArgumentException> {
             wellFormedPrtoEntry(flags1 = ByteString.of(0, 0, 0))
@@ -161,12 +210,6 @@ class PrtoEntryParserTest : FunSpec({
     test("PrtoEntry rejects a flags3 field that is not exactly 20 bytes") {
         shouldThrow<IllegalArgumentException> {
             wellFormedPrtoEntry(flags3 = ByteString.of(0, 0, 0))
-        }
-    }
-
-    test("PrtoEntry rejects an ignoreMovementCost field that is not exactly 14 bytes") {
-        shouldThrow<IllegalArgumentException> {
-            wellFormedPrtoEntry(ignoreMovementCost = ByteString.of(0, 0, 0))
         }
     }
 
@@ -201,7 +244,6 @@ private fun wellFormedPrtoEntry(
     flags1: ByteString = ByteString.of(*ByteArray(8)),
     flags2: ByteString = ByteString.of(*ByteArray(8)),
     flags3: ByteString = ByteString.of(*ByteArray(20)),
-    ignoreMovementCost: ByteString = ByteString.of(*ByteArray(14)),
     unknown: ByteString = ByteString.of(*ByteArray(16)),
     unknown2: ByteString = ByteString.of(*ByteArray(4)),
     unknown3: ByteString = ByteString.of(*ByteArray(8)),
@@ -218,7 +260,7 @@ private fun wellFormedPrtoEntry(
     type = 0, otherStrategy = 0, hpBonus = 0,
     flags3 = flags3,
     bombardEffects = 0,
-    ignoreMovementCost = ignoreMovementCost,
+    ignoreMovementCost = ByteString.of(*ByteArray(14)),
     requireSupport = 0,
     unknown = unknown,
     enslaveResults = 0,

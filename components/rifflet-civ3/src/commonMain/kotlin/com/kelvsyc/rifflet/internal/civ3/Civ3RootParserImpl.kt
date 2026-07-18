@@ -45,9 +45,10 @@ import okio.BufferedSource
  * markers with no dedicated type, where [Civ3RawSection]'s immutable domain value genuinely
  * requires one. The caller is expected to have already consumed the leading file magic.
  *
- * `RACE` sections need the entry count of the most recently parsed `ERAS` section, a genuine
- * cross-section parse-order dependency — [parse] tracks this in a local variable across the
- * section loop and passes it to [parseSection].
+ * `RACE` sections need the entry count of the most recently parsed `ERAS` section, and `PRTO`
+ * sections need the entry count of the most recently parsed `TERR` section — both genuine
+ * cross-section parse-order dependencies — [parse] tracks each in a local variable across the
+ * section loop and passes them to [parseSection].
  *
  * `FLAV` is the sole exception to the length-prefixed-item framing described above — its items
  * have no length field of their own in the file format (confirmed by both Apolyton's
@@ -61,15 +62,23 @@ internal object Civ3RootParserImpl {
         val header = Civ3HeaderParser.parse(source)
         val sections = mutableListOf<Civ3Section>()
         var erasCount: Int? = null
+        var terrCount: Int? = null
         while (!source.exhausted()) {
-            val section = parseSection(source, erasCount, magic, header.major)
+            val section = parseSection(source, erasCount, terrCount, magic, header.major)
             if (section is ErasSection) erasCount = section.entries.size
+            if (section is TerrSection) terrCount = section.entries.size
             sections += section
         }
         return Civ3File(header, sections)
     }
 
-    private fun parseSection(source: BufferedSource, erasCount: Int?, magic: ChunkId, major: Int): Civ3Section {
+    private fun parseSection(
+        source: BufferedSource,
+        erasCount: Int?,
+        terrCount: Int?,
+        magic: ChunkId,
+        major: Int,
+    ): Civ3Section {
         val marker = source.readChunkId()
         val count = source.readIntLe()
         if (marker == Civ3SectionIds.FLAV) {
@@ -114,7 +123,11 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.TECH -> TechSection(items.map { TechEntryParser.parse(it) })
             Civ3SectionIds.LEAD -> LeadSection(items.map { LeadEntryParser.parse(it) })
             Civ3SectionIds.RULE -> RuleSection(items.map { RuleEntryParser.parse(it) })
-            Civ3SectionIds.PRTO -> PrtoSection(items.map { PrtoEntryParser.parse(it) })
+            Civ3SectionIds.PRTO -> {
+                val terr = terrCount
+                    ?: throw RiffletParseException("PRTO section requires a TERR section to appear first in the file")
+                PrtoSection(items.map { PrtoEntryParser.parse(it, terr) })
+            }
             Civ3SectionIds.BLDG -> BldgSection(items.map { BldgEntryParser.parse(it) })
             Civ3SectionIds.TERR -> TerrSection(items.map { TerrEntryParser.parse(it) })
             Civ3SectionIds.GAME -> GameSection(items.map { GameEntryParser.parse(it) })
