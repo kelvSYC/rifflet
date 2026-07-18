@@ -2,6 +2,8 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import com.kelvsyc.rifflet.civ3.RaceEraFilenames
+import com.kelvsyc.rifflet.core.RiffletParseException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -122,5 +124,52 @@ class RaceEntryParserTest : FunSpec({
     test("unknown field is preserved raw, not validated") {
         val entry = RaceEntryParser.parse(raceItemBinary(unknown = byteArrayOf(9, 9, 9, 9)), erasCount = 2)
         entry.unknown shouldBe ByteString.of(9, 9, 9, 9)
+    }
+
+    test("an implausibly large numberOfCities throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(Int.MAX_VALUE)
+        }
+        shouldThrow<RiffletParseException> { RaceEntryParser.parse(buffer, erasCount = 0) }
+    }
+
+    test("an implausibly large numberOfGreatLeaders throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(0) // numberOfCities
+            writeIntLe(Int.MAX_VALUE) // numberOfGreatLeaders
+        }
+        shouldThrow<RiffletParseException> { RaceEntryParser.parse(buffer, erasCount = 0) }
+    }
+
+    test("an implausibly large erasCount throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(0) // numberOfCities
+            writeIntLe(0) // numberOfGreatLeaders
+            write(ByteArray(32)) // leaderName
+            write(ByteArray(24)) // leaderTitle
+            write(ByteArray(32)) // civilopediaEntry
+            write(ByteArray(40)) // adjective
+            write(ByteArray(40)) // name
+            write(ByteArray(40)) // noun
+        }
+        shouldThrow<RiffletParseException> { RaceEntryParser.parse(buffer, erasCount = Int.MAX_VALUE) }
+    }
+
+    test("an implausibly large numberOfScientificLeaders throws RiffletParseException before attempting to allocate") {
+        val buffer = Buffer().apply {
+            writeIntLe(0) // numberOfCities
+            writeIntLe(0) // numberOfGreatLeaders
+            write(ByteArray(32)) // leaderName
+            write(ByteArray(24)) // leaderTitle
+            write(ByteArray(32)) // civilopediaEntry
+            write(ByteArray(40)) // adjective
+            write(ByteArray(40)) // name
+            write(ByteArray(40)) // noun
+            // erasCount = 0, so no era entries to write
+            // cultureGroup..flavors: 20 ints (80B) + unknown (4B) + diplomacyTextIndex (4B) = 88B
+            write(ByteArray(88))
+            writeIntLe(Int.MAX_VALUE) // numberOfScientificLeaders
+        }
+        shouldThrow<RiffletParseException> { RaceEntryParser.parse(buffer, erasCount = 0) }
     }
 })
