@@ -15,14 +15,19 @@ import okio.ByteString
  * A 4-byte BIX-only `mapVisible (long)` field documented by Apolyton between those two gaps is
  * deliberately NOT read here — see [GameEntry]'s class-level KDoc for why.
  *
- * Every field from [GameEntry.civAllianceStatuses] onward is read defensively: confirmed absent
- * entirely from real PTW files with `VER#` header `minor=18` (the dominant PTW sub-tier, 51 of
- * ~91 sampled PTW files) — the item simply ends right after [GameEntry.scenarioSearchFolders].
- * `civAllianceStatuses` defaults to `numberOfPlayableCivs` zeros (not an empty list) to satisfy
- * its own size invariant; every other newly-guarded field defaults to the same full-sized
- * zero/empty placeholder already used throughout this codebase. [GameEntry.mpBasetime]/
- * [GameEntry.mpCityTime]/[GameEntry.mpUnitTime] were already guarded independently by an earlier
- * fix for a separate, narrower Conquests-internal `minor=6` split — unchanged here.
+ * Every field after the fixed 5-field header ([GameEntry.defaultGameRules]/
+ * [GameEntry.defaultVictoryConditions]/[GameEntry.numberOfPlayableCivs]/
+ * [GameEntry.playableCivIds]/[GameEntry.flags]) is read defensively — confirmed via an
+ * exhaustive byte-count scan across all 92 real files with a `GAME` section, grouped by exact
+ * `VER#` header `(magic, major, minor)`, zero anomalies: real vanilla files can end immediately
+ * after [GameEntry.flags] (a bare 16-byte item); real PTW files end at one of 3 different real
+ * cutoff points depending on `minor` ([GameEntry.autoPlaceVictoryLocations] for `minor=6/9/10`,
+ * [GameEntry.debugMode] for `minor=13`, [GameEntry.scenarioSearchFolders] for the dominant
+ * `minor=18` tier); real Conquests files always include everything through
+ * [GameEntry.scenarioSearchFolders] and additionally omit only the trailing mp-timing fields on
+ * `minor=6`. `civAllianceStatuses` defaults to `numberOfPlayableCivs` zeros (not an empty list)
+ * to satisfy its own size invariant; every other newly-guarded field defaults to the same
+ * full-sized zero/empty placeholder already used throughout this codebase.
  */
 internal object GameEntryParser {
     fun parse(item: Buffer): GameEntry {
@@ -31,20 +36,24 @@ internal object GameEntryParser {
         val numberOfPlayableCivs = item.readIntLe()
         val playableCivIds = List(numberOfPlayableCivs) { item.readIntLe() }
         val flags = item.readByteString(4L)
-        val placeCaptureUnits = item.readIntLe()
-        val autoPlaceKings = item.readIntLe()
-        val autoPlaceVictoryLocations = item.readIntLe()
-        val debugMode = item.readIntLe()
-        val useTimeLimit = item.readIntLe()
-        val baseTimeUnit = item.readIntLe()
-        val startMonth = item.readIntLe()
-        val startWeek = item.readIntLe()
-        val startYear = item.readIntLe()
-        val minuteTimeLimit = item.readIntLe()
-        val turnTimeLimit = item.readIntLe()
-        val timescaleNumberOfTurns = List(7) { item.readIntLe() }
-        val turnNumberOfTimeUnits = List(7) { item.readIntLe() }
-        val scenarioSearchFolders = item.readByteString(5200L).truncateAtFirstNull()
+        val placeCaptureUnits = if (item.size >= 4L) item.readIntLe() else 0
+        val autoPlaceKings = if (item.size >= 4L) item.readIntLe() else 0
+        val autoPlaceVictoryLocations = if (item.size >= 4L) item.readIntLe() else 0
+        val debugMode = if (item.size >= 4L) item.readIntLe() else 0
+        val useTimeLimit = if (item.size >= 4L) item.readIntLe() else 0
+        val baseTimeUnit = if (item.size >= 4L) item.readIntLe() else 0
+        val startMonth = if (item.size >= 4L) item.readIntLe() else 0
+        val startWeek = if (item.size >= 4L) item.readIntLe() else 0
+        val startYear = if (item.size >= 4L) item.readIntLe() else 0
+        val minuteTimeLimit = if (item.size >= 4L) item.readIntLe() else 0
+        val turnTimeLimit = if (item.size >= 4L) item.readIntLe() else 0
+        val timescaleNumberOfTurns = if (item.size >= 28L) List(7) { item.readIntLe() } else List(7) { 0 }
+        val turnNumberOfTimeUnits = if (item.size >= 28L) List(7) { item.readIntLe() } else List(7) { 0 }
+        val scenarioSearchFolders = if (item.size >= 5200L) {
+            item.readByteString(5200L).truncateAtFirstNull()
+        } else {
+            ""
+        }
         val civAllianceStatuses = if (item.size >= 4L * numberOfPlayableCivs) {
             List(numberOfPlayableCivs) { item.readIntLe() }
         } else {

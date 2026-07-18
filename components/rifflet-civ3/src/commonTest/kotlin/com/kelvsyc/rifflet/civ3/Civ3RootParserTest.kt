@@ -886,6 +886,58 @@ class Civ3RootParserTest : FunSpec({
         )
     }
 
+    test("GOVT item with more governments than the old fixed ceiling parses fine (dynamic government count, not a version split)") {
+        val relationshipCount = 20
+        val item = Buffer().apply {
+            writeIntLe(0) // defaultType
+            writeIntLe(0) // transitionType
+            writeIntLe(1) // requiresMaintenance
+            writeIntLe(0) // toggle1
+            writeIntLe(0) // tilePenalty
+            writeIntLe(0) // tradeBonus
+            writeString("Despotism", Charsets.US_ASCII)
+            write(ByteArray(64 - 9)) // pad "Despotism" (9 bytes) to 64
+            write(ByteArray(32)) // civilopediaEntry
+            repeat(8) { write(ByteArray(32)) } // 4 male/female ruler title pairs
+            writeIntLe(0) // corruption
+            writeIntLe(0) // immuneTo
+            writeIntLe(0) // diplomatsAre
+            writeIntLe(0) // spiesAre
+            writeIntLe(relationshipCount) // numberOfGovernments
+            repeat(relationshipCount) {
+                writeIntLe(1) // canBribe
+                writeIntLe(20) // briberyModifier
+                writeIntLe(30) // resistanceModifier
+            }
+            writeIntLe(0) // hurrying
+            writeIntLe(0) // assimilationChance
+            writeIntLe(0) // draftLimit
+            writeIntLe(0) // militaryPoliceLimit
+            writeIntLe(0) // rulerTitlePairsUsed
+            writeIntLe(0) // prerequisiteTechnology
+            writeIntLe(0) // scienceRateCap
+            writeIntLe(0) // workerRate
+            writeIntLe(-1) // toggle2
+            writeIntLe(0) // toggle3
+            write(ByteArray(4)) // unknown
+            writeIntLe(0) // freeUnits
+            writeIntLe(0) // freeUnitsPerTown
+            writeIntLe(0) // freeUnitsPerCity
+            writeIntLe(0) // freeUnitsPerMetropolis
+            writeIntLe(0) // unitCost
+            writeIntLe(0) // warWeariness
+            // xenophobic/forceResettle omitted: real PTW files never have them
+        }
+        val source = Buffer().apply {
+            writeString("BICX", Charsets.US_ASCII)
+            writeAll(verSectionBytes(major = 11, minor = 18))
+            writeAll(oneItemSectionBytes("GOVT", item))
+        }
+        val file = Civ3RootParser.parse(source)
+        val govtSection = file.sections.filterIsInstance<GovtSection>().single()
+        govtSection.entries.single().relationships.size shouldBe relationshipCount
+    }
+
     test("RACE section after an ERAS section produces a typed RaceSection sized from ERAS's entry count") {
         val source = Buffer().apply {
             writeString("BIC ", Charsets.US_ASCII)

@@ -13,10 +13,21 @@ import com.kelvsyc.rifflet.core.ChunkId
  * coarser era grouping used elsewhere in this codebase's KDoc.
  *
  * Only combinations with a directly-observed real sample are listed. Any other combination —
- * including every major=2/3 case for `DIFF`/`ERAS`/`BLDG`/`CTZN`/`GOVT`, which this project has
- * zero real samples for — intentionally has no entry, so [maxSizeFor] returns `null` and no limit
+ * including every major=2/3 case for `DIFF`/`ERAS`/`BLDG`/`CTZN`, which this project has zero
+ * real samples for — intentionally has no entry, so [maxSizeFor] returns `null` and no limit
  * is enforced. `TECH`/`UNIT`/`RULE` also have defensive parsing but documentation-derived (not
  * real-data-confirmed) tier sizes, so they are deliberately excluded here entirely.
+ *
+ * `GOVT` is deliberately excluded for a different reason than `TECH`/`UNIT`/`RULE`: unlike every
+ * section listed below, a single `GOVT` item embeds a dynamic `relationships` array sized by an
+ * in-item `numberOfGovernments` field (`length == 396 + 12×numberOfGovernments + 68-or-76`,
+ * confirmed via byte-count algebra with zero anomalies across all 120 real files in the mounted
+ * install). Because `numberOfGovernments` is scenario-defined, not version-defined, no fixed
+ * ceiling for any `(magic, major)` pair can ever be valid — a modded government roster can
+ * legitimately exceed whatever ceiling a finite sample set would suggest. An earlier version of
+ * this table incorrectly included a fixed 536/568-byte `GOVT` ceiling derived from only 4 samples
+ * that happened to share a similar government count; it rejected real, valid PTW files with more
+ * governments than those samples. Do not re-add a `GOVT` entry here.
  */
 internal object Civ3ItemSizeLimits {
     private val LIMITS: Map<ChunkId, Map<Pair<ChunkId, Int>, Int>> = mapOf(
@@ -46,11 +57,6 @@ internal object Civ3ItemSizeLimits {
             (BIC_MAGIC to 4) to 260,
             (BICX_MAGIC to 11) to 260,
             (BICX_MAGIC to 12) to 264,
-        ),
-        Civ3SectionIds.GOVT to mapOf(
-            (BIC_MAGIC to 4) to 536,
-            (BICX_MAGIC to 11) to 536,
-            (BICX_MAGIC to 12) to 568,
         ),
     )
 
