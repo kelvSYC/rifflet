@@ -13,19 +13,22 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
     write(ByteArray((fieldSize - (size - start)).toInt()))
 }
 
-/** Builds a well-formed 264-byte ERAS item body (length prefix excluded, as with WSIZ/DIFF). */
+/** Builds a well-formed 264-byte ERAS item body (length prefix excluded, as with WSIZ/DIFF).
+ * [includeUnknown] controls whether the last field (`unknown`) is written, matching the real
+ * vanilla/PTW (260 bytes) vs Conquests (264 bytes) split. */
 private fun erasItemBinary(
     name: String = "Ancient",
     civilopediaEntry: String = "",
     researchers: List<String> = listOf("", "", "", "", ""),
     numberOfUsedResearcherNames: Int = 0,
     unknown: ByteArray = byteArrayOf(1, 0, 0, 0),
+    includeUnknown: Boolean = true,
 ): Buffer = Buffer().apply {
     writePaddedField(name, 64)
     writePaddedField(civilopediaEntry, 32)
     researchers.forEach { writePaddedField(it, 32) }
     writeIntLe(numberOfUsedResearcherNames)
-    write(unknown)
+    if (includeUnknown) write(unknown)
 }
 
 class ErasEntryParserTest : FunSpec({
@@ -48,5 +51,10 @@ class ErasEntryParserTest : FunSpec({
     test("unknown trailing field is preserved raw, not validated") {
         val entry = ErasEntryParser.parse(erasItemBinary(unknown = byteArrayOf(9, 9, 9, 9)))
         entry.unknown shouldBe ByteString.of(9, 9, 9, 9)
+    }
+
+    test("vanilla/PTW-length item (260 bytes, unknown absent) defaults it to zero") {
+        val entry = ErasEntryParser.parse(erasItemBinary(includeUnknown = false))
+        entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
     }
 })
