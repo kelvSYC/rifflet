@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.WsizEntry
 import okio.Buffer
 
@@ -8,6 +9,9 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop (`Civ3RootParserImpl.parseSection`) — no [okio.ByteString] materialization
  * needed for a modeled section.
+ *
+ * Every field in this section is confirmed present in every real sample regardless of
+ * [Civ3FormatEra].
  */
 internal object WsizEntryParser {
     fun parse(item: Buffer): WsizEntry {

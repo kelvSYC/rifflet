@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.WmapEntry
 import okio.Buffer
 
@@ -10,6 +11,9 @@ import okio.Buffer
  *
  * `numberOfResources` is validated via [requireSaneCount] before sizing
  * [WmapEntry.resourceIds] — see that function's KDoc for why.
+ *
+ * Every field in this section is confirmed present in every real sample regardless of
+ * [Civ3FormatEra].
  */
 internal object WmapEntryParser {
     fun parse(item: Buffer): WmapEntry {

@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.ClnyEntry
 import okio.Buffer
 
@@ -11,6 +12,9 @@ import okio.Buffer
  * [ClnyEntry] use the 20-byte, 5-field interpretation. Reads directly off [item], a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
+ *
+ * Every field in this section is confirmed present in every real sample regardless of
+ * [Civ3FormatEra].
  */
 internal object ClnyEntryParser {
     fun parse(item: Buffer): ClnyEntry {

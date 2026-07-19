@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.WchrEntry
 import okio.Buffer
 
@@ -7,6 +8,9 @@ import okio.Buffer
  * Parses one `WCHR` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
+ *
+ * Every field in this section is confirmed present in every real sample regardless of
+ * [Civ3FormatEra].
  */
 internal object WchrEntryParser {
     fun parse(item: Buffer): WchrEntry {
