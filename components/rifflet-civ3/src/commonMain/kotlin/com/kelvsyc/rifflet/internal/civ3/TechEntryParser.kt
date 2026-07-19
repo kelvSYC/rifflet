@@ -15,6 +15,13 @@ import okio.ByteString
  * Because the generic section loop in `Civ3RootParserImpl` already slices [item] to the
  * file's own declared length, `item.size` reliably reflects how many bytes actually remain
  * for this specific file.
+ *
+ * [TechEntry.flavors] and [TechEntry.unknown] form a single combined cutoff, confirmed via
+ * byte-count algebra across all real `TECH` items in a mounted install: vanilla and PTW items
+ * end right after [TechEntry.flags] (neither field present, zero anomalies across all sampled
+ * vanilla/PTW items); Conquests items include both (zero anomalies across all sampled
+ * Conquests items — `flavors` may support Conquests' per-civilization tech trees). Each field
+ * is guarded independently.
  */
 internal object TechEntryParser {
     fun parse(item: Buffer): TechEntry {
@@ -30,7 +37,7 @@ internal object TechEntryParser {
         val prerequisite3 = item.readIntLe()
         val prerequisite4 = item.readIntLe()
         val flags = item.readIntLe()
-        val flavors = item.readIntLe()
+        val flavors = if (item.size >= 4L) item.readIntLe() else 0
         val unknown = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         return TechEntry(
             name,
