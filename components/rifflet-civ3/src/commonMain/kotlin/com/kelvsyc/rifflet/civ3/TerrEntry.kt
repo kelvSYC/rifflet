@@ -18,7 +18,12 @@ import okio.ByteString
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param unknown2 4 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated.
- * @param terrainFlags Opaque; `QueryCiv3` exposes no named booleans for this field at all.
+ * @param terrainFlags Opaque. Checked against both of this codebase's primary sources in full —
+ *   Apolyton's original "Civilization III BIC file format (2nd thread)" (6 pages) and the later,
+ *   fuller "Civilization III BIX/BIQ file format" thread (5 pages plus a third-party archive of
+ *   a related dead thread) — neither names a single bit for this field, unlike every other
+ *   opaque flags field in this codebase. `QueryCiv3` likewise exposes no named booleans for it.
+ *   This is a confirmed dead end, not merely unresearched.
  */
 data class TerrEntry(
     val numberOfPossibleResources: Int,

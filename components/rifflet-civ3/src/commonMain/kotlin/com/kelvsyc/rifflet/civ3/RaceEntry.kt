@@ -8,10 +8,9 @@ import okio.ByteString
  *
  * @param eras Sized from the already-parsed `ERAS` section's entry count, not from any field
  *   within this record.
- * @param bonuses 4 bytes of packed boolean flags (civilization traits), kept opaque rather than
- *   decomposed into individual named booleans — see `QueryCiv3`'s `Race.cs` for the full
- *   bit-accessor breakdown if this is ever revisited. Likewise for [governorSettings],
- *   [buildNever], and [buildOften].
+ * @param bonuses 4 bytes of packed boolean flags (civilization traits); see [RaceEntry.militaristic]
+ *   and its sibling accessors in `RaceEntryFlags.kt` for the named per-bit accessors. Likewise
+ *   for [governorSettings], [buildNever], and [buildOften] — see their own accessor files.
  * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated.
  */

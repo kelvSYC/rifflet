@@ -21,6 +21,8 @@ import okio.ByteString
  *
  * @param resource Likely a `GOOD` section index (naming convention only); not confirmed by
  *   either cross-referenced source.
+ * @param overlayFlags 1 byte with 8 named booleans; see [TileEntry.road] and its sibling
+ *   accessors in `TileEntryFlags.kt`.
  * @param terrain A packed nibble pair — low nibble is the base terrain (`TERR` index), high
  *   nibble is the overlay terrain (`TERR` index) — confirmed by cross-referencing real tile data
  *   against [c3cTerrain] (a near-duplicate [Civ3FormatEra.CONQUESTS]-only field with the same
@@ -28,6 +30,12 @@ import okio.ByteString
  *   Most tiles have identical base and overlay terrain; they differ only where an overlay
  *   terrain (e.g. forest) sits atop a different base terrain. Preserved raw, not decomposed into
  *   separate properties.
+ * @param bonusFlags 1 byte with 4 named booleans at non-contiguous bit positions; see
+ *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`.
+ * @param riverConnections 1 byte with 4 named booleans; see [TileEntry.riverInNorth] and its
+ *   sibling accessors in `TileEntryFlags.kt`.
+ * @param riverCrossingFlags 1 byte with 8 named booleans (compass directions); see
+ *   [TileEntry.crossingN] and its sibling accessors in `TileEntryFlags.kt`.
  * @param colony Likely a `CLNY` section index (naming convention only); not confirmed by either
  *   cross-referenced source.
  * @param city Likely a reference to a placed city (naming convention only); not confirmed by
@@ -41,9 +49,12 @@ import okio.ByteString
  * @param victoryPointLocation `0` if this tile is a Victory Point Location, `-1` otherwise, per
  *   `QueryCiv3`; present only from [Civ3FormatEra.PTW] (`major=11`) onward, read defensively.
  * @param ruin Present only from [Civ3FormatEra.PTW] (`major=11`) onward, read defensively.
- * @param c3cOverlays 4 bytes with ~13 named booleans across both cross-referenced sources
- *   (roads, railroads, improvements, barbarian camps, craters, etc.); present only in
- *   [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not decomposed.
+ * @param c3cOverlays 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively;
+ *   preserved raw, not decomposed. Checked against both of this codebase's primary sources in
+ *   full (see [TerrEntry.terrainFlags]'s KDoc for the specific sources) — as a Conquests-only
+ *   field it is by definition absent from the earlier, vanilla/PTW-era thread, and the later
+ *   BIX/BIQ-era thread and its Conquests-specific follow-up thread name no bits for it either.
+ *   Confirmed dead end, not merely unresearched.
  * @param unknown3 1 byte with zero documented behavior from either cross-referenced source;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
@@ -55,9 +66,9 @@ import okio.ByteString
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
  * @param fogOfWar Present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
- * @param c3cBonuses 4 bytes with ~9 named booleans across both cross-referenced sources (bonus
- *   grassland, player start, snow-capped mountain, river directions, landmark, etc.); present
- *   only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not decomposed.
+ * @param c3cBonuses 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively;
+ *   preserved raw, not decomposed. Same confirmed-dead-end treatment as [c3cOverlays] — checked
+ *   against both primary sources in full, no bits named for this field in either.
  * @param unknown5 2 bytes with zero documented behavior from either cross-referenced source;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.

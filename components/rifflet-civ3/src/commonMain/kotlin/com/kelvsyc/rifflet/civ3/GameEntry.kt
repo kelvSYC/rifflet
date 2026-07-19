@@ -45,9 +45,8 @@ import okio.ByteString
  *   after this class's other defensive-parsing extensions: every real cutoff tier confirmed so
  *   far includes it, and [Civ3FormatEra.VANILLA]'s behavior when `numberOfPlayableCivs > 0`
  *   remains unsampled.
- * @param flags 4 bytes with ~19 named booleans across both cross-referenced sources (victory
- *   condition toggles, game rule toggles); preserved raw, not decomposed. Same treatment as
- *   `RaceEntry.bonuses`.
+ * @param flags 4 bytes with 16 named booleans (victory condition toggles, game rule toggles);
+ *   see [GameEntry.dominationVictoryEnabled] and its sibling accessors in `GameEntryFlags.kt`.
  * @param civAllianceStatuses One alliance-status value (0-4, 0=none) per civ, in the same order
  *   as [playableCivIds]; sized by [numberOfPlayableCivs], not separately counted. Confirmed
  *   absent from real [Civ3FormatEra.PTW] files — defaults to [numberOfPlayableCivs] zeros ("no
