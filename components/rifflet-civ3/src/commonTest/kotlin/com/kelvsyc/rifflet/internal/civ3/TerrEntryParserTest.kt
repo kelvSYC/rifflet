@@ -20,6 +20,12 @@ private fun Buffer.writePaddedField(text: String, fieldSize: Int) {
  * numberOfPossibleResources = 5 (not a multiple of 8) to prove the ceiling-division sizing of
  * possibleResources is genuine, not coincidentally correct for byte-aligned counts: 5 resources
  * round up to exactly 1 byte, with 3 padding bits.
+ *
+ * [includeBooleanFlags] and [includeConquestsTail] model the three confirmed real shapes (see
+ * Global Constraints): vanilla writes neither (`includeBooleanFlags = false`), PTW writes only
+ * the boolean flags (`includeConquestsTail = false`), Conquests writes both (defaults).
+ * [includeConquestsTail] has no effect when [includeBooleanFlags] is `false`, matching the real
+ * data's hierarchy — no sample has the Conquests tail without the boolean flags.
  */
 private fun terrItemBinary(
     numberOfPossibleResources: Int = 5,
@@ -59,6 +65,8 @@ private fun terrItemBinary(
     unknown2: ByteString = ByteString.of(*ByteArray(4)),
     terrainFlags: Int = 0,
     diseaseStrength: Int = 0,
+    includeBooleanFlags: Boolean = true,
+    includeConquestsTail: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(numberOfPossibleResources)
     write(possibleResources)
@@ -76,27 +84,31 @@ private fun terrItemBinary(
     writeIntLe(pollutionEffect)
     writeByte(allowCities.toInt())
     writeByte(allowColonies.toInt())
-    writeByte(impassable.toInt())
-    writeByte(impassableByWheeled.toInt())
-    writeByte(allowAirfields.toInt())
-    writeByte(allowForts.toInt())
-    writeByte(allowOutposts.toInt())
-    writeByte(allowRadarTowers.toInt())
-    write(unknown)
-    writeByte(landmarkEnabled.toInt())
-    writeIntLe(landmarkFood)
-    writeIntLe(landmarkShields)
-    writeIntLe(landmarkCommerce)
-    writeIntLe(landmarkIrrigationBonus)
-    writeIntLe(landmarkMiningBonus)
-    writeIntLe(landmarkRoadBonus)
-    writeIntLe(landmarkMovementBonus)
-    writeIntLe(landmarkDefensiveBonus)
-    writePaddedField(landmarkName, 32)
-    writePaddedField(landmarkCivilopediaEntry, 32)
-    write(unknown2)
-    writeIntLe(terrainFlags)
-    writeIntLe(diseaseStrength)
+    if (includeBooleanFlags) {
+        writeByte(impassable.toInt())
+        writeByte(impassableByWheeled.toInt())
+        writeByte(allowAirfields.toInt())
+        writeByte(allowForts.toInt())
+        writeByte(allowOutposts.toInt())
+        writeByte(allowRadarTowers.toInt())
+        if (includeConquestsTail) {
+            write(unknown)
+            writeByte(landmarkEnabled.toInt())
+            writeIntLe(landmarkFood)
+            writeIntLe(landmarkShields)
+            writeIntLe(landmarkCommerce)
+            writeIntLe(landmarkIrrigationBonus)
+            writeIntLe(landmarkMiningBonus)
+            writeIntLe(landmarkRoadBonus)
+            writeIntLe(landmarkMovementBonus)
+            writeIntLe(landmarkDefensiveBonus)
+            writePaddedField(landmarkName, 32)
+            writePaddedField(landmarkCivilopediaEntry, 32)
+            write(unknown2)
+            writeIntLe(terrainFlags)
+            writeIntLe(diseaseStrength)
+        }
+    }
 }
 
 class TerrEntryParserTest : FunSpec({
@@ -142,6 +154,59 @@ class TerrEntryParserTest : FunSpec({
             terrainFlags = 0,
             diseaseStrength = 0,
         )
+    }
+
+    test("item missing all 21 trailing fields defaults them (vanilla shape)") {
+        val entry = TerrEntryParser.parse(terrItemBinary(includeBooleanFlags = false))
+        entry.impassable shouldBe 0
+        entry.impassableByWheeled shouldBe 0
+        entry.allowAirfields shouldBe 0
+        entry.allowForts shouldBe 0
+        entry.allowOutposts shouldBe 0
+        entry.allowRadarTowers shouldBe 0
+        entry.unknown shouldBe ByteString.of(*ByteArray(4))
+        entry.landmarkEnabled shouldBe 0
+        entry.landmarkFood shouldBe 0
+        entry.landmarkShields shouldBe 0
+        entry.landmarkCommerce shouldBe 0
+        entry.landmarkIrrigationBonus shouldBe 0
+        entry.landmarkMiningBonus shouldBe 0
+        entry.landmarkRoadBonus shouldBe 0
+        entry.landmarkMovementBonus shouldBe 0
+        entry.landmarkDefensiveBonus shouldBe 0
+        entry.landmarkName shouldBe ""
+        entry.landmarkCivilopediaEntry shouldBe ""
+        entry.unknown2 shouldBe ByteString.of(*ByteArray(4))
+        entry.terrainFlags shouldBe 0
+        entry.diseaseStrength shouldBe 0
+    }
+
+    test("item with boolean flags but missing the Conquests tail defaults the rest (PTW shape)") {
+        val entry = TerrEntryParser.parse(
+            terrItemBinary(
+                impassable = 1,
+                impassableByWheeled = 1,
+                allowAirfields = 0,
+                allowForts = 0,
+                allowOutposts = 0,
+                allowRadarTowers = 0,
+                includeConquestsTail = false,
+            ),
+        )
+        entry.impassable shouldBe 1
+        entry.impassableByWheeled shouldBe 1
+        entry.allowAirfields shouldBe 0
+        entry.allowForts shouldBe 0
+        entry.allowOutposts shouldBe 0
+        entry.allowRadarTowers shouldBe 0
+        entry.unknown shouldBe ByteString.of(*ByteArray(4))
+        entry.landmarkEnabled shouldBe 0
+        entry.landmarkFood shouldBe 0
+        entry.landmarkName shouldBe ""
+        entry.landmarkCivilopediaEntry shouldBe ""
+        entry.unknown2 shouldBe ByteString.of(*ByteArray(4))
+        entry.terrainFlags shouldBe 0
+        entry.diseaseStrength shouldBe 0
     }
 
     test("TerrEntry rejects a possibleResources whose size doesn't match the ceiling-divided count") {
