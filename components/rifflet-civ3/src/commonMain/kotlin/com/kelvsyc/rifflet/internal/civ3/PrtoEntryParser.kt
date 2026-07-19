@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.PrtoEntry
 import okio.Buffer
 import okio.ByteString
@@ -20,11 +21,12 @@ import okio.ByteString
  * [terrCount] comes from the already-parsed `TERR` section (see `Civ3RootParserImpl`'s
  * cross-section threading, the same pattern `RaceEntryParser` uses for `erasCount`) and sizes
  * [PrtoEntry.ignoreMovementCost] — confirmed real-data-dependent, not a fixed constant: real
- * vanilla and PTW files always have 12 `TERR` entries, real Conquests files always have 14
- * (Conquests added 2 new terrain types, marshes and volcanoes). This codebase originally
- * modeled `ignoreMovementCost` as a hardcoded 14 bytes, which happened to be correct only for
- * Conquests; cross-checking [PrtoEntry.requireSupport]'s value at the terrCount-corrected offset
- * against a real Conquests file's value for the same-named unit matched on 100 of 101 real
+ * [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files always have 12 `TERR` entries, real
+ * [Civ3FormatEra.CONQUESTS] files always have 14 (Conquests added 2 new terrain types, marshes
+ * and volcanoes). This codebase originally modeled `ignoreMovementCost` as a hardcoded 14 bytes,
+ * which happened to be correct only for [Civ3FormatEra.CONQUESTS]; cross-checking
+ * [PrtoEntry.requireSupport]'s value at the terrCount-corrected offset against a real
+ * [Civ3FormatEra.CONQUESTS] file's value for the same-named unit matched on 100 of 101 real
  * units, confirming the fix. [terrCount] is validated via [requireSaneCount] immediately upon
  * entry, before it sizes [PrtoEntry.ignoreMovementCost] — see that function's KDoc for why.
  *
@@ -33,12 +35,13 @@ import okio.ByteString
  * [requireSaneCount] immediately after being read, before it sizes
  * [PrtoEntry.stealthTargetUnitTypes] in either of its two branches.
  *
- * Every field from [PrtoEntry.flags3] onward is read defensively: real vanilla files end
- * immediately after [PrtoEntry.hpBonus]; real PTW files (confirmed only at `VER#` header
- * `minor=18`, the only PTW sub-tier with a real `PRTO` sample) include everything through
- * [PrtoEntry.requireSupport] but omit everything from [PrtoEntry.unknown] onward — evidently the
- * entire unit-behavior tail ([PrtoEntry.unknown] through [PrtoEntry.airDefense]) was introduced
- * together as a Conquests-era `PRTO` expansion, mirroring `GAME`'s own Conquests-era expansion.
+ * Every field from [PrtoEntry.flags3] onward is read defensively: real [Civ3FormatEra.VANILLA]
+ * files end immediately after [PrtoEntry.hpBonus]; real [Civ3FormatEra.PTW] files (confirmed
+ * only at `VER#` header `minor=18` — the only PTW sub-tier with a real `PRTO` sample, so other
+ * PTW minors' shape here is unconfirmed) include everything through [PrtoEntry.requireSupport]
+ * but omit everything from [PrtoEntry.unknown] onward — evidently the entire unit-behavior tail
+ * ([PrtoEntry.unknown] through [PrtoEntry.airDefense]) was introduced together as a
+ * [Civ3FormatEra.CONQUESTS]-era `PRTO` expansion, mirroring `GAME`'s own Conquests-era expansion.
  */
 internal object PrtoEntryParser {
     fun parse(item: Buffer, terrCount: Int): PrtoEntry {

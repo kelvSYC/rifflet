@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import okio.Buffer
 
@@ -11,12 +12,14 @@ import okio.Buffer
  * `relationships.size` is already that count. The 8 ruler-title fields are always read
  * unconditionally — they do not vary with any other section's entry count.
  *
- * The trailing 2 fields (`xenophobic`, `forceResettle`) are read defensively: real vanilla
- * (major=4) and PTW (major=11) files omit them entirely — confirmed via byte-count algebra
- * across 4 real samples with different government counts, cross-checked against the fixed
- * 12-byte [GovtRelationship] size — so each read checks `item.size` first and defaults when
- * absent, matching `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`'s
- * established length-aware defensive parsing pattern.
+ * The trailing 2 fields (`xenophobic`, `forceResettle`) are read defensively: real
+ * [Civ3FormatEra.VANILLA] (`major=4`) and [Civ3FormatEra.PTW] (`major=11`) files omit them
+ * entirely — confirmed via byte-count algebra across 4 real samples with different government
+ * counts, cross-checked against the fixed 12-byte [GovtRelationship] size — so each read checks
+ * `item.size` first and defaults when absent, matching
+ * `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`'s established
+ * length-aware defensive parsing pattern. With only 4 total real samples, no per-minor breakdown
+ * within [Civ3FormatEra.PTW] was recorded.
  *
  * `numberOfGovernments` is validated via [requireSaneCount] before sizing
  * [GovtEntry.relationships] — see that function's KDoc for why.
