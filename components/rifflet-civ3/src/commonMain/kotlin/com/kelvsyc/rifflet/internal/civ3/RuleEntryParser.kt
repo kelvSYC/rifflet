@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.RuleEntry
 import okio.Buffer
 
@@ -11,13 +12,15 @@ import okio.Buffer
  * Both trailing fields are read defensively, confirmed via byte-count algebra across all 45
  * real files with a `RULE` section (correctly accounting for the section's two dynamic-array
  * counts so genuine content differences aren't mistaken for structural ones), zero anomalies:
- * real vanilla files have neither [RuleEntry.flagUnitType] nor [RuleEntry.upgradeCost]; real PTW
- * files (`VER#` header `minor=18`, unanimous across all 15 real PTW files) have
- * [RuleEntry.flagUnitType] but not [RuleEntry.upgradeCost] (`QueryCiv3`'s struct comments the
- * latter `// Only in conquests`); real Conquests files (unanimous across all 29 real Conquests
- * files) have both. Because the generic section loop in `Civ3RootParserImpl` already slices
- * [item] to the file's own declared length, `item.size` reliably reflects how many bytes
- * actually remain for this specific file.
+ * real [Civ3FormatEra.VANILLA] files have neither [RuleEntry.flagUnitType] nor
+ * [RuleEntry.upgradeCost]; real [Civ3FormatEra.PTW] files (`VER#` header `minor=18`, unanimous
+ * across all 15 real PTW files — the only PTW minor sampled with a `RULE` section, so other PTW
+ * minors' shape here is unconfirmed) have [RuleEntry.flagUnitType] but not
+ * [RuleEntry.upgradeCost] (`QueryCiv3`'s struct comments the latter `// Only in conquests`);
+ * real [Civ3FormatEra.CONQUESTS] files (unanimous across all 29 real Conquests files) have both.
+ * Because the generic section loop in `Civ3RootParserImpl` already slices [item] to the file's
+ * own declared length, `item.size` reliably reflects how many bytes actually remain for this
+ * specific file.
  *
  * Both dynamic-array counts (`numberOfSpaceshipParts`, `numberOfCultureLevels`) are validated
  * via [requireSaneCount] before sizing their respective lists — see that function's KDoc for

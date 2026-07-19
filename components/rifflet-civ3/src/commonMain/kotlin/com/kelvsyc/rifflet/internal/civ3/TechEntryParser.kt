@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.TechEntry
 import okio.Buffer
 import okio.ByteString
@@ -17,11 +18,13 @@ import okio.ByteString
  * for this specific file.
  *
  * [TechEntry.flavors] and [TechEntry.unknown] form a single combined cutoff, confirmed via
- * byte-count algebra across all real `TECH` items in a mounted install: vanilla and PTW items
- * end right after [TechEntry.flags] (neither field present, zero anomalies across all sampled
- * vanilla/PTW items); Conquests items include both (zero anomalies across all sampled
- * Conquests items — `flavors` may support Conquests' per-civilization tech trees). Each field
- * is guarded independently.
+ * byte-count algebra across all real `TECH` items in a mounted install: [Civ3FormatEra.VANILLA]
+ * and [Civ3FormatEra.PTW] items end right after [TechEntry.flags] (neither field present, zero
+ * anomalies across all sampled [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] items — only
+ * `minor=18` [Civ3FormatEra.PTW] files happened to include a `TECH` section in the sampled
+ * install, so other PTW minors' shape here is unconfirmed); [Civ3FormatEra.CONQUESTS] items
+ * include both (zero anomalies across all sampled [Civ3FormatEra.CONQUESTS] items — `flavors`
+ * may support Conquests' per-civilization tech trees). Each field is guarded independently.
  */
 internal object TechEntryParser {
     fun parse(item: Buffer): TechEntry {
