@@ -66,3 +66,22 @@ val BldgEntry.religious: Boolean get() = otherCharacteristics and (1 shl 8) != 0
 val BldgEntry.industrious: Boolean get() = otherCharacteristics and (1 shl 9) != 0
 val BldgEntry.agricultural: Boolean get() = otherCharacteristics and (1 shl 10) != 0
 val BldgEntry.seaFaring: Boolean get() = otherCharacteristics and (1 shl 11) != 0
+
+/**
+ * The third named 4-byte sub-field of [BldgEntry.flags], per Apolyton's "small wonders (binary)"
+ * field. See [BldgEntry.increasesChanceOfLeaderAppearance] and its sibling accessors for the 11
+ * named bits.
+ */
+val BldgEntry.smallWonders: Int get() = flags.toIntLe(8)
+
+val BldgEntry.increasesChanceOfLeaderAppearance: Boolean get() = smallWonders and (1 shl 0) != 0
+val BldgEntry.buildArmiesWithoutLeader: Boolean get() = smallWonders and (1 shl 1) != 0
+val BldgEntry.buildLargerArmies: Boolean get() = smallWonders and (1 shl 2) != 0
+val BldgEntry.treasuryEarns5Percent: Boolean get() = smallWonders and (1 shl 3) != 0
+val BldgEntry.buildSpaceshipParts: Boolean get() = smallWonders and (1 shl 4) != 0
+val BldgEntry.smallWondersReducesCorruption: Boolean get() = smallWonders and (1 shl 5) != 0
+val BldgEntry.decreasesSuccessOfMissileAttacks: Boolean get() = smallWonders and (1 shl 6) != 0
+val BldgEntry.allowsSpyMissions: Boolean get() = smallWonders and (1 shl 7) != 0
+val BldgEntry.allowsHealingInEnemyTerritory: Boolean get() = smallWonders and (1 shl 8) != 0
+val BldgEntry.requiredGoodsMustBeInCityRadius: Boolean get() = smallWonders and (1 shl 9) != 0
+val BldgEntry.requiresVictoriousArmy: Boolean get() = smallWonders and (1 shl 10) != 0
