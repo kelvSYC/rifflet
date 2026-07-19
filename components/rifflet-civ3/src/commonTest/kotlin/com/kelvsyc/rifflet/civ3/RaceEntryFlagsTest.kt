@@ -77,3 +77,36 @@ class RaceEntryBonusesFlagsTest : FunSpec({
         properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })
+
+class RaceEntryGovernorSettingsFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (RaceEntry) -> Boolean>> = listOf(
+        0 to RaceEntry::manageCitizens,
+        1 to RaceEntry::emphasizeFood,
+        2 to RaceEntry::emphasizeShields,
+        3 to RaceEntry::emphasizeTrade,
+        4 to RaceEntry::manageProduction,
+        5 to RaceEntry::noWonders,
+        6 to RaceEntry::noSmallWonders,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validRaceEntry(governorSettings = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validRaceEntry(governorSettings = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validRaceEntry(governorSettings = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
