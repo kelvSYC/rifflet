@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.LeadStartUnit
 import okio.Buffer
@@ -17,10 +18,12 @@ import okio.ByteString
  * that function's KDoc for why.
  *
  * [LeadEntry.skipFirstTurn], [LeadEntry.unknown2], and [LeadEntry.startEmbassies] are absent from
- * PTW-era items (confirmed via byte-count algebra across all real PTW `LEAD` items in a mounted
- * install: residual 0 for every sampled PTW minor, vs. residual 9 — all three fields present —
- * for every sampled Conquests minor); they default to zero/empty when the item ends after
- * [LeadEntry.color].
+ * [Civ3FormatEra.PTW] items (confirmed via byte-count algebra across all real [Civ3FormatEra.PTW]
+ * `LEAD` items in a mounted install: residual 0 for every sampled PTW minor — 6, 9, 10, and 18 —
+ * confirmed uniform across all of them, vs. residual 9 — all three fields present — for every
+ * sampled [Civ3FormatEra.CONQUESTS] minor); they default to zero/empty when the item ends after
+ * [LeadEntry.color]. No real [Civ3FormatEra.VANILLA] file in the sampled install has a `LEAD`
+ * section at all, so [Civ3FormatEra.VANILLA]'s shape here remains unconfirmed.
  */
 internal object LeadEntryParser {
     fun parse(item: Buffer): LeadEntry {

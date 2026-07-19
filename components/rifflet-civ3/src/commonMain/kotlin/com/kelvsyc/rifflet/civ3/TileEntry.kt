@@ -9,22 +9,25 @@ import okio.ByteString
  * most tangled struct.
  *
  * Confirmed against real files to have (at least) a four-step version ladder keyed by the exact
- * `VER#` header `major` value: major=2 (22 bytes, [riverConnections] through [continent]),
- * major=3 or 4 (23 bytes, +[unknown2] only), major=11/PTW (29 bytes, +[victoryPointLocation]/
- * [ruin] on top of [unknown2]), and major=12/Conquests (45 bytes, +[c3cOverlays] through
- * [unknown5]). Each trailing field is read defensively and independently — see
- * `TileEntryParser` — which is why the major=3/4 intermediate step (undiscovered until a later
- * real-data investigation covering all 120 files in a real Civ III install) parses correctly
- * without any code change: the guards were never coupled into a single all-or-nothing tier.
+ * `VER#` header `major` value: `major=2` (22 bytes, [riverConnections] through [continent]),
+ * `major=3` or `4` (23 bytes, +[unknown2] only — both are [Civ3FormatEra.VANILLA], so this step
+ * is a finer split than [Civ3FormatEra] itself distinguishes), `major=11`/[Civ3FormatEra.PTW]
+ * (29 bytes, +[victoryPointLocation]/[ruin] on top of [unknown2]), and
+ * `major=12`/[Civ3FormatEra.CONQUESTS] (45 bytes, +[c3cOverlays] through [unknown5]). Each
+ * trailing field is read defensively and independently — see `TileEntryParser` — which is why
+ * the `major=3`/`4` intermediate step (undiscovered until a later real-data investigation
+ * covering all 120 files in a real Civ III install) parses correctly without any code change:
+ * the guards were never coupled into a single all-or-nothing tier.
  *
  * @param resource Likely a `GOOD` section index (naming convention only); not confirmed by
  *   either cross-referenced source.
  * @param terrain A packed nibble pair — low nibble is the base terrain (`TERR` index), high
  *   nibble is the overlay terrain (`TERR` index) — confirmed by cross-referencing real tile data
- *   against [c3cTerrain] (a near-duplicate Conquests-only field with the same packing, per
- *   `QueryCiv3`'s explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors). Most tiles have
- *   identical base and overlay terrain; they differ only where an overlay terrain (e.g. forest)
- *   sits atop a different base terrain. Preserved raw, not decomposed into separate properties.
+ *   against [c3cTerrain] (a near-duplicate [Civ3FormatEra.CONQUESTS]-only field with the same
+ *   packing, per `QueryCiv3`'s explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors).
+ *   Most tiles have identical base and overlay terrain; they differ only where an overlay
+ *   terrain (e.g. forest) sits atop a different base terrain. Preserved raw, not decomposed into
+ *   separate properties.
  * @param colony Likely a `CLNY` section index (naming convention only); not confirmed by either
  *   cross-referenced source.
  * @param city Likely a reference to a placed city (naming convention only); not confirmed by
@@ -32,37 +35,46 @@ import okio.ByteString
  * @param continent Likely a `CONT` section index (naming convention only); not confirmed by
  *   either cross-referenced source.
  * @param unknown2 1 byte with zero documented behavior from either cross-referenced source;
- *   confirmed absent only in the earliest vanilla revision (major=2) — present from major=3
- *   onward (including PTW and Conquests), read defensively; preserved raw, not validated.
+ *   confirmed absent only in the earliest [Civ3FormatEra.VANILLA] revision (`major=2`) — present
+ *   from `major=3` onward (including [Civ3FormatEra.PTW] and [Civ3FormatEra.CONQUESTS]), read
+ *   defensively; preserved raw, not validated.
  * @param victoryPointLocation `0` if this tile is a Victory Point Location, `-1` otherwise, per
- *   `QueryCiv3`; present only from PTW (major=11) onward, read defensively.
- * @param ruin Present only from PTW (major=11) onward, read defensively.
+ *   `QueryCiv3`; present only from [Civ3FormatEra.PTW] (`major=11`) onward, read defensively.
+ * @param ruin Present only from [Civ3FormatEra.PTW] (`major=11`) onward, read defensively.
  * @param c3cOverlays 4 bytes with ~13 named booleans across both cross-referenced sources
- *   (roads, railroads, improvements, barbarian camps, craters, etc.); present only in Conquests
- *   files, read defensively; preserved raw, not decomposed.
+ *   (roads, railroads, improvements, barbarian camps, craters, etc.); present only in
+ *   [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not decomposed.
  * @param unknown3 1 byte with zero documented behavior from either cross-referenced source;
- *   present only in Conquests files, read defensively; preserved raw, not validated.
+ *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
+ *   validated.
  * @param c3cTerrain A near-duplicate of [terrain]'s packed nibble pair, present only in
- *   Conquests files (read defensively) — numerically identical to [terrain] in the vast majority
- *   of real samples, differing only where the tile's base and overlay terrain genuinely differ.
+ *   [Civ3FormatEra.CONQUESTS] files (read defensively) — numerically identical to [terrain] in
+ *   the vast majority of real samples, differing only where the tile's base and overlay terrain
+ *   genuinely differ.
  * @param unknown4 2 bytes with zero documented behavior from either cross-referenced source;
- *   present only in Conquests files, read defensively; preserved raw, not validated.
- * @param fogOfWar Present only in Conquests files, read defensively.
+ *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
+ *   validated.
+ * @param fogOfWar Present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
  * @param c3cBonuses 4 bytes with ~9 named booleans across both cross-referenced sources (bonus
  *   grassland, player start, snow-capped mountain, river directions, landmark, etc.); present
- *   only in Conquests files, read defensively; preserved raw, not decomposed.
+ *   only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not decomposed.
  * @param unknown5 2 bytes with zero documented behavior from either cross-referenced source;
- *   present only in Conquests files, read defensively; preserved raw, not validated.
+ *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
+ *   validated.
  * @param unknown6 4 bytes, undocumented by any cross-referenced source and not part of
- *   `QueryCiv3`'s struct at all. Confirmed present in exactly 2 of 21 sampled real Conquests
- *   (`major=12`) files — `7 Sengoku - Sword of the Shogun.biq` and `Intro3 New Alliances.biq` —
- *   always exactly zero-valued across every one of 11,040 sampled tiles in both files. Requires
- *   the file's `VER#` header `minor=6`, but `minor=6` alone is not sufficient (most `minor=6`
- *   Conquests files do NOT have this field) — genuinely unexplained beyond that partial
- *   correlation despite extensive investigation (ruled out: file modification time, header
- *   description text, `GAME` rule flags, and direct cross-reference against Apolyton's actual
- *   published `TILE` field documentation, which matches this codebase's model exactly through 45
- *   bytes with no further fields). Read defensively; preserved raw, not validated.
+ *   `QueryCiv3`'s struct at all. Confirmed present in exactly 2 of 21 sampled real
+ *   [Civ3FormatEra.CONQUESTS] (`major=12`) files — `7 Sengoku - Sword of the Shogun.biq` and
+ *   `Intro3 New Alliances.biq` — always exactly zero-valued across every one of 11,040 sampled
+ *   tiles in both files. Requires the file's `VER#` header `minor=6`, but `minor=6` alone is not
+ *   sufficient (most `minor=6` [Civ3FormatEra.CONQUESTS] files do NOT have this field) —
+ *   genuinely unexplained beyond that partial correlation despite extensive investigation (ruled
+ *   out: file modification time, header description text, `GAME` rule flags, and direct
+ *   cross-reference against Apolyton's actual published `TILE` field documentation, which
+ *   matches this codebase's model exactly through 45 bytes with no further fields). Read
+ *   defensively; preserved raw, not validated. This is this codebase's one confirmed example of
+ *   minor-dependent structure *within* [Civ3FormatEra.CONQUESTS] beyond `GAME`'s already-documented
+ *   case, though far more narrowly (only 2 real files, both `minor=6`, and even `minor=6` alone
+ *   doesn't predict it).
  */
 data class TileEntry(
     val riverConnections: Byte,

@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.CtznEntry
 import okio.Buffer
 
@@ -8,12 +9,15 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * The trailing two fields (`corruption`, `construction`) are read defensively: real vanilla/PTW
- * files omit them entirely (confirmed by decoding real `CTZN` items from a genuine PTW `.bix`
- * scenario file — the 116-byte vanilla/PTW record is an exact prefix of the 124-byte Conquests
- * record), so each read checks `item.size` first and defaults when absent, matching
- * `BldgEntryParser`/`TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`'s established
- * length-aware defensive parsing pattern.
+ * The trailing two fields (`corruption`, `construction`) are read defensively: real
+ * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] files omit them entirely (confirmed by decoding
+ * real `CTZN` items from a genuine [Civ3FormatEra.PTW] `.bix` scenario file — the
+ * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] 116-byte record is an exact prefix of the
+ * [Civ3FormatEra.CONQUESTS] 124-byte record), so each read checks `item.size` first and defaults
+ * when absent, matching `BldgEntryParser`/`TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`'s
+ * established length-aware defensive parsing pattern. Only a single [Civ3FormatEra.PTW] sample
+ * file was used to confirm this shape; which minor it was is not recorded, so PTW minor
+ * sensitivity here is unconfirmed.
  */
 internal object CtznEntryParser {
     fun parse(item: Buffer): CtznEntry {

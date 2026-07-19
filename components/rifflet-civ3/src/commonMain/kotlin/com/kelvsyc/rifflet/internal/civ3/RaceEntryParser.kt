@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import okio.Buffer
 import okio.ByteString
@@ -19,13 +20,17 @@ import okio.ByteString
  *
  * [RaceEntry.unitTypeForKing] through [RaceEntry.scientificLeaderNames] form a staggered
  * two-tier cutoff, confirmed via byte-count algebra across all real `RACE` items in a mounted
- * install: vanilla items end right after [RaceEntry.plurality] (none of the five present, zero
- * anomalies across all sampled vanilla items); PTW items include [RaceEntry.unitTypeForKing]
- * only (zero anomalies across all sampled PTW items with a `RACE` section — PTW introduced
- * multiplayer regicide, which needs a king-designated unit type); Conquests items include all
- * five, with [RaceEntry.scientificLeaderNames]' own length fully explaining the residual byte
- * count in every sample (Conquests introduced scientific leaders). Each field is guarded
- * independently, not nested, since PTW reads [RaceEntry.unitTypeForKing] and then stops.
+ * install: [Civ3FormatEra.VANILLA] items end right after [RaceEntry.plurality] (none of the five
+ * present, zero anomalies across all sampled [Civ3FormatEra.VANILLA] items);
+ * [Civ3FormatEra.PTW] items include [RaceEntry.unitTypeForKing] only (zero anomalies across all
+ * sampled [Civ3FormatEra.PTW] items with a `RACE` section — PTW introduced multiplayer regicide,
+ * which needs a king-designated unit type); [Civ3FormatEra.CONQUESTS] items include all five,
+ * with [RaceEntry.scientificLeaderNames]' own length fully explaining the residual byte count in
+ * every sample (Conquests introduced scientific leaders). Each field is guarded independently,
+ * not nested, since [Civ3FormatEra.PTW] reads [RaceEntry.unitTypeForKing] and then stops. Only
+ * `minor=18` [Civ3FormatEra.PTW] files happened to include a `RACE` section in the sampled
+ * install (other PTW minors' files are partial scenario overlays that omit it entirely), so
+ * other PTW minors' shape here is unconfirmed.
  */
 internal object RaceEntryParser {
     fun parse(item: Buffer, erasCount: Int): RaceEntry {

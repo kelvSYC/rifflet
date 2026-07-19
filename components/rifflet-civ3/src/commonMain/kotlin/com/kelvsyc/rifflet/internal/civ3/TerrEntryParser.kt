@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.core.RiffletParseException
 import okio.Buffer
@@ -25,13 +26,16 @@ import okio.ByteString
  *
  * [TerrEntry.impassable] through [TerrEntry.diseaseStrength] (21 fields) form a three-tier
  * cutoff, confirmed via byte-count algebra across all real `TERR` items in a mounted install:
- * vanilla items end right after [TerrEntry.allowColonies] (none of the 21 present, zero
- * anomalies across all sampled vanilla items); PTW items include the six boolean flags
- * [TerrEntry.impassable] through [TerrEntry.allowRadarTowers] only (zero anomalies across all
- * sampled PTW items); Conquests items include all 21, including the landmark system and
- * [TerrEntry.diseaseStrength] — both new Conquests features (zero anomalies across all sampled
- * Conquests items). Each field is guarded independently, not nested, since PTW reads six fields
- * and then stops.
+ * [Civ3FormatEra.VANILLA] items end right after [TerrEntry.allowColonies] (none of the 21
+ * present, zero anomalies across all sampled [Civ3FormatEra.VANILLA] items);
+ * [Civ3FormatEra.PTW] items include the six boolean flags [TerrEntry.impassable] through
+ * [TerrEntry.allowRadarTowers] only (zero anomalies across all sampled [Civ3FormatEra.PTW]
+ * items — only `minor=18` [Civ3FormatEra.PTW] files happened to include a `TERR` section in the
+ * sampled install, so other PTW minors' shape here is unconfirmed); [Civ3FormatEra.CONQUESTS]
+ * items include all 21, including the landmark system and [TerrEntry.diseaseStrength] — both new
+ * Conquests features (zero anomalies across all sampled [Civ3FormatEra.CONQUESTS] items). Each
+ * field is guarded independently, not nested, since [Civ3FormatEra.PTW] reads six fields and
+ * then stops.
  */
 internal object TerrEntryParser {
     fun parse(item: Buffer): TerrEntry {

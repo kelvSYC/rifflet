@@ -3,8 +3,9 @@ package com.kelvsyc.rifflet.civ3
 /**
  * One entry of the `UNIT` section: a placed unit instance.
  *
- * @param legacyName Vanilla-era name field; unused in PTW/Conquests-era files per both
- *   cross-referenced sources — see [name].
+ * @param legacyName [Civ3FormatEra.VANILLA]-era name field; unused in
+ *   [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files per both cross-referenced sources —
+ *   see [name].
  * @param experienceLevel Likely an `EXPR` section index (naming convention only); not confirmed
  *   by either cross-referenced source.
  * @param owner Meaning depends on [ownerType]: a `RACE` section index when Civ, a player index
@@ -12,9 +13,9 @@ package com.kelvsyc.rifflet.civ3
  *   `SlocEntry.owner`/`ClnyEntry.owner`.
  * @param unitType A `PRTO#` (unit prototype) reference — explicitly documented by Apolyton's
  *   BIX/BIQ format reference, not merely a naming-based inference.
- * @param ptwName The PTW/Conquests-era name field — authoritative when present; empty both when
- *   a PTW-era file wrote it blank and when a shorter vanilla-era item omits it entirely — see
- *   [name].
+ * @param ptwName The [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era name field — authoritative
+ *   when present; empty both when a [Civ3FormatEra.PTW]-era file wrote it blank and when a
+ *   shorter [Civ3FormatEra.VANILLA]-era item omits it entirely — see [name].
  */
 data class UnitEntry(
     val legacyName: String,
@@ -28,9 +29,10 @@ data class UnitEntry(
     val ptwName: String,
     val useCivilizationKing: Int,
 ) {
-    /** Resolved display name: prefers [ptwName] (authoritative for PTW/Conquests-era files, per
-     * both cross-referenced sources), falling back to [legacyName] for vanilla-era files where
-     * only that field is populated. Provisional heuristic — not yet validated against real Civ3
+    /** Resolved display name: prefers [ptwName] (authoritative for
+     * [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files, per both cross-referenced
+     * sources), falling back to [legacyName] for [Civ3FormatEra.VANILLA]-era files where only
+     * that field is populated. Provisional heuristic — not yet validated against real Civ3
      * install data. */
     val name: String get() = ptwName.ifBlank { legacyName }
 }

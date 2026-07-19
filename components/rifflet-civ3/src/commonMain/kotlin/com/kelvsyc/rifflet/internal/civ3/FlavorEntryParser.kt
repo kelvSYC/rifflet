@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.FlavorEntry
 import okio.BufferedSource
 
@@ -14,6 +15,9 @@ import okio.BufferedSource
  *
  * `numberOfRelations` is validated via [requireSaneCount] before sizing [FlavorEntry.relations]
  * — see that function's KDoc for why.
+ *
+ * Every field in this section is confirmed present in every real sample regardless of
+ * [Civ3FormatEra].
  */
 internal object FlavorEntryParser {
     fun parse(source: BufferedSource): FlavorEntry {
