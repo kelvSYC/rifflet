@@ -24,3 +24,10 @@ fun RaceEntry.freeTech3Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNul
  * Resolves [RaceEntry.freeTech4] against [techs]. Same treatment as [RaceEntry.freeTech1].
  */
 fun RaceEntry.freeTech4Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(freeTech4)
+
+/**
+ * Resolves [RaceEntry.unitTypeForKing] against [units]. A `PRTO` section index — explicitly
+ * documented by Apolyton's BIX/BIQ format reference ("King Unit... an index into the unit
+ * list"), not merely a naming-based inference.
+ */
+fun RaceEntry.unitTypeForKingPrto(units: List<PrtoEntry>): PrtoEntry? = units.getOrNull(unitTypeForKing)
