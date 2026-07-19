@@ -25,3 +25,24 @@ val RaceEntry.emphasizeTrade: Boolean get() = governorSettings and (1 shl 3) != 
 val RaceEntry.manageProduction: Boolean get() = governorSettings and (1 shl 4) != 0
 val RaceEntry.noWonders: Boolean get() = governorSettings and (1 shl 5) != 0
 val RaceEntry.noSmallWonders: Boolean get() = governorSettings and (1 shl 6) != 0
+
+/**
+ * Named accessors for [RaceEntry.buildNever]'s 15 documented bits, per Apolyton's "Civilization
+ * III BIC file format (2nd thread)". Prefixed with `buildNever` because [RaceEntry.buildOften]
+ * documents an identical bit layout on the same receiver.
+ */
+val RaceEntry.buildNeverOffensiveLandUnits: Boolean get() = buildNever and (1 shl 0) != 0
+val RaceEntry.buildNeverDefensiveLandUnits: Boolean get() = buildNever and (1 shl 1) != 0
+val RaceEntry.buildNeverArtilleryLandUnits: Boolean get() = buildNever and (1 shl 2) != 0
+val RaceEntry.buildNeverSettlers: Boolean get() = buildNever and (1 shl 3) != 0
+val RaceEntry.buildNeverWorkers: Boolean get() = buildNever and (1 shl 4) != 0
+val RaceEntry.buildNeverNavalUnits: Boolean get() = buildNever and (1 shl 5) != 0
+val RaceEntry.buildNeverAirUnits: Boolean get() = buildNever and (1 shl 6) != 0
+val RaceEntry.buildNeverGrowth: Boolean get() = buildNever and (1 shl 7) != 0
+val RaceEntry.buildNeverProduction: Boolean get() = buildNever and (1 shl 8) != 0
+val RaceEntry.buildNeverHappiness: Boolean get() = buildNever and (1 shl 9) != 0
+val RaceEntry.buildNeverScience: Boolean get() = buildNever and (1 shl 10) != 0
+val RaceEntry.buildNeverWealth: Boolean get() = buildNever and (1 shl 11) != 0
+val RaceEntry.buildNeverTrade: Boolean get() = buildNever and (1 shl 12) != 0
+val RaceEntry.buildNeverExplore: Boolean get() = buildNever and (1 shl 13) != 0
+val RaceEntry.buildNeverCulture: Boolean get() = buildNever and (1 shl 14) != 0
