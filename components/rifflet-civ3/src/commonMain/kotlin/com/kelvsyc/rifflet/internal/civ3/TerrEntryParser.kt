@@ -3,6 +3,7 @@ package com.kelvsyc.rifflet.internal.civ3
 import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.core.RiffletParseException
 import okio.Buffer
+import okio.ByteString
 
 /**
  * Parses one `TERR` item, per the Apolyton BIX/BIQ format documentation, which reconciles
@@ -21,6 +22,16 @@ import okio.Buffer
  * remaining size via [okio.BufferedSource.request] — the same technique [requireSaneCount] uses
  * — before [TerrEntry.possibleResources] is read, since this field's ceiling-division shape
  * doesn't fit `requireSaneCount`'s `count * minBytesPerElement` model directly.
+ *
+ * [TerrEntry.impassable] through [TerrEntry.diseaseStrength] (21 fields) form a three-tier
+ * cutoff, confirmed via byte-count algebra across all real `TERR` items in a mounted install:
+ * vanilla items end right after [TerrEntry.allowColonies] (none of the 21 present, zero
+ * anomalies across all sampled vanilla items); PTW items include the six boolean flags
+ * [TerrEntry.impassable] through [TerrEntry.allowRadarTowers] only (zero anomalies across all
+ * sampled PTW items); Conquests items include all 21, including the landmark system and
+ * [TerrEntry.diseaseStrength] — both new Conquests features (zero anomalies across all sampled
+ * Conquests items). Each field is guarded independently, not nested, since PTW reads six fields
+ * and then stops.
  */
 internal object TerrEntryParser {
     fun parse(item: Buffer): TerrEntry {
@@ -46,27 +57,27 @@ internal object TerrEntryParser {
         val pollutionEffect = item.readIntLe()
         val allowCities = item.readByte()
         val allowColonies = item.readByte()
-        val impassable = item.readByte()
-        val impassableByWheeled = item.readByte()
-        val allowAirfields = item.readByte()
-        val allowForts = item.readByte()
-        val allowOutposts = item.readByte()
-        val allowRadarTowers = item.readByte()
-        val unknown = item.readByteString(4L)
-        val landmarkEnabled = item.readByte()
-        val landmarkFood = item.readIntLe()
-        val landmarkShields = item.readIntLe()
-        val landmarkCommerce = item.readIntLe()
-        val landmarkIrrigationBonus = item.readIntLe()
-        val landmarkMiningBonus = item.readIntLe()
-        val landmarkRoadBonus = item.readIntLe()
-        val landmarkMovementBonus = item.readIntLe()
-        val landmarkDefensiveBonus = item.readIntLe()
-        val landmarkName = item.readByteString(32L).truncateAtFirstNull()
-        val landmarkCivilopediaEntry = item.readByteString(32L).truncateAtFirstNull()
-        val unknown2 = item.readByteString(4L)
-        val terrainFlags = item.readIntLe()
-        val diseaseStrength = item.readIntLe()
+        val impassable = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val impassableByWheeled = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val allowAirfields = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val allowForts = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val allowOutposts = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val allowRadarTowers = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val unknown = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
+        val landmarkEnabled = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val landmarkFood = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkShields = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkCommerce = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkIrrigationBonus = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkMiningBonus = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkRoadBonus = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkMovementBonus = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkDefensiveBonus = if (item.size >= 4L) item.readIntLe() else 0
+        val landmarkName = if (item.size >= 32L) item.readByteString(32L).truncateAtFirstNull() else ""
+        val landmarkCivilopediaEntry = if (item.size >= 32L) item.readByteString(32L).truncateAtFirstNull() else ""
+        val unknown2 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
+        val terrainFlags = if (item.size >= 4L) item.readIntLe() else 0
+        val diseaseStrength = if (item.size >= 4L) item.readIntLe() else 0
         return TerrEntry(
             numberOfPossibleResources,
             possibleResources,
