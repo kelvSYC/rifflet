@@ -151,3 +151,44 @@ class RaceEntryBuildNeverFlagsTest : FunSpec({
         properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })
+
+class RaceEntryBuildOftenFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (RaceEntry) -> Boolean>> = listOf(
+        0 to RaceEntry::buildOftenOffensiveLandUnits,
+        1 to RaceEntry::buildOftenDefensiveLandUnits,
+        2 to RaceEntry::buildOftenArtilleryLandUnits,
+        3 to RaceEntry::buildOftenSettlers,
+        4 to RaceEntry::buildOftenWorkers,
+        5 to RaceEntry::buildOftenNavalUnits,
+        6 to RaceEntry::buildOftenAirUnits,
+        7 to RaceEntry::buildOftenGrowth,
+        8 to RaceEntry::buildOftenProduction,
+        9 to RaceEntry::buildOftenHappiness,
+        10 to RaceEntry::buildOftenScience,
+        11 to RaceEntry::buildOftenWealth,
+        12 to RaceEntry::buildOftenTrade,
+        13 to RaceEntry::buildOftenExplore,
+        14 to RaceEntry::buildOftenCulture,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validRaceEntry(buildOften = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validRaceEntry(buildOften = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validRaceEntry(buildOften = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})

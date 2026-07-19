@@ -46,3 +46,24 @@ val RaceEntry.buildNeverWealth: Boolean get() = buildNever and (1 shl 11) != 0
 val RaceEntry.buildNeverTrade: Boolean get() = buildNever and (1 shl 12) != 0
 val RaceEntry.buildNeverExplore: Boolean get() = buildNever and (1 shl 13) != 0
 val RaceEntry.buildNeverCulture: Boolean get() = buildNever and (1 shl 14) != 0
+
+/**
+ * Named accessors for [RaceEntry.buildOften]'s 15 documented bits — Apolyton documents this
+ * field as "same as [buildNever] above". Prefixed with `buildOften` for the same collision
+ * reason as [RaceEntry.buildNeverOffensiveLandUnits] and its siblings.
+ */
+val RaceEntry.buildOftenOffensiveLandUnits: Boolean get() = buildOften and (1 shl 0) != 0
+val RaceEntry.buildOftenDefensiveLandUnits: Boolean get() = buildOften and (1 shl 1) != 0
+val RaceEntry.buildOftenArtilleryLandUnits: Boolean get() = buildOften and (1 shl 2) != 0
+val RaceEntry.buildOftenSettlers: Boolean get() = buildOften and (1 shl 3) != 0
+val RaceEntry.buildOftenWorkers: Boolean get() = buildOften and (1 shl 4) != 0
+val RaceEntry.buildOftenNavalUnits: Boolean get() = buildOften and (1 shl 5) != 0
+val RaceEntry.buildOftenAirUnits: Boolean get() = buildOften and (1 shl 6) != 0
+val RaceEntry.buildOftenGrowth: Boolean get() = buildOften and (1 shl 7) != 0
+val RaceEntry.buildOftenProduction: Boolean get() = buildOften and (1 shl 8) != 0
+val RaceEntry.buildOftenHappiness: Boolean get() = buildOften and (1 shl 9) != 0
+val RaceEntry.buildOftenScience: Boolean get() = buildOften and (1 shl 10) != 0
+val RaceEntry.buildOftenWealth: Boolean get() = buildOften and (1 shl 11) != 0
+val RaceEntry.buildOftenTrade: Boolean get() = buildOften and (1 shl 12) != 0
+val RaceEntry.buildOftenExplore: Boolean get() = buildOften and (1 shl 13) != 0
+val RaceEntry.buildOftenCulture: Boolean get() = buildOften and (1 shl 14) != 0
