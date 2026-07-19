@@ -19,32 +19,35 @@ import okio.ByteString
  * @param flags2 8 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated or decomposed.
  * @param flags3 20 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated or decomposed. Confirmed absent from real vanilla files (the
- *   item ends immediately after [hpBonus]), read defensively.
+ *   preserved raw, not validated or decomposed. Confirmed absent from real [Civ3FormatEra.VANILLA]
+ *   files (the item ends immediately after [hpBonus]), read defensively.
  * @param ignoreMovementCost One flag byte per `TERR` section entry, preserved raw as an opaque
  *   per-terrain-type bit array; not decomposed. Sized dynamically by the file's own `TERR`
  *   section entry count, threaded in from `Civ3RootParserImpl` — confirmed real-data-dependent,
- *   not a fixed constant: real vanilla and PTW files always have 12 `TERR` entries, real
- *   Conquests files always have 14 (Conquests added 2 new terrain types, marshes and volcanoes).
- *   Confirmed absent from real vanilla files, read defensively — see `PrtoEntryParser`.
+ *   not a fixed constant: real [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files always have
+ *   12 `TERR` entries, real [Civ3FormatEra.CONQUESTS] files always have 14 (Conquests added 2 new
+ *   terrain types, marshes and volcanoes). Confirmed absent from real [Civ3FormatEra.VANILLA]
+ *   files, read defensively — see `PrtoEntryParser`.
  * @param unknown 16 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated. Confirmed absent from real vanilla and PTW files (the entire
- *   tail from here through [airDefense] is a Conquests-era expansion), read defensively.
+ *   preserved raw, not validated. Confirmed absent from real [Civ3FormatEra.VANILLA] and
+ *   [Civ3FormatEra.PTW] files (the entire tail from here through [airDefense] is a
+ *   [Civ3FormatEra.CONQUESTS]-era expansion), read defensively.
  * @param unknown2 4 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated. Confirmed absent from real vanilla and PTW files, read
- *   defensively.
+ *   preserved raw, not validated. Confirmed absent from real [Civ3FormatEra.VANILLA] and
+ *   [Civ3FormatEra.PTW] files, read defensively.
  * @param stealthTargetUnitTypes Likely `PRTO` section self-references (naming convention
- *   only); not confirmed by either cross-referenced source. Confirmed absent from real vanilla
- *   and PTW files, read defensively.
+ *   only); not confirmed by either cross-referenced source. Confirmed absent from real
+ *   [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files, read defensively.
  * @param unknown3 8 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated. Confirmed absent from real vanilla and PTW files, read
- *   defensively.
+ *   preserved raw, not validated. Confirmed absent from real [Civ3FormatEra.VANILLA] and
+ *   [Civ3FormatEra.PTW] files, read defensively.
  * @param workerStrength Read as an IEEE-754 single-precision float via bit-reinterpretation of
  *   a little-endian `Int` read (`Float.fromBits`) — the first `Float` field in this codebase.
- *   Confirmed absent from real vanilla and PTW files, read defensively.
- * @param unknown4 4 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated. Confirmed absent from real vanilla and PTW files, read
+ *   Confirmed absent from real [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files, read
  *   defensively.
+ * @param unknown4 4 bytes with zero documented behavior from either cross-referenced source;
+ *   preserved raw, not validated. Confirmed absent from real [Civ3FormatEra.VANILLA] and
+ *   [Civ3FormatEra.PTW] files, read defensively.
  */
 data class PrtoEntry(
     val zoneOfControl: Int,

@@ -23,10 +23,11 @@ import okio.ByteString
  *   either cross-referenced source.
  * @param terrain A packed nibble pair — low nibble is the base terrain (`TERR` index), high
  *   nibble is the overlay terrain (`TERR` index) — confirmed by cross-referencing real tile data
- *   against [c3cTerrain] (a near-duplicate Conquests-only field with the same packing, per
- *   `QueryCiv3`'s explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors). Most tiles have
- *   identical base and overlay terrain; they differ only where an overlay terrain (e.g. forest)
- *   sits atop a different base terrain. Preserved raw, not decomposed into separate properties.
+ *   against [c3cTerrain] (a near-duplicate [Civ3FormatEra.CONQUESTS]-only field with the same
+ *   packing, per `QueryCiv3`'s explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors).
+ *   Most tiles have identical base and overlay terrain; they differ only where an overlay
+ *   terrain (e.g. forest) sits atop a different base terrain. Preserved raw, not decomposed into
+ *   separate properties.
  * @param colony Likely a `CLNY` section index (naming convention only); not confirmed by either
  *   cross-referenced source.
  * @param city Likely a reference to a placed city (naming convention only); not confirmed by

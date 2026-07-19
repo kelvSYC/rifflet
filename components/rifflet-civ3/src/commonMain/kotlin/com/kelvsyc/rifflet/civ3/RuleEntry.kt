@@ -20,9 +20,10 @@ import okio.ByteString
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param flagUnitType A `PRTO` section index — explicitly documented by Apolyton's BIX/BIQ
  *   format reference ("flag unit (PRTO ref)"), not merely a naming-based inference.
- * @param upgradeCost Conquests-only per `QueryCiv3`'s comment; read defensively, defaults to
- *   `0` when absent from a file's declared item length — same treatment as `TechEntry.unknown`'s
- *   disputed trailing field, just `Int`-typed rather than `ByteString`-typed.
+ * @param upgradeCost [Civ3FormatEra.CONQUESTS]-only per `QueryCiv3`'s comment; read defensively,
+ *   defaults to `0` when absent from a file's declared item length — same treatment as
+ *   `TechEntry.unknown`'s disputed trailing field, just `Int`-typed rather than
+ *   `ByteString`-typed.
  */
 data class RuleEntry(
     val citySizeLevel1Name: String,
