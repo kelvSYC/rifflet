@@ -8,11 +8,11 @@ import okio.ByteString
  * @param prerequisite1 Likely a self-referential `TECH` section index (naming convention only);
  *   not confirmed by either cross-referenced source. Same treatment applies to [prerequisite2],
  *   [prerequisite3], [prerequisite4].
- * @param flags 4 bytes of packed boolean flags (23 named bits across 3 of the 4 bytes: e.g.
- *   diplomats, conscription, world-map reveal), kept opaque rather than decomposed into
- *   individual named booleans — see `QueryCiv3`'s `Tech.cs` for the full bit-accessor
- *   breakdown if this is ever revisited. Same treatment as `RaceEntry.bonuses`/
- *   `EspnEntry.missionFlags`/`WmapEntry.flags`.
+ * @param flags 4 bytes of packed boolean flags. Apolyton's "Civilization III BIX/BIQ file
+ *   format" thread — the fuller, later-era documentation — lists exactly 19 named bits across
+ *   the first 3 of the 4 bytes; `QueryCiv3` claims 23, but this codebase could not confirm the
+ *   extra 4 against either primary source, so only the 19 confirmed bits are exposed. See
+ *   [TechEntry.enablesDiplomats] and its sibling accessors in `TechEntryFlags.kt`.
  * @param flavors Opaque; no claimed relationship to the `FLAV` section despite the shared name —
  *   neither cross-referenced source documents one. Same treatment as `RaceEntry.flavors`.
  * @param unknown 4 bytes with disputed presence: `QueryCiv3`'s struct includes this trailing
