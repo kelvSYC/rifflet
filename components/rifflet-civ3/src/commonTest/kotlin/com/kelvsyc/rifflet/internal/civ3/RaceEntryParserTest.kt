@@ -23,6 +23,8 @@ private fun raceItemBinary(
     eraFilenames: List<Pair<String, String>> = listOf("anc_fwd" to "anc_rev", "mid_fwd" to "mid_rev"),
     scientificLeaderNames: List<String> = listOf("Archimedes"),
     unknown: ByteArray = ByteArray(4),
+    includeUnitTypeForKing: Boolean = true,
+    includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(cityNames.size)
     cityNames.forEach { writePaddedField(it, 24) }
@@ -56,12 +58,16 @@ private fun raceItemBinary(
     writeIntLe(0) // buildNever
     writeIntLe(0) // buildOften
     writeIntLe(0) // plurality
-    writeIntLe(0) // unitTypeForKing
-    writeIntLe(0) // flavors
-    write(unknown)
-    writeIntLe(0) // diplomacyTextIndex
-    writeIntLe(scientificLeaderNames.size)
-    scientificLeaderNames.forEach { writePaddedField(it, 32) }
+    if (includeUnitTypeForKing) {
+        writeIntLe(0) // unitTypeForKing
+        if (includeTrailingFields) {
+            writeIntLe(0) // flavors
+            write(unknown)
+            writeIntLe(0) // diplomacyTextIndex
+            writeIntLe(scientificLeaderNames.size)
+            scientificLeaderNames.forEach { writePaddedField(it, 32) }
+        }
+    }
 }
 
 class RaceEntryParserTest : FunSpec({
@@ -124,6 +130,30 @@ class RaceEntryParserTest : FunSpec({
     test("unknown field is preserved raw, not validated") {
         val entry = RaceEntryParser.parse(raceItemBinary(unknown = byteArrayOf(9, 9, 9, 9)), erasCount = 2)
         entry.unknown shouldBe ByteString.of(9, 9, 9, 9)
+    }
+
+    test("item missing unitTypeForKing onward defaults them to zero/empty (vanilla shape)") {
+        val entry = RaceEntryParser.parse(
+            raceItemBinary(includeUnitTypeForKing = false),
+            erasCount = 2,
+        )
+        entry.unitTypeForKing shouldBe 0
+        entry.flavors shouldBe 0
+        entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
+        entry.diplomacyTextIndex shouldBe 0
+        entry.scientificLeaderNames shouldBe emptyList()
+    }
+
+    test("item with unitTypeForKing but missing flavors onward defaults the rest (PTW shape)") {
+        val entry = RaceEntryParser.parse(
+            raceItemBinary(includeTrailingFields = false),
+            erasCount = 2,
+        )
+        entry.unitTypeForKing shouldBe 0
+        entry.flavors shouldBe 0
+        entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
+        entry.diplomacyTextIndex shouldBe 0
+        entry.scientificLeaderNames shouldBe emptyList()
     }
 
     test("an implausibly large numberOfCities throws RiffletParseException before attempting to allocate") {
