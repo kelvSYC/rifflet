@@ -7,8 +7,10 @@ import okio.ByteString
 private fun validTileEntry(
     overlayFlags: Byte = 0,
     bonusFlags: Byte = 0,
+    riverConnections: Byte = 0,
+    riverCrossingFlags: Byte = 0,
 ): TileEntry = TileEntry(
-    riverConnections = 0.toByte(),
+    riverConnections = riverConnections,
     border = 0.toByte(),
     resource = 0,
     textureLocation = 0.toByte(),
@@ -17,7 +19,7 @@ private fun validTileEntry(
     overlayFlags = overlayFlags,
     terrain = 0.toByte(),
     bonusFlags = bonusFlags,
-    riverCrossingFlags = 0.toByte(),
+    riverCrossingFlags = riverCrossingFlags,
     barbarianTribe = 0.toShort(),
     colony = 0.toShort(),
     city = 0.toShort(),
@@ -95,6 +97,70 @@ class TileEntryBonusFlagsTest : FunSpec({
 
     test("all named bits clear") {
         val entry = validTileEntry(bonusFlags = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class TileEntryRiverConnectionsFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (TileEntry) -> Boolean>> = listOf(
+        0 to TileEntry::riverInNorth,
+        1 to TileEntry::riverInWest,
+        2 to TileEntry::riverInEast,
+        3 to TileEntry::riverInSouth,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validTileEntry(riverConnections = (1 shl bit).toByte())
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validTileEntry(riverConnections = allBits.toByte())
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validTileEntry(riverConnections = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class TileEntryRiverCrossingFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (TileEntry) -> Boolean>> = listOf(
+        0 to TileEntry::crossingN,
+        1 to TileEntry::crossingNe,
+        2 to TileEntry::crossingE,
+        3 to TileEntry::crossingSe,
+        4 to TileEntry::crossingS,
+        5 to TileEntry::crossingSw,
+        6 to TileEntry::crossingW,
+        7 to TileEntry::crossingNw,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validTileEntry(riverCrossingFlags = (1 shl bit).toByte())
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validTileEntry(riverCrossingFlags = allBits.toByte())
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validTileEntry(riverCrossingFlags = 0)
         properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })

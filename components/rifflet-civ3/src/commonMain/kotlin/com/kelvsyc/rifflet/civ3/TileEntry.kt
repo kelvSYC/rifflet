@@ -32,6 +32,10 @@ import okio.ByteString
  *   separate properties.
  * @param bonusFlags 1 byte with 4 named booleans at non-contiguous bit positions; see
  *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`.
+ * @param riverConnections 1 byte with 4 named booleans; see [TileEntry.riverInNorth] and its
+ *   sibling accessors in `TileEntryFlags.kt`.
+ * @param riverCrossingFlags 1 byte with 8 named booleans (compass directions); see
+ *   [TileEntry.crossingN] and its sibling accessors in `TileEntryFlags.kt`.
  * @param colony Likely a `CLNY` section index (naming convention only); not confirmed by either
  *   cross-referenced source.
  * @param city Likely a reference to a placed city (naming convention only); not confirmed by
