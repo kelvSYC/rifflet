@@ -13,8 +13,10 @@ import okio.ByteString
  *   by either cross-referenced source. Same treatment applies to [renderedObsoleteBy].
  * @param requiredResource1 Likely a `GOOD` section index (naming convention only); not
  *   confirmed by either cross-referenced source. Same treatment applies to [requiredResource2].
- * @param flags 16 bytes with zero documented per-bit behavior validated by this codebase;
- *   preserved raw, not decomposed. Same treatment as `RaceEntry.unknown`.
+ * @param flags 16 bytes, four packed 4-byte named sub-fields per Apolyton's "Civilization III
+ *   BIX/BIQ file format" thread: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
+ *   (bytes 4-7), [BldgEntry.smallWonders] (bytes 8-11), [BldgEntry.wonders] (bytes 12-15) — see
+ *   each sub-field property and its sibling named-bit accessors in `BldgEntryFlags.kt`.
  * @param flavors Opaque; Apolyton documents this as a binary flags field, but it is preserved
  *   raw and not decomposed, matching this codebase's established flags treatment.
  * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
