@@ -1,10 +1,14 @@
 package com.kelvsyc.rifflet.civ3
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-private fun validGameEntry(flags: ByteString = ByteString.of(0, 0, 0, 0)): GameEntry = GameEntry(
+private fun validGameEntry(
+    flags: ByteString = ByteString.of(0, 0, 0, 0),
+    allianceWars: List<Int> = List(25) { 0 },
+): GameEntry = GameEntry(
     defaultGameRules = 0,
     defaultVictoryConditions = 0,
     numberOfPlayableCivs = 0,
@@ -39,7 +43,7 @@ private fun validGameEntry(flags: ByteString = ByteString.of(0, 0, 0, 0)): GameE
     capturingSpecialUnit = 0,
     unknown = ByteString.of(0, 0, 0, 0, 0),
     allianceNames = List(5) { "" },
-    allianceWars = List(25) { 0 },
+    allianceWars = allianceWars,
     allianceVictoryType = 0,
     plagueName = "",
     permitPlagues = 0.toByte(),
@@ -108,5 +112,33 @@ class GameEntryFlagsTest : FunSpec({
     test("all named bits clear") {
         val entry = validGameEntry(flags = flagsFor(0))
         properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class GameEntryAllianceWarMatrixTest : FunSpec({
+
+    test("allianceWarMatrix chunks the flat list into 5 row-major rows of 5") {
+        val flat = (0 until 25).toList()
+        val entry = validGameEntry(allianceWars = flat)
+        val matrix = entry.allianceWarMatrix()
+        matrix shouldBe listOf(
+            listOf(0, 1, 2, 3, 4),
+            listOf(5, 6, 7, 8, 9),
+            listOf(10, 11, 12, 13, 14),
+            listOf(15, 16, 17, 18, 19),
+            listOf(20, 21, 22, 23, 24),
+        )
+        for (i in 0 until 5) {
+            for (j in 0 until 5) {
+                matrix[i][j] shouldBe flat[i * 5 + j]
+            }
+        }
+    }
+
+    test("allianceWarMatrix row access throws for an out-of-range alliance index") {
+        val entry = validGameEntry()
+        val matrix = entry.allianceWarMatrix()
+        shouldThrow<IndexOutOfBoundsException> { matrix[5][0] }
+        shouldThrow<IndexOutOfBoundsException> { matrix[0][5] }
     }
 })

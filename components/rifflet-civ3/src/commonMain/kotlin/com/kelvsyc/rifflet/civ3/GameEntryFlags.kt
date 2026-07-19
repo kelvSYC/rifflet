@@ -28,3 +28,13 @@ val GameEntry.massRegicideEnabled: Boolean get() = flags.toIntLe() and (1 shl 12
 val GameEntry.victoryLocationsEnabled: Boolean get() = flags.toIntLe() and (1 shl 13) != 0
 val GameEntry.captureTheFlagEnabled: Boolean get() = flags.toIntLe() and (1 shl 14) != 0
 val GameEntry.allowCulturalConversions: Boolean get() = flags.toIntLe() and (1 shl 15) != 0
+
+/**
+ * [GameEntry.allianceWars] restructured from its flat, row-major 5x5 storage into a genuine
+ * `List<List<Int>>`; `result[allianceA][allianceB]` is the war status between the two alliances,
+ * per Apolyton's nested "for each alliance: war with alliance #0..#4" documentation. Indexing
+ * outside `0..4` throws [IndexOutOfBoundsException] like any `List` access — an out-of-range
+ * alliance number is a caller error, not a data-quality concern, since [GameEntry.allianceWars]'s
+ * size is already a structural invariant enforced by [GameEntry]'s own `init` block.
+ */
+fun GameEntry.allianceWarMatrix(): List<List<Int>> = allianceWars.chunked(5)
