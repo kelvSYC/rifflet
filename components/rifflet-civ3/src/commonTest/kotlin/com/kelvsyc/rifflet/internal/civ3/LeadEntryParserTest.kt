@@ -37,6 +37,7 @@ private fun leadItemBinary(
     skipFirstTurn: Int = 0,
     unknown2: ByteString = ByteString.of(*ByteArray(4)),
     startEmbassies: Byte = 1,
+    includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(customCivData)
     writeIntLe(humanPlayer)
@@ -56,9 +57,11 @@ private fun leadItemBinary(
     writeIntLe(government)
     writeIntLe(civ)
     writeIntLe(color)
-    writeIntLe(skipFirstTurn)
-    write(unknown2)
-    writeByte(startEmbassies.toInt())
+    if (includeTrailingFields) {
+        writeIntLe(skipFirstTurn)
+        write(unknown2)
+        writeByte(startEmbassies.toInt())
+    }
 }
 
 class LeadEntryParserTest : FunSpec({
@@ -83,6 +86,13 @@ class LeadEntryParserTest : FunSpec({
             unknown2 = ByteString.of(*ByteArray(4)),
             startEmbassies = 1,
         )
+    }
+
+    test("item missing skipFirstTurn/unknown2/startEmbassies defaults them to zero/empty") {
+        val entry = LeadEntryParser.parse(leadItemBinary(includeTrailingFields = false))
+        entry.skipFirstTurn shouldBe 0
+        entry.unknown2 shouldBe ByteString.of(0, 0, 0, 0)
+        entry.startEmbassies shouldBe 0
     }
 
     test("LeadEntry rejects an unknown field that is not exactly 8 bytes") {
