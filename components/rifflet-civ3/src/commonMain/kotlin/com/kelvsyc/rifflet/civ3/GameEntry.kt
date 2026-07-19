@@ -19,20 +19,23 @@ import okio.ByteString
  * [numberOfPlayableCivs]/[playableCivIds]/[flags]) is confirmed version-dependent, via an
  * exhaustive byte-count scan across all 92 real files with a `GAME` section grouped by exact
  * `VER#` header `(magic, major, minor)`, zero anomalies:
- * - Real vanilla files (`major=3`/`4`) can end immediately after [flags] — a bare 16-byte item.
- * - Real PTW files (`major=11`) end at one of 3 different points depending on `minor`:
- *   [autoPlaceVictoryLocations] for `minor=6`/`9`/`10`, [debugMode] for `minor=13`, or
+ * - Real [Civ3FormatEra.VANILLA] files (`major=3`/`4`) can end immediately after [flags] — a
+ *   bare 16-byte item.
+ * - Real [Civ3FormatEra.PTW] files (`major=11`) are this codebase's one confirmed case of
+ *   genuine within-era `minor` sensitivity — they end at one of 3 different points depending on
+ *   `minor`: [autoPlaceVictoryLocations] for `minor=6`/`9`/`10`, [debugMode] for `minor=13`, or
  *   [scenarioSearchFolders] for the dominant `minor=18` tier.
- * - Real Conquests files (`major=12`) always include everything through [scenarioSearchFolders]
- *   and the entire alliance/plague/victory-scoring block through [eruptionPeriod]; they
- *   additionally omit only the trailing mp-timing fields ([mpBasetime]/[mpCityTime]/
- *   [mpUnitTime]) on `minor=6` (present on `minor=7`/`8`).
+ * - Real [Civ3FormatEra.CONQUESTS] files (`major=12`) always include everything through
+ *   [scenarioSearchFolders] and the entire alliance/plague/victory-scoring block through
+ *   [eruptionPeriod]; they additionally omit only the trailing mp-timing fields
+ *   ([mpBasetime]/[mpCityTime]/[mpUnitTime]) on `minor=6` (present on `minor=7`/`8`).
  *
  * Evidently alliances, plagues, victory scoring, and multiplayer timing were all introduced
- * together as a single Conquests-era `GAME` expansion, and PTW itself grew the fixed
- * game-settings block ([placeCaptureUnits] through [scenarioSearchFolders]) incrementally across
- * several PTW patch revisions before Conquests' larger expansion. Every field from
- * [placeCaptureUnits] onward is read defensively — see `GameEntryParser`.
+ * together as a single [Civ3FormatEra.CONQUESTS]-era `GAME` expansion, and [Civ3FormatEra.PTW]
+ * itself grew the fixed game-settings block ([placeCaptureUnits] through
+ * [scenarioSearchFolders]) incrementally across several PTW patch revisions before Conquests'
+ * larger expansion. Every field from [placeCaptureUnits] onward is read defensively — see
+ * `GameEntryParser`.
  *
  * @param numberOfPlayableCivs The number of civs enumerated in [playableCivIds] and
  *   [civAllianceStatuses] (0 means "all civs playable"); stored explicitly because its value
@@ -40,46 +43,50 @@ import okio.ByteString
  * @param playableCivIds Likely `RACE` section indices (naming convention only); not confirmed
  *   by either cross-referenced source. Sized by [numberOfPlayableCivs]. Stays unconditional even
  *   after this class's other defensive-parsing extensions: every real cutoff tier confirmed so
- *   far includes it, and vanilla's behavior when `numberOfPlayableCivs > 0` remains unsampled.
+ *   far includes it, and [Civ3FormatEra.VANILLA]'s behavior when `numberOfPlayableCivs > 0`
+ *   remains unsampled.
  * @param flags 4 bytes with ~19 named booleans across both cross-referenced sources (victory
  *   condition toggles, game rule toggles); preserved raw, not decomposed. Same treatment as
  *   `RaceEntry.bonuses`.
  * @param civAllianceStatuses One alliance-status value (0-4, 0=none) per civ, in the same order
  *   as [playableCivIds]; sized by [numberOfPlayableCivs], not separately counted. Confirmed
- *   absent from real PTW files — defaults to [numberOfPlayableCivs] zeros ("no alliance", which
- *   is accurate: PTW has no alliance concept at all) rather than an empty list, to satisfy this
- *   property's own size invariant.
+ *   absent from real [Civ3FormatEra.PTW] files — defaults to [numberOfPlayableCivs] zeros ("no
+ *   alliance", which is accurate: [Civ3FormatEra.PTW] has no alliance concept at all) rather than
+ *   an empty list, to satisfy this property's own size invariant.
  * @param unknown 5 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`. Confirmed absent from
- *   real PTW files, read defensively.
+ *   real [Civ3FormatEra.PTW] files, read defensively.
  * @param allianceNames 5 fixed alliance-name slots (256 bytes each), index 0 conventionally
- *   "unallied"/blank, confirmed explicitly by Apolyton. Confirmed absent from real PTW files
- *   (alliances are a Conquests-only feature), read defensively.
+ *   "unallied"/blank, confirmed explicitly by Apolyton. Confirmed absent from real
+ *   [Civ3FormatEra.PTW] files (alliances are a [Civ3FormatEra.CONQUESTS]-only feature), read
+ *   defensively.
  * @param allianceWars A flat, row-major 5×5 matrix of war-status values between alliances;
  *   index `[i, j]` is `allianceWars[i * 5 + j]`. Confirmed explicitly by Apolyton's nested
- *   "for each alliance: war with alliance #0..#4" documentation. Confirmed absent from real PTW
- *   files, read defensively.
+ *   "for each alliance: war with alliance #0..#4" documentation. Confirmed absent from real
+ *   [Civ3FormatEra.PTW] files, read defensively.
  * @param unknown2 264 bytes with zero documented *meaning* from either cross-referenced source,
  *   though both sources agree on its byte sub-structure (a 4-byte int followed by a 260-byte
  *   string region) without confirming what either part represents; preserved raw as a single
  *   opaque region, not split, matching `QueryCiv3`'s own grouping. Confirmed absent from real
- *   PTW files, read defensively.
+ *   [Civ3FormatEra.PTW] files, read defensively.
  * @param mapVisible An unconditional 1-byte field per both cross-referenced sources' original
- *   documentation — but confirmed absent from real PTW files along with every other field from
- *   [civAllianceStatuses] onward, so "unconditional" only holds for Conquests. Distinct from the
- *   BIX-only `mapVisible (long)` field this codebase does not parse (see the class-level note
- *   above).
+ *   documentation — but confirmed absent from real [Civ3FormatEra.PTW] files along with every
+ *   other field from [civAllianceStatuses] onward, so "unconditional" only holds for
+ *   [Civ3FormatEra.CONQUESTS]. Distinct from the BIX-only `mapVisible (long)` field this codebase
+ *   does not parse (see the class-level note above).
  * @param unknown3 4 bytes with zero documented behavior from either cross-referenced source;
- *   preserved raw, not validated. Confirmed absent from real PTW files, read defensively.
- * @param eruptionPeriod The last field confirmed present in every sampled real Conquests file
- *   regardless of the `minor=6` mp-timing-fields cutoff below — but, like every field since
- *   [civAllianceStatuses], confirmed absent from real PTW files, read defensively.
- * @param mpBasetime Present only in real Conquests files with `VER#` header `minor=7` or
- *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
- * @param mpCityTime Present only in real Conquests files with `VER#` header `minor=7` or
- *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
- * @param mpUnitTime Present only in real Conquests files with `VER#` header `minor=7` or
- *   `minor=8`; absent in every sampled `minor=6` file, read defensively.
+ *   preserved raw, not validated. Confirmed absent from real [Civ3FormatEra.PTW] files, read
+ *   defensively.
+ * @param eruptionPeriod The last field confirmed present in every sampled real
+ *   [Civ3FormatEra.CONQUESTS] file regardless of the `minor=6` mp-timing-fields cutoff below —
+ *   but, like every field since [civAllianceStatuses], confirmed absent from real
+ *   [Civ3FormatEra.PTW] files, read defensively.
+ * @param mpBasetime Present only in real [Civ3FormatEra.CONQUESTS] files with `VER#` header
+ *   `minor=7` or `minor=8`; absent in every sampled `minor=6` file, read defensively.
+ * @param mpCityTime Present only in real [Civ3FormatEra.CONQUESTS] files with `VER#` header
+ *   `minor=7` or `minor=8`; absent in every sampled `minor=6` file, read defensively.
+ * @param mpUnitTime Present only in real [Civ3FormatEra.CONQUESTS] files with `VER#` header
+ *   `minor=7` or `minor=8`; absent in every sampled `minor=6` file, read defensively.
  */
 data class GameEntry(
     val defaultGameRules: Int,
