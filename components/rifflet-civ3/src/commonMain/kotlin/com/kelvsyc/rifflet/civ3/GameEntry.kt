@@ -33,9 +33,9 @@ import okio.ByteString
  * Evidently alliances, plagues, victory scoring, and multiplayer timing were all introduced
  * together as a single [Civ3FormatEra.CONQUESTS]-era `GAME` expansion, and [Civ3FormatEra.PTW]
  * itself grew the fixed game-settings block ([placeCaptureUnits] through
- * [scenarioSearchFolders]) incrementally across several PTW patch revisions before Conquests'
- * larger expansion. Every field from [placeCaptureUnits] onward is read defensively — see
- * `GameEntryParser`.
+ * [scenarioSearchFolders]) incrementally across several [Civ3FormatEra.PTW] patch revisions
+ * before [Civ3FormatEra.CONQUESTS]' larger expansion. Every field from [placeCaptureUnits]
+ * onward is read defensively — see `GameEntryParser`.
  *
  * @param numberOfPlayableCivs The number of civs enumerated in [playableCivIds] and
  *   [civAllianceStatuses] (0 means "all civs playable"); stored explicitly because its value
