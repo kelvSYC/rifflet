@@ -43,3 +43,26 @@ val BldgEntry.allowsAirTrade: Boolean get() = improvements and (1 shl 21) != 0
 val BldgEntry.reducesWarWeariness: Boolean get() = improvements and (1 shl 22) != 0
 val BldgEntry.increasesShieldsInWater: Boolean get() = improvements and (1 shl 23) != 0
 val BldgEntry.increasesFoodInWater: Boolean get() = improvements and (1 shl 24) != 0
+
+/**
+ * The second named 4-byte sub-field of [BldgEntry.flags]. Apolyton documents 10 bits here in
+ * the vanilla/PTW era ("coastal installation" through "construction installation"), later
+ * renamed to trait names ([militaristic], [scientific], [commercial], [expansionist],
+ * [religious], [industrious]) and extended with 2 new Conquests-only bits ([agricultural],
+ * [seaFaring]) in a 2004 forum correction — this codebase exposes the final, corrected 12-bit
+ * layout.
+ */
+val BldgEntry.otherCharacteristics: Int get() = flags.toIntLe(4)
+
+val BldgEntry.coastalInstallation: Boolean get() = otherCharacteristics and (1 shl 0) != 0
+val BldgEntry.militaristic: Boolean get() = otherCharacteristics and (1 shl 1) != 0
+val BldgEntry.wonder: Boolean get() = otherCharacteristics and (1 shl 2) != 0
+val BldgEntry.smallWonder: Boolean get() = otherCharacteristics and (1 shl 3) != 0
+val BldgEntry.continentalMoodEffects: Boolean get() = otherCharacteristics and (1 shl 4) != 0
+val BldgEntry.scientific: Boolean get() = otherCharacteristics and (1 shl 5) != 0
+val BldgEntry.commercial: Boolean get() = otherCharacteristics and (1 shl 6) != 0
+val BldgEntry.expansionist: Boolean get() = otherCharacteristics and (1 shl 7) != 0
+val BldgEntry.religious: Boolean get() = otherCharacteristics and (1 shl 8) != 0
+val BldgEntry.industrious: Boolean get() = otherCharacteristics and (1 shl 9) != 0
+val BldgEntry.agricultural: Boolean get() = otherCharacteristics and (1 shl 10) != 0
+val BldgEntry.seaFaring: Boolean get() = otherCharacteristics and (1 shl 11) != 0
