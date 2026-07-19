@@ -13,10 +13,8 @@ import okio.ByteString
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param unknown2 128 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param flags 4 bytes of packed boolean flags (bit 0 = x-wrapping, bit 1 = y-wrapping, bit 2 =
- *   polar ice caps), kept opaque rather than decomposed into individual named booleans — see
- *   `QueryCiv3`'s `Wmap.cs` for the full bit-accessor breakdown if this is ever revisited. Same
- *   treatment as `RaceEntry.bonuses`/`EspnEntry.missionFlags`.
+ * @param flags 4 bytes of packed boolean flags; see [xWrapping], [yWrapping], [polarIceCaps] for
+ *   the named per-bit accessors.
  */
 data class WmapEntry(
     val resourceIds: List<Int>,
