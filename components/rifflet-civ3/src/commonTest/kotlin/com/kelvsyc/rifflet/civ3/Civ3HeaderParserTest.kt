@@ -88,4 +88,35 @@ class Civ3HeaderParserTest : FunSpec({
         header.title shouldBe "Test Scenario"
         source.exhausted() shouldBe true
     }
+
+    test("major 2 produces Civ3FormatEra.VANILLA") {
+        val header = Civ3HeaderParser.parse(verSectionBinary(major = 2))
+        header.formatEra shouldBe Civ3FormatEra.VANILLA
+    }
+
+    test("major 3 produces Civ3FormatEra.VANILLA") {
+        val header = Civ3HeaderParser.parse(verSectionBinary(major = 3))
+        header.formatEra shouldBe Civ3FormatEra.VANILLA
+    }
+
+    test("major 4 produces Civ3FormatEra.VANILLA") {
+        val header = Civ3HeaderParser.parse(verSectionBinary(major = 4))
+        header.formatEra shouldBe Civ3FormatEra.VANILLA
+    }
+
+    test("major 11 produces Civ3FormatEra.PTW") {
+        val header = Civ3HeaderParser.parse(verSectionBinary(major = 11))
+        header.formatEra shouldBe Civ3FormatEra.PTW
+    }
+
+    test("major 12 produces Civ3FormatEra.CONQUESTS") {
+        val header = Civ3HeaderParser.parse(verSectionBinary(major = 12))
+        header.formatEra shouldBe Civ3FormatEra.CONQUESTS
+    }
+
+    test("an unrecognized major throws IllegalArgumentException") {
+        shouldThrow<IllegalArgumentException> {
+            Civ3HeaderParser.parse(verSectionBinary(major = 99))
+        }
+    }
 })
