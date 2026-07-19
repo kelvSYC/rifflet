@@ -1,0 +1,98 @@
+package com.kelvsyc.rifflet.civ3
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import okio.ByteString
+
+private fun validTileEntry(
+    resource: Int = 0,
+    colony: Short = 0,
+    continent: Short = 0,
+    city: Short = 0,
+): TileEntry = TileEntry(
+    riverConnections = 0.toByte(),
+    border = 0.toByte(),
+    resource = resource,
+    textureLocation = 0.toByte(),
+    textureFile = 0.toByte(),
+    unknown = ByteString.of(0, 0),
+    overlayFlags = 0.toByte(),
+    terrain = 0.toByte(),
+    bonusFlags = 0.toByte(),
+    riverCrossingFlags = 0.toByte(),
+    barbarianTribe = 0.toShort(),
+    colony = colony,
+    city = city,
+    continent = continent,
+    unknown2 = ByteString.of(0),
+    victoryPointLocation = 0.toShort(),
+    ruin = 0,
+    c3cOverlays = ByteString.of(0, 0, 0, 0),
+    unknown3 = ByteString.of(0),
+    c3cTerrain = 0.toByte(),
+    unknown4 = ByteString.of(0, 0),
+    fogOfWar = 0.toShort(),
+    c3cBonuses = ByteString.of(0, 0, 0, 0),
+    unknown5 = ByteString.of(0, 0),
+    unknown6 = ByteString.of(0, 0, 0, 0),
+)
+
+private fun validGoodEntry(): GoodEntry = GoodEntry(
+    name = "",
+    civilopediaEntry = "",
+    type = 0,
+    appearanceRatio = 0,
+    disappearanceProbability = 0,
+    icon = 0,
+    prerequisite = 0,
+    foodBonus = 0,
+    shieldsBonus = 0,
+    commerceBonus = 0,
+)
+
+private fun validClnyEntry(): ClnyEntry = ClnyEntry(ownerType = 0, owner = 0, x = 0, y = 0, improvementType = 0)
+
+private fun validContEntry(): ContEntry = ContEntry(type = 0, numberOfTiles = 0)
+
+private fun validCityEntry(): CityEntry = CityEntry(
+    hasWalls = 0,
+    hasPalace = 0,
+    name = "",
+    ownerType = 0,
+    buildingIds = emptyList(),
+    culture = 0,
+    owner = 0,
+    size = 0,
+    x = 0,
+    y = 0,
+    cityLevel = 0,
+    borderLevel = 0,
+    useAutoName = 0,
+)
+
+class TileEntryReferencesTest : FunSpec({
+
+    test("resourceGood resolves against the GOOD list") {
+        val good = validGoodEntry()
+        validTileEntry(resource = 0).resourceGood(listOf(good)) shouldBe good
+        validTileEntry(resource = 5).resourceGood(emptyList()) shouldBe null
+    }
+
+    test("colonyClny resolves against the CLNY list") {
+        val clny = validClnyEntry()
+        validTileEntry(colony = 0).colonyClny(listOf(clny)) shouldBe clny
+        validTileEntry(colony = 5).colonyClny(emptyList()) shouldBe null
+    }
+
+    test("continentCont resolves against the CONT list") {
+        val cont = validContEntry()
+        validTileEntry(continent = 0).continentCont(listOf(cont)) shouldBe cont
+        validTileEntry(continent = 5).continentCont(emptyList()) shouldBe null
+    }
+
+    test("cityCity resolves against the CITY list") {
+        val city = validCityEntry()
+        validTileEntry(city = 0).cityCity(listOf(city)) shouldBe city
+        validTileEntry(city = 5).cityCity(emptyList()) shouldBe null
+    }
+})
