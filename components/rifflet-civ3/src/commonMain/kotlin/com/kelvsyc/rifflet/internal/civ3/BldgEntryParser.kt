@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.BldgEntry
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import okio.Buffer
 import okio.ByteString
 
@@ -13,11 +14,14 @@ import okio.ByteString
  * [Buffer] already stripped of its own length prefix by the generic section loop.
  *
  * The trailing four fields (`flavors`, `unknown`, `unitProduced`, `unitFrequency`) are read
- * defensively: real vanilla/PTW files omit them entirely (confirmed by diffing real `BLDG`
- * items byte-for-byte — vanilla's 252-byte record is an exact prefix of Conquests's 268-byte
- * record), so each read checks `item.size` first and defaults when absent, matching
+ * defensively: real [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files omit them entirely
+ * (confirmed by diffing real `BLDG` items byte-for-byte — the [Civ3FormatEra.VANILLA]/
+ * [Civ3FormatEra.PTW] 252-byte record is an exact prefix of the [Civ3FormatEra.CONQUESTS]
+ * 268-byte record), so each read checks `item.size` first and defaults when absent, matching
  * `TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`'s established length-aware defensive
- * parsing pattern.
+ * parsing pattern. PTW minor sensitivity was not separately tracked during the original
+ * investigation of this section — treat the [Civ3FormatEra.PTW] shape as confirmed only in
+ * aggregate, not per minor.
  */
 internal object BldgEntryParser {
     fun parse(item: Buffer): BldgEntry {

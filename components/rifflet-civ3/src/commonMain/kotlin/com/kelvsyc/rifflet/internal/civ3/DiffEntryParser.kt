@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.DiffEntry
 import okio.Buffer
 
@@ -8,11 +9,15 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * The trailing field (`militaryLaw`) is read defensively: real vanilla files (major=4, confirmed
- * against a genuine default-rules `.bic` file) omit it entirely — the 116-byte vanilla record is
- * an exact prefix of the 120-byte PTW/Conquests record — so the read checks `item.size` first and
+ * The trailing field (`militaryLaw`) is read defensively: real [Civ3FormatEra.VANILLA] files
+ * (`major=4`, confirmed against a genuine default-rules `.bic` file) omit it entirely — the
+ * 116-byte [Civ3FormatEra.VANILLA] record is an exact prefix of the 120-byte
+ * [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS] record — so the read checks `item.size` first and
  * defaults when absent, matching `BldgEntryParser`/`CtznEntryParser`/`TileEntryParser`'s
- * established length-aware defensive parsing pattern.
+ * established length-aware defensive parsing pattern. [Civ3FormatEra.PTW] and
+ * [Civ3FormatEra.CONQUESTS] were not distinguished from each other during the original
+ * investigation of this section (both simply have `militaryLaw`), so no PTW-minor-specific
+ * breakdown is recorded.
  */
 internal object DiffEntryParser {
     fun parse(item: Buffer): DiffEntry {

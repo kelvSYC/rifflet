@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.ErasEntry
 import okio.Buffer
 import okio.ByteString
@@ -9,11 +10,13 @@ import okio.ByteString
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * The trailing field (`unknown`) is read defensively: real vanilla (major=4) and PTW (major=11)
- * files omit it entirely — the 260-byte vanilla/PTW record is an exact prefix of the 264-byte
- * Conquests record — so the read checks `item.size` first and defaults when absent, matching
- * `BldgEntryParser`/`CtznEntryParser`/`TileEntryParser`'s established length-aware defensive
- * parsing pattern.
+ * The trailing field (`unknown`) is read defensively: real [Civ3FormatEra.VANILLA] (`major=4`)
+ * and [Civ3FormatEra.PTW] (`major=11`) files omit it entirely — the 260-byte
+ * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] record is an exact prefix of the 264-byte
+ * [Civ3FormatEra.CONQUESTS] record — so the read checks `item.size` first and defaults when
+ * absent, matching `BldgEntryParser`/`CtznEntryParser`/`TileEntryParser`'s established
+ * length-aware defensive parsing pattern. [Civ3FormatEra.PTW] minor sensitivity was not
+ * separately tracked during the original investigation of this section.
  */
 internal object ErasEntryParser {
     fun parse(item: Buffer): ErasEntry {
