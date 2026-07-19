@@ -45,10 +45,21 @@ import okio.BufferedSource
  * markers with no dedicated type, where [Civ3RawSection]'s immutable domain value genuinely
  * requires one. The caller is expected to have already consumed the leading file magic.
  *
- * `RACE` sections need the entry count of the most recently parsed `ERAS` section, and `PRTO`
- * sections need the entry count of the most recently parsed `TERR` section — both genuine
- * cross-section parse-order dependencies — [parse] tracks each in a local variable across the
- * section loop and passes them to [parseSection].
+ * `RACE` sections need the entry count of the most recently parsed `ERAS` section — a genuine
+ * cross-section parse-order dependency where `ERAS` really does always precede `RACE` in real
+ * files, confirmed by direct inspection — [parse] tracks this in a local variable across the
+ * section loop and passes it to [parseSection].
+ *
+ * `PRTO` sections likewise need the entry count of the file's `TERR` section, but real files
+ * (confirmed by direct inspection of the fixed, non-alphabetical section order every real file
+ * uses) always place `PRTO` *before* `TERR` — the opposite of the `ERAS`/`RACE` relationship.
+ * [parseSection] cannot resolve `PRTO` immediately, so [parse] defers it: it stashes `PRTO`'s raw
+ * items and its position in the eventual [Civ3Section] list, keeps scanning the rest of the file
+ * (so `TERR`, wherever it falls, is still reached), and only parses the stashed items into a
+ * [PrtoSection] — inserted back at its original position — once the loop finishes and `TERR`'s
+ * count is known. This preserves single-pass, streaming-friendly I/O: no seeking backward or
+ * buffering the whole file up front, only holding onto `PRTO`'s already-read raw item buffers a
+ * little longer than usual.
  *
  * `FLAV` is the sole exception to the length-prefixed-item framing described above — its items
  * have no length field of their own in the file format (confirmed by both Apolyton's
@@ -66,27 +77,49 @@ internal object Civ3RootParserImpl {
         val sections = mutableListOf<Civ3Section>()
         var erasCount: Int? = null
         var terrCount: Int? = null
+        var pendingPrtoItems: List<Buffer>? = null
+        var pendingPrtoIndex = -1
         while (!source.exhausted()) {
-            val section = parseSection(source, erasCount, terrCount, magic, header.major)
-            if (section is ErasSection) erasCount = section.entries.size
-            if (section is TerrSection) terrCount = section.entries.size
-            sections += section
+            when (val parsed = parseSection(source, erasCount, magic, header.major)) {
+                is ParsedSection.Ready -> {
+                    val section = parsed.section
+                    if (section is ErasSection) erasCount = section.entries.size
+                    if (section is TerrSection) terrCount = section.entries.size
+                    sections += section
+                }
+                is ParsedSection.DeferredPrto -> {
+                    pendingPrtoItems = parsed.items
+                    pendingPrtoIndex = sections.size
+                }
+            }
+        }
+        if (pendingPrtoItems != null) {
+            val terr = terrCount
+                ?: throw RiffletParseException("PRTO section requires a TERR section to appear somewhere in the file")
+            sections.add(pendingPrtoIndex, PrtoSection(pendingPrtoItems.map { PrtoEntryParser.parse(it, terr) }))
         }
         return Civ3File(header, sections)
+    }
+
+    /** [parseSection]'s internal result: either a fully-resolved [Civ3Section], or — for `PRTO`
+     * only — its raw, not-yet-entry-parsed items, deferred until [parse] knows `TERR`'s count.
+     * Never exposed outside this file; must never appear in [Civ3File.sections]. */
+    private sealed interface ParsedSection {
+        data class Ready(val section: Civ3Section) : ParsedSection
+        data class DeferredPrto(val items: List<Buffer>) : ParsedSection
     }
 
     private fun parseSection(
         source: BufferedSource,
         erasCount: Int?,
-        terrCount: Int?,
         magic: ChunkId,
         major: Int,
-    ): Civ3Section {
+    ): ParsedSection {
         val marker = source.readChunkId()
         val count = source.readIntLe()
         if (marker == Civ3SectionIds.FLAV) {
             val flavGroupCount = source.requireSaneCount(count, 4L, "FLAV")
-            return FlavSection(List(flavGroupCount) { FlavGroupEntryParser.parse(source) })
+            return ParsedSection.Ready(FlavSection(List(flavGroupCount) { FlavGroupEntryParser.parse(source) }))
         }
         val itemCount = source.requireSaneCount(count, 4L, "${marker.name} item count")
         val items = List(itemCount) {
@@ -102,7 +135,10 @@ internal object Civ3RootParserImpl {
             source.readFully(data, length.toLong())
             data
         }
-        return when (marker) {
+        if (marker == Civ3SectionIds.PRTO) {
+            return ParsedSection.DeferredPrto(items)
+        }
+        val section = when (marker) {
             Civ3SectionIds.WSIZ -> WsizSection(items.map { WsizEntryParser.parse(it) })
             Civ3SectionIds.DIFF -> DiffSection(items.map { DiffEntryParser.parse(it) })
             Civ3SectionIds.ERAS -> ErasSection(items.map { ErasEntryParser.parse(it) })
@@ -128,16 +164,12 @@ internal object Civ3RootParserImpl {
             Civ3SectionIds.TECH -> TechSection(items.map { TechEntryParser.parse(it) })
             Civ3SectionIds.LEAD -> LeadSection(items.map { LeadEntryParser.parse(it) })
             Civ3SectionIds.RULE -> RuleSection(items.map { RuleEntryParser.parse(it) })
-            Civ3SectionIds.PRTO -> {
-                val terr = terrCount
-                    ?: throw RiffletParseException("PRTO section requires a TERR section to appear first in the file")
-                PrtoSection(items.map { PrtoEntryParser.parse(it, terr) })
-            }
             Civ3SectionIds.BLDG -> BldgSection(items.map { BldgEntryParser.parse(it) })
             Civ3SectionIds.TERR -> TerrSection(items.map { TerrEntryParser.parse(it) })
             Civ3SectionIds.GAME -> GameSection(items.map { GameEntryParser.parse(it) })
             Civ3SectionIds.TILE -> TileSection(items.map { TileEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
+        return ParsedSection.Ready(section)
     }
 }

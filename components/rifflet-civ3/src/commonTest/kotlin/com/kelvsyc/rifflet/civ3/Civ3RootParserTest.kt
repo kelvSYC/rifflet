@@ -1434,6 +1434,105 @@ class Civ3RootParserTest : FunSpec({
         )
     }
 
+    test("PRTO section before a later TERR section still produces a typed PrtoSection with the correct entry") {
+        val source = Buffer().apply {
+            writeString("BIC ", Charsets.US_ASCII)
+            writeAll(verSectionBytes())
+            writeAll(oneItemSectionBytes("PRTO", prtoItemBody()))
+            writeAll(oneItemSectionBytes("TERR", terrItemBody()))
+        }
+        val file = Civ3RootParser.parse(source)
+        file.sections shouldBe listOf(
+            PrtoSection(
+                listOf(
+                    PrtoEntry(
+                        zoneOfControl = 0,
+                        name = "Warrior",
+                        civilopediaEntry = "Warrior",
+                        bombardStrength = 0,
+                        bombardRange = 0,
+                        capacity = 0,
+                        shieldCost = 10,
+                        defense = 1,
+                        iconIndex = 5,
+                        attack = 1,
+                        operationalRange = 0,
+                        populationCost = 0,
+                        rateOfFire = 1,
+                        movement = 1,
+                        required = 0,
+                        upgradeTo = 3,
+                        requiredResource1 = -1,
+                        requiredResource2 = -1,
+                        requiredResource3 = -1,
+                        flags1 = ByteString.of(*ByteArray(8)),
+                        availableTo = -1,
+                        flags2 = ByteString.of(*ByteArray(8)),
+                        type = 0,
+                        otherStrategy = -1,
+                        hpBonus = 0,
+                        flags3 = ByteString.of(*ByteArray(20)),
+                        bombardEffects = 0,
+                        ignoreMovementCost = ByteString.of(0),
+                        requireSupport = 0,
+                        unknown = ByteString.of(*ByteArray(16)),
+                        enslaveResults = 0,
+                        unknown2 = ByteString.of(*ByteArray(4)),
+                        stealthTargetUnitTypes = listOf(4, 9),
+                        unknown3 = ByteString.of(*ByteArray(8)),
+                        createCraters = 0,
+                        workerStrength = 1.5f,
+                        unknown4 = ByteString.of(*ByteArray(4)),
+                        airDefense = 0,
+                    ),
+                ),
+            ),
+            TerrSection(
+                listOf(
+                    TerrEntry(
+                        numberOfPossibleResources = 5,
+                        possibleResources = ByteString.of(0b00010101.toByte()),
+                        name = "Plains",
+                        civilopediaEntry = "Plains",
+                        irrigationBonus = 1,
+                        miningBonus = 0,
+                        roadBonus = 1,
+                        defenseBonus = 0,
+                        movementCost = 1,
+                        food = 1,
+                        shields = 1,
+                        commerce = 0,
+                        workerJobAllowed = -1,
+                        pollutionEffect = -1,
+                        allowCities = 1,
+                        allowColonies = 1,
+                        impassable = 0,
+                        impassableByWheeled = 0,
+                        allowAirfields = 1,
+                        allowForts = 1,
+                        allowOutposts = 1,
+                        allowRadarTowers = 1,
+                        unknown = ByteString.of(*ByteArray(4)),
+                        landmarkEnabled = 0,
+                        landmarkFood = 0,
+                        landmarkShields = 0,
+                        landmarkCommerce = 0,
+                        landmarkIrrigationBonus = 0,
+                        landmarkMiningBonus = 0,
+                        landmarkRoadBonus = 0,
+                        landmarkMovementBonus = 0,
+                        landmarkDefensiveBonus = 0,
+                        landmarkName = "",
+                        landmarkCivilopediaEntry = "",
+                        unknown2 = ByteString.of(*ByteArray(4)),
+                        terrainFlags = 0,
+                        diseaseStrength = 0,
+                    ),
+                ),
+            ),
+        )
+    }
+
     test("PRTO section with no preceding TERR section throws RiffletParseException") {
         val source = Buffer().apply {
             writeString("BIC ", Charsets.US_ASCII)
