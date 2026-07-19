@@ -193,3 +193,47 @@ class BldgEntrySmallWondersFlagsTest : FunSpec({
         properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })
+
+class BldgEntryWondersFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (BldgEntry) -> Boolean>> = listOf(
+        0 to BldgEntry::safeSeaTravel,
+        1 to BldgEntry::gainAnyAdvancesOwnedBy2Civs,
+        2 to BldgEntry::doubleCombatStrengthVsBarbarians,
+        3 to BldgEntry::plus1ShipMovement,
+        4 to BldgEntry::doublesResearchOutput,
+        5 to BldgEntry::plus1TradeInEachTradeProducingTile,
+        6 to BldgEntry::halvesUnitUpgradeCost,
+        7 to BldgEntry::paysMaintenanceForTradeInstallations,
+        8 to BldgEntry::allowsAllCivsToBuildNuclears,
+        9 to BldgEntry::cityGrowthCausesPlus2Citizens,
+        10 to BldgEntry::plus2FreeAdvances,
+        11 to BldgEntry::reducesWarWearinessInAllCities,
+        12 to BldgEntry::doublesCityDefenses,
+        13 to BldgEntry::allowsDiplomaticVictory,
+    )
+
+    test("wonders extracts the fourth 4-byte window as a little-endian Int") {
+        validBldgEntry(wonders = 0x01020304).wonders shouldBe 0x01020304
+    }
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validBldgEntry(wonders = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validBldgEntry(wonders = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validBldgEntry(wonders = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})

@@ -85,3 +85,24 @@ val BldgEntry.allowsSpyMissions: Boolean get() = smallWonders and (1 shl 7) != 0
 val BldgEntry.allowsHealingInEnemyTerritory: Boolean get() = smallWonders and (1 shl 8) != 0
 val BldgEntry.requiredGoodsMustBeInCityRadius: Boolean get() = smallWonders and (1 shl 9) != 0
 val BldgEntry.requiresVictoriousArmy: Boolean get() = smallWonders and (1 shl 10) != 0
+
+/**
+ * The fourth named 4-byte sub-field of [BldgEntry.flags], per Apolyton's "wonders (binary)"
+ * field. See [BldgEntry.safeSeaTravel] and its sibling accessors for the 14 named bits.
+ */
+val BldgEntry.wonders: Int get() = flags.toIntLe(12)
+
+val BldgEntry.safeSeaTravel: Boolean get() = wonders and (1 shl 0) != 0
+val BldgEntry.gainAnyAdvancesOwnedBy2Civs: Boolean get() = wonders and (1 shl 1) != 0
+val BldgEntry.doubleCombatStrengthVsBarbarians: Boolean get() = wonders and (1 shl 2) != 0
+val BldgEntry.plus1ShipMovement: Boolean get() = wonders and (1 shl 3) != 0
+val BldgEntry.doublesResearchOutput: Boolean get() = wonders and (1 shl 4) != 0
+val BldgEntry.plus1TradeInEachTradeProducingTile: Boolean get() = wonders and (1 shl 5) != 0
+val BldgEntry.halvesUnitUpgradeCost: Boolean get() = wonders and (1 shl 6) != 0
+val BldgEntry.paysMaintenanceForTradeInstallations: Boolean get() = wonders and (1 shl 7) != 0
+val BldgEntry.allowsAllCivsToBuildNuclears: Boolean get() = wonders and (1 shl 8) != 0
+val BldgEntry.cityGrowthCausesPlus2Citizens: Boolean get() = wonders and (1 shl 9) != 0
+val BldgEntry.plus2FreeAdvances: Boolean get() = wonders and (1 shl 10) != 0
+val BldgEntry.reducesWarWearinessInAllCities: Boolean get() = wonders and (1 shl 11) != 0
+val BldgEntry.doublesCityDefenses: Boolean get() = wonders and (1 shl 12) != 0
+val BldgEntry.allowsDiplomaticVictory: Boolean get() = wonders and (1 shl 13) != 0
