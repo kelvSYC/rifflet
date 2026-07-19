@@ -3,6 +3,7 @@ package com.kelvsyc.rifflet.internal.civ3
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.LeadStartUnit
 import okio.Buffer
+import okio.ByteString
 
 /**
  * Parses one `LEAD` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
@@ -14,6 +15,12 @@ import okio.Buffer
  *
  * Both counts are validated via [requireSaneCount] before sizing their respective lists — see
  * that function's KDoc for why.
+ *
+ * [LeadEntry.skipFirstTurn], [LeadEntry.unknown2], and [LeadEntry.startEmbassies] are absent from
+ * PTW-era items (confirmed via byte-count algebra across all real PTW `LEAD` items in a mounted
+ * install: residual 0 for every sampled PTW minor, vs. residual 9 — all three fields present —
+ * for every sampled Conquests minor); they default to zero/empty when the item ends after
+ * [LeadEntry.color].
  */
 internal object LeadEntryParser {
     fun parse(item: Buffer): LeadEntry {
@@ -40,26 +47,13 @@ internal object LeadEntryParser {
         val government = item.readIntLe()
         val civ = item.readIntLe()
         val color = item.readIntLe()
-        val skipFirstTurn = item.readIntLe()
-        val unknown2 = item.readByteString(4L)
-        val startEmbassies = item.readByte()
+        val skipFirstTurn = if (item.size >= 4L) item.readIntLe() else 0
+        val unknown2 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
+        val startEmbassies = if (item.size >= 1L) item.readByte() else 0.toByte()
         return LeadEntry(
-            customCivData,
-            humanPlayer,
-            name,
-            unknown,
-            startUnits,
-            genderOfLeaderName,
-            startingTechnologyIds,
-            difficulty,
-            initialEra,
-            startCash,
-            government,
-            civ,
-            color,
-            skipFirstTurn,
-            unknown2,
-            startEmbassies,
+            customCivData, humanPlayer, name, unknown, startUnits, genderOfLeaderName,
+            startingTechnologyIds, difficulty, initialEra, startCash, government, civ, color,
+            skipFirstTurn, unknown2, startEmbassies,
         )
     }
 }
