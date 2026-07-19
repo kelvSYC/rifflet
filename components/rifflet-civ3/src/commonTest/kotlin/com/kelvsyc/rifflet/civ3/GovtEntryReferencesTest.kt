@@ -1,0 +1,74 @@
+package com.kelvsyc.rifflet.civ3
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import okio.ByteString
+
+private fun validGovtEntry(prerequisiteTechnology: Int = 0): GovtEntry = GovtEntry(
+    defaultType = 0,
+    transitionType = 0,
+    requiresMaintenance = 0,
+    toggle1 = 0,
+    tilePenalty = 0,
+    tradeBonus = 0,
+    name = "",
+    civilopediaEntry = "",
+    maleRulerTitle1 = "",
+    femaleRulerTitle1 = "",
+    maleRulerTitle2 = "",
+    femaleRulerTitle2 = "",
+    maleRulerTitle3 = "",
+    femaleRulerTitle3 = "",
+    maleRulerTitle4 = "",
+    femaleRulerTitle4 = "",
+    corruption = 0,
+    immuneTo = 0,
+    diplomatsAre = 0,
+    spiesAre = 0,
+    relationships = emptyList(),
+    hurrying = 0,
+    assimilationChance = 0,
+    draftLimit = 0,
+    militaryPoliceLimit = 0,
+    rulerTitlePairsUsed = 0,
+    prerequisiteTechnology = prerequisiteTechnology,
+    scienceRateCap = 0,
+    workerRate = 0,
+    toggle2 = 0,
+    toggle3 = 0,
+    unknown = ByteString.of(0, 0, 0, 0),
+    freeUnits = 0,
+    freeUnitsPerTown = 0,
+    freeUnitsPerCity = 0,
+    freeUnitsPerMetropolis = 0,
+    unitCost = 0,
+    warWeariness = 0,
+    xenophobic = 0,
+    forceResettle = 0,
+)
+
+private fun validTechEntry(): TechEntry = TechEntry(
+    name = "",
+    civilopediaEntry = "",
+    cost = 0,
+    era = 0,
+    advanceIcon = 0,
+    x = 0,
+    y = 0,
+    prerequisite1 = 0,
+    prerequisite2 = 0,
+    prerequisite3 = 0,
+    prerequisite4 = 0,
+    flags = 0,
+    flavors = 0,
+    unknown = ByteString.of(0, 0, 0, 0),
+)
+
+class GovtEntryReferencesTest : FunSpec({
+
+    test("prerequisiteTechnologyTech resolves against the TECH list") {
+        val tech = validTechEntry()
+        validGovtEntry(prerequisiteTechnology = 0).prerequisiteTechnologyTech(listOf(tech)) shouldBe tech
+        validGovtEntry(prerequisiteTechnology = 5).prerequisiteTechnologyTech(emptyList()) shouldBe null
+    }
+})
