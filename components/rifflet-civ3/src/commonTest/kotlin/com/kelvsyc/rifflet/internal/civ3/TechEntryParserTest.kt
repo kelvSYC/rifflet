@@ -84,6 +84,39 @@ private fun shortTechItemBinary(
     writeIntLe(flavors)
 }
 
+/**
+ * Builds a shorter 104-byte TECH item body with neither `flavors` nor `unknown` — the confirmed
+ * real vanilla/PTW shape (see Global Constraints): these two fields are always present or absent
+ * together, never split.
+ */
+private fun shorterTechItemBinary(
+    name: String = "Bronze Working",
+    civilopediaEntry: String = "",
+    cost: Int = 20,
+    era: Int = 1,
+    advanceIcon: Int = 5,
+    x: Int = 10,
+    y: Int = 20,
+    prerequisite1: Int = -1,
+    prerequisite2: Int = -1,
+    prerequisite3: Int = -1,
+    prerequisite4: Int = -1,
+    flags: Int = 0b10000001,
+): Buffer = Buffer().apply {
+    writePaddedField(name, 32)
+    writePaddedField(civilopediaEntry, 32)
+    writeIntLe(cost)
+    writeIntLe(era)
+    writeIntLe(advanceIcon)
+    writeIntLe(x)
+    writeIntLe(y)
+    writeIntLe(prerequisite1)
+    writeIntLe(prerequisite2)
+    writeIntLe(prerequisite3)
+    writeIntLe(prerequisite4)
+    writeIntLe(flags)
+}
+
 class TechEntryParserTest : FunSpec({
 
     test("well-formed 112-byte item is parsed into all fields") {
@@ -110,5 +143,11 @@ class TechEntryParserTest : FunSpec({
         val entry = TechEntryParser.parse(shortTechItemBinary())
         entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
         entry.flavors shouldBe 0
+    }
+
+    test("104-byte item with neither flavors nor unknown defaults both (vanilla/PTW shape)") {
+        val entry = TechEntryParser.parse(shorterTechItemBinary())
+        entry.flavors shouldBe 0
+        entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
     }
 })
