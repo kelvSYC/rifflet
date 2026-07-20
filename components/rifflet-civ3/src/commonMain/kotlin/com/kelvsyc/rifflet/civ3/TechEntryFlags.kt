@@ -1,26 +1,30 @@
 package com.kelvsyc.rifflet.civ3
 
+import com.kelvsyc.kotlin.core.traits.integral.BitCollection
+import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
+import com.kelvsyc.kotlin.core.traits.integral.int
+
 /**
  * Named accessors for [TechEntry.flags]'s 19 documented bits, per Apolyton's "Civilization III
  * BIX/BIQ file format" thread (the fuller, later-era source; confirmed to list exactly these 19
  * bits, not the 23 `QueryCiv3` claims — see [TechEntry.flags]'s own KDoc).
  */
-val TechEntry.enablesDiplomats: Boolean get() = flags and (1 shl 0) != 0
-val TechEntry.enablesIrrigationWithoutFreshWater: Boolean get() = flags and (1 shl 1) != 0
-val TechEntry.enablesBridges: Boolean get() = flags and (1 shl 2) != 0
-val TechEntry.disablesDiseasesFromFloodPlains: Boolean get() = flags and (1 shl 3) != 0
-val TechEntry.enablesConscriptionOfUnits: Boolean get() = flags and (1 shl 4) != 0
-val TechEntry.enablesMobilizationLevels: Boolean get() = flags and (1 shl 5) != 0
-val TechEntry.enablesRecycling: Boolean get() = flags and (1 shl 6) != 0
-val TechEntry.enablesPrecisionBombing: Boolean get() = flags and (1 shl 7) != 0
-val TechEntry.enablesMutualProtectionPacts: Boolean get() = flags and (1 shl 8) != 0
-val TechEntry.enablesRightOfPassageTreaties: Boolean get() = flags and (1 shl 9) != 0
-val TechEntry.enablesMilitaryAlliances: Boolean get() = flags and (1 shl 10) != 0
-val TechEntry.enablesTradeEmbargoes: Boolean get() = flags and (1 shl 11) != 0
-val TechEntry.doublesEffectOfWealthImprovement: Boolean get() = flags and (1 shl 12) != 0
-val TechEntry.enablesTradeOverSeaTiles: Boolean get() = flags and (1 shl 13) != 0
-val TechEntry.enablesTradeOverOceanTiles: Boolean get() = flags and (1 shl 14) != 0
-val TechEntry.enablesMapTrading: Boolean get() = flags and (1 shl 15) != 0
-val TechEntry.enablesCommunicationTrading: Boolean get() = flags and (1 shl 16) != 0
-val TechEntry.notRequiredForEraAdvancement: Boolean get() = flags and (1 shl 17) != 0
-val TechEntry.doublesWorkRateOfWorkers: Boolean get() = flags and (1 shl 18) != 0
+val TechEntry.enablesDiplomats: Boolean by BitCollection.int.extensionBitFlag({ flags }, 0)
+val TechEntry.enablesIrrigationWithoutFreshWater: Boolean by BitCollection.int.extensionBitFlag({ flags }, 1)
+val TechEntry.enablesBridges: Boolean by BitCollection.int.extensionBitFlag({ flags }, 2)
+val TechEntry.disablesDiseasesFromFloodPlains: Boolean by BitCollection.int.extensionBitFlag({ flags }, 3)
+val TechEntry.enablesConscriptionOfUnits: Boolean by BitCollection.int.extensionBitFlag({ flags }, 4)
+val TechEntry.enablesMobilizationLevels: Boolean by BitCollection.int.extensionBitFlag({ flags }, 5)
+val TechEntry.enablesRecycling: Boolean by BitCollection.int.extensionBitFlag({ flags }, 6)
+val TechEntry.enablesPrecisionBombing: Boolean by BitCollection.int.extensionBitFlag({ flags }, 7)
+val TechEntry.enablesMutualProtectionPacts: Boolean by BitCollection.int.extensionBitFlag({ flags }, 8)
+val TechEntry.enablesRightOfPassageTreaties: Boolean by BitCollection.int.extensionBitFlag({ flags }, 9)
+val TechEntry.enablesMilitaryAlliances: Boolean by BitCollection.int.extensionBitFlag({ flags }, 10)
+val TechEntry.enablesTradeEmbargoes: Boolean by BitCollection.int.extensionBitFlag({ flags }, 11)
+val TechEntry.doublesEffectOfWealthImprovement: Boolean by BitCollection.int.extensionBitFlag({ flags }, 12)
+val TechEntry.enablesTradeOverSeaTiles: Boolean by BitCollection.int.extensionBitFlag({ flags }, 13)
+val TechEntry.enablesTradeOverOceanTiles: Boolean by BitCollection.int.extensionBitFlag({ flags }, 14)
+val TechEntry.enablesMapTrading: Boolean by BitCollection.int.extensionBitFlag({ flags }, 15)
+val TechEntry.enablesCommunicationTrading: Boolean by BitCollection.int.extensionBitFlag({ flags }, 16)
+val TechEntry.notRequiredForEraAdvancement: Boolean by BitCollection.int.extensionBitFlag({ flags }, 17)
+val TechEntry.doublesWorkRateOfWorkers: Boolean by BitCollection.int.extensionBitFlag({ flags }, 18)
