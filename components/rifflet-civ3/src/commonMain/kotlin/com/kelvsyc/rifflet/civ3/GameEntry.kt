@@ -67,7 +67,17 @@ import okio.ByteString
  *   though both sources agree on its byte sub-structure (a 4-byte int followed by a 260-byte
  *   string region) without confirming what either part represents; preserved raw as a single
  *   opaque region, not split, matching `QueryCiv3`'s own grouping. Confirmed absent from real
- *   [Civ3FormatEra.PTW] files, read defensively.
+ *   [Civ3FormatEra.PTW] files, read defensively. Two independent real-file samples (2026-07-20)
+ *   confirm the byte substructure exactly and reveal the string region's apparent default value:
+ *   the leading 4-byte int is `0` and the string region begins with the literal ASCII text
+ *   `"Unknown"` in both a blank Conquests map-editor export (all-zero padding after the
+ *   string) and previously-sampled real Conquests scenario files (`0xCD`-pattern padding after
+ *   the string, the classic MSVC debug-CRT uninitialized-*heap*-memory poison byte). The
+ *   `"Unknown"` prefix reproducing identically across genuinely unrelated files/sessions argues
+ *   against it being random garbage — more likely a real, deliberate default string, with only
+ *   the trailing padding bytes being uninitialized. Structural position (directly between the
+ *   plague fields and [eruptionPeriod]) is suggestive but unconfirmed: possibly a name field for
+ *   Conquests' other catastrophe type (eruptions), analogous to [plagueName] for plagues.
  * @param mapVisible An unconditional 1-byte field per both cross-referenced sources' original
  *   documentation — but confirmed absent from real [Civ3FormatEra.PTW] files along with every
  *   other field from [civAllianceStatuses] onward, so "unconditional" only holds for
@@ -75,7 +85,11 @@ import okio.ByteString
  *   does not parse (see the class-level note above).
  * @param unknown3 4 bytes with zero documented behavior from either cross-referenced source;
  *   preserved raw, not validated. Confirmed absent from real [Civ3FormatEra.PTW] files, read
- *   defensively.
+ *   defensively. A blank Conquests map-editor export (2026-07-20) shows this field defaulting to
+ *   `0xFFFFFFFF` (-1 as a signed Int) — matching Civ3's common "-1 = none/unset" sentinel
+ *   convention used elsewhere in this format (e.g. `barbarianTribe`, `victoryPointLocation`),
+ *   suggesting this may be a reference-like field (an index) rather than a flag or count field
+ *   (which would more typically default to `0`). Not confirmed further.
  * @param eruptionPeriod The last field confirmed present in every sampled real
  *   [Civ3FormatEra.CONQUESTS] file regardless of the `minor=6` mp-timing-fields cutoff below —
  *   but, like every field since [civAllianceStatuses], confirmed absent from real
