@@ -6,8 +6,8 @@ import com.kelvsyc.kotlin.core.traits.integral.int
 
 /**
  * Named accessors for [RaceEntry.bonuses]'s 8 documented bits (civilization traits) — the first
- * 6 confirmed by the original vanilla-era Apolyton documentation, [agricultural] and [seaFaring]
- * added in a Conquests-era correction to the same thread.
+ * 6 documented by the original vanilla-era reverse-engineering documentation, [agricultural] and
+ * [seaFaring] added in a Conquests-era correction to that same documentation.
  */
 val RaceEntry.militaristic: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 0)
 val RaceEntry.commercial: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 1)
@@ -19,8 +19,8 @@ val RaceEntry.agricultural: Boolean by BitCollection.int.extensionBitFlag({ bonu
 val RaceEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 7)
 
 /**
- * Named accessors for [RaceEntry.governorSettings]'s 7 documented bits, per Apolyton's
- * "Civilization III BIC file format (2nd thread)".
+ * Named accessors for [RaceEntry.governorSettings]'s 7 documented bits, per earlier
+ * reverse-engineering documentation of the BIC format.
  */
 val RaceEntry.manageCitizens: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 0)
 val RaceEntry.emphasizeFood: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 1)
@@ -31,9 +31,9 @@ val RaceEntry.noWonders: Boolean by BitCollection.int.extensionBitFlag({ governo
 val RaceEntry.noSmallWonders: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 6)
 
 /**
- * Named accessors for [RaceEntry.buildNever]'s 15 documented bits, per Apolyton's "Civilization
- * III BIC file format (2nd thread)". Prefixed with `buildNever` because [RaceEntry.buildOften]
- * documents an identical bit layout on the same receiver.
+ * Named accessors for [RaceEntry.buildNever]'s 15 documented bits, per earlier
+ * reverse-engineering documentation of the BIC format. Prefixed with `buildNever` because
+ * [RaceEntry.buildOften] documents an identical bit layout on the same receiver.
  */
 val RaceEntry.buildNeverOffensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 0)
 val RaceEntry.buildNeverDefensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 1)
@@ -52,9 +52,9 @@ val RaceEntry.buildNeverExplore: Boolean by BitCollection.int.extensionBitFlag({
 val RaceEntry.buildNeverCulture: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 14)
 
 /**
- * Named accessors for [RaceEntry.buildOften]'s 15 documented bits — Apolyton documents this
- * field as "same as [buildNever] above". Prefixed with `buildOften` for the same collision
- * reason as [RaceEntry.buildNeverOffensiveLandUnits] and its siblings.
+ * Named accessors for [RaceEntry.buildOften]'s 15 documented bits — existing reverse-engineering
+ * documentation describes this field as "same as [buildNever] above". Prefixed with `buildOften`
+ * for the same collision reason as [RaceEntry.buildNeverOffensiveLandUnits] and its siblings.
  */
 val RaceEntry.buildOftenOffensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 0)
 val RaceEntry.buildOftenDefensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 1)

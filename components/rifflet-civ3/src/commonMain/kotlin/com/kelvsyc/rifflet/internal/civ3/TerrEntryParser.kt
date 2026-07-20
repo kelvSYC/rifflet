@@ -7,8 +7,9 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `TERR` item, per the Apolyton BIX/BIQ format documentation, which reconciles
- * exactly with `QueryCiv3`'s struct field-by-field. Reads directly off [item], a
+ * Parses one `TERR` item, per existing reverse-engineering documentation of the BIX/BIQ format,
+ * which reconciles exactly with a separate reverse-engineered reference implementation's struct
+ * field-by-field. Reads directly off [item], a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
  *

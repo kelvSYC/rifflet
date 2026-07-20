@@ -12,16 +12,17 @@ import okio.ByteString
  *   rounded up to `⌈numberOfPossibleResources / 8⌉` bytes), indicating which resources can
  *   appear on this terrain type; preserved raw, not decomposed into individual bit accessors.
  * @param workerJobAllowed A single enum-like value (not a bitmask, confirmed by both
- *   primary sources) identifying which `TFRM` worker job can be performed on this
+ *   reverse-engineering sources) identifying which `TFRM` worker job can be performed on this
  *   terrain type; preserved raw, not decomposed.
- * @param unknown 4 bytes with zero documented behavior from either primary source;
+ * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param unknown2 4 bytes with zero documented behavior from either primary source;
+ * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
- * @param terrainFlags Opaque — neither primary source (Apolyton's original BIC-format thread or
- *   the later, fuller BIX/BIQ-format thread) names a single bit for this field, unlike every
- *   other opaque flags field in this codebase, and `QueryCiv3` likewise exposes no named booleans
- *   for it. Real terrain-default data from the Conquests map editor is dominated by a repeating
+ * @param terrainFlags Opaque — neither the earlier, BIC-format reverse-engineering documentation
+ *   nor the later, fuller BIX/BIQ-format documentation names a single bit for this field, unlike
+ *   every other opaque flags field in this codebase, and a separate reverse-engineered reference
+ *   implementation likewise exposes no named booleans for it. Real terrain-default data from the
+ *   Conquests map editor is dominated by a repeating
  *   `0xCC` bit pattern across roughly the top 26 of 32 bits — the classic MSVC debug-CRT poison
  *   pattern for uninitialized *stack* memory (distinct from the `0xCD` heap-poison pattern found
  *   in `GameEntry.unknown2`) — suggesting most of this field is unpopulated engine memory,
@@ -30,6 +31,13 @@ import okio.ByteString
  *   both, Sea/Ocean are entirely zero) — real signal, not yet reducible to individually-named
  *   flags. Not checked against a PTW or vanilla map editor, only Conquests — the pattern could
  *   differ by era.
+ *
+ *   Candidate hypothesis for (at least) 2 of those low bits: the Conquests Rules Editor shows a
+ *   per-terrain "Causes Disease" checkbox and a "Cured by Sanitation" checkbox alongside
+ *   [diseaseStrength] — two named booleans with nowhere else to live but these low,
+ *   terrain-varying bits (Jungle and Marsh, Civ3's classic disease-prone terrain types, both
+ *   showing signal here, is suggestive). Unconfirmed: the editor doesn't expose which specific
+ *   bit is which, so no accessors are exposed for them yet.
  */
 data class TerrEntry(
     val numberOfPossibleResources: Int,

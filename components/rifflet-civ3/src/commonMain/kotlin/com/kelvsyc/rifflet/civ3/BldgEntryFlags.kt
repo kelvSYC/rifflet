@@ -12,9 +12,9 @@ private fun ByteString.toIntLe(offset: Int): Int =
         ((this[offset + 3].toInt() and 0xFF) shl 24)
 
 /**
- * The first named 4-byte sub-field of [BldgEntry.flags], per Apolyton's "Civilization III
- * BIX/BIQ file format" thread's "improvements (binary)" field. See [BldgEntry.centerOfEmpire]
- * and its sibling accessors for the 25 named bits.
+ * The first named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
+ * documentation of the BIX/BIQ format's "improvements (binary)" field. See
+ * [BldgEntry.centerOfEmpire] and its sibling accessors for the 25 named bits.
  */
 val BldgEntry.improvements: Int get() = flags.toIntLe(0)
 
@@ -48,12 +48,12 @@ val BldgEntry.increasesShieldsInWater: Boolean by BitCollection.int.extensionBit
 val BldgEntry.increasesFoodInWater: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 24)
 
 /**
- * The second named 4-byte sub-field of [BldgEntry.flags]. Apolyton documents 10 bits here in
- * the vanilla/PTW era ("coastal installation" through "construction installation"), later
- * renamed to trait names ([militaristic], [scientific], [commercial], [expansionist],
- * [religious], [industrious]) and extended with 2 new Conquests-only bits ([agricultural],
- * [seaFaring]) in a 2004 forum correction — this codebase exposes the final, corrected 12-bit
- * layout.
+ * The second named 4-byte sub-field of [BldgEntry.flags]. Existing reverse-engineering
+ * documentation lists 10 bits here in the vanilla/PTW era ("coastal installation" through
+ * "construction installation"), later renamed to trait names ([militaristic], [scientific],
+ * [commercial], [expansionist], [religious], [industrious]) and extended with 2 new
+ * Conquests-only bits ([agricultural], [seaFaring]) in a subsequent correction — this codebase
+ * exposes the final, corrected 12-bit layout.
  */
 val BldgEntry.otherCharacteristics: Int get() = flags.toIntLe(4)
 
@@ -71,9 +71,9 @@ val BldgEntry.agricultural: Boolean by BitCollection.int.extensionBitFlag({ othe
 val BldgEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ otherCharacteristics }, 11)
 
 /**
- * The third named 4-byte sub-field of [BldgEntry.flags], per Apolyton's "small wonders (binary)"
- * field. See [BldgEntry.increasesChanceOfLeaderAppearance] and its sibling accessors for the 11
- * named bits.
+ * The third named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
+ * documentation's "small wonders (binary)" field. See [BldgEntry.increasesChanceOfLeaderAppearance]
+ * and its sibling accessors for the 11 named bits.
  */
 val BldgEntry.smallWonders: Int get() = flags.toIntLe(8)
 
@@ -90,8 +90,9 @@ val BldgEntry.requiredGoodsMustBeInCityRadius: Boolean by BitCollection.int.exte
 val BldgEntry.requiresVictoriousArmy: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 10)
 
 /**
- * The fourth named 4-byte sub-field of [BldgEntry.flags], per Apolyton's "wonders (binary)"
- * field. See [BldgEntry.safeSeaTravel] and its sibling accessors for the 14 named bits.
+ * The fourth named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
+ * documentation's "wonders (binary)" field. See [BldgEntry.safeSeaTravel] and its sibling
+ * accessors for the 14 named bits.
  */
 val BldgEntry.wonders: Int get() = flags.toIntLe(12)
 

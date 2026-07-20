@@ -6,13 +6,14 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `PRTO` item, per the Apolyton BIX/BIQ format documentation cross-validated against
- * `QueryCiv3`'s grouped flags regions (the two sources' byte counts for the flags/orders region
- * between `requiredResource3` and `bombardEffects` reconcile exactly at 52 bytes, confirming
- * `QueryCiv3`'s consolidated `Flags1`/`AvailableTo`/`Flags2`/`Type`/`OtherStrategy`/`HPBonus`/
- * `Flags3` grouping matches Apolyton's more granular older field list for the same region).
- * Reads directly off [item], a zero-copy-transferred [Buffer] already stripped of its own length
- * prefix by the generic section loop.
+ * Parses one `PRTO` item, per existing reverse-engineering documentation of the BIX/BIQ format,
+ * cross-validated against a separate reverse-engineered reference implementation's grouped flags
+ * regions (the two sources' byte counts for the flags/orders region between `requiredResource3`
+ * and `bombardEffects` reconcile exactly at 52 bytes, confirming that implementation's
+ * consolidated `Flags1`/`AvailableTo`/`Flags2`/`Type`/`OtherStrategy`/`HPBonus`/`Flags3` grouping
+ * matches the more granular older field list from existing reverse-engineering documentation for
+ * the same region). Reads directly off [item], a zero-copy-transferred [Buffer] already stripped
+ * of its own length prefix by the generic section loop.
  *
  * [PrtoEntry.workerStrength] is the first `Float` field in this codebase: read via
  * `Float.fromBits` bit-reinterpretation of an ordinary little-endian `Int` read, since neither

@@ -5,9 +5,9 @@ import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
 import com.kelvsyc.kotlin.core.traits.integral.int
 
 /**
- * Named accessors for [TechEntry.flags]'s 19 documented bits, per Apolyton's "Civilization III
- * BIX/BIQ file format" thread (the fuller, later-era source; confirmed to list exactly these 19
- * bits, not the 23 `QueryCiv3` claims — see [TechEntry.flags]'s own KDoc).
+ * Named accessors for [TechEntry.flags]'s 19 documented bits, per the fuller, later-era existing
+ * reverse-engineering documentation of the BIX/BIQ format — as opposed to the 23 a separate
+ * reverse-engineered reference implementation claims — see [TechEntry.flags]'s own KDoc.
  */
 val TechEntry.enablesDiplomats: Boolean by BitCollection.int.extensionBitFlag({ flags }, 0)
 val TechEntry.enablesIrrigationWithoutFreshWater: Boolean by BitCollection.int.extensionBitFlag({ flags }, 1)

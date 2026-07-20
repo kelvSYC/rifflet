@@ -5,7 +5,7 @@ import com.kelvsyc.rifflet.civ3.GoodEntry
 import okio.Buffer
 
 /**
- * Parses one `GOOD` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `GOOD` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *

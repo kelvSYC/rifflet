@@ -6,7 +6,9 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `TILE` item, per `QueryCiv3`'s struct. Reads directly off [item], a
+ * Parses one `TILE` item, per a separate reverse-engineered reference implementation's struct —
+ * that implementation's own authors describe `TILE` as their least-complete, most tangled
+ * struct. Reads directly off [item], a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
  *
@@ -29,7 +31,8 @@ import okio.ByteString
  * other optional field here.
  *
  * The two `Short`s immediately after `barbarianTribe` are read `city` then `colony` — the
- * opposite of the byte order both primary sources document (`colony` then `city`). Verified
+ * opposite of the byte order both existing reverse-engineering efforts document (`colony` then
+ * `city`). Verified
  * against two real map-editor exports (one PTW, one Conquests), each with one placed colony and
  * one placed city at known coordinates: computing each object's expected `TILE` array index from
  * its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` and this codebase's isometric tile-index

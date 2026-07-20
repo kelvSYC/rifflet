@@ -5,20 +5,19 @@ import okio.ByteString
 /**
  * One entry of the `PRTO` section: a unit type (prototype) definition.
  *
- * @param required Likely a `TECH` section index (naming convention only); not confirmed by
- *   either primary source.
- * @param upgradeTo Likely a `PRTO` section self-reference (naming convention only); not
- *   confirmed by either primary source.
- * @param requiredResource1 Likely a `GOOD` section index (naming convention only); not
- *   confirmed by either primary source. Same treatment applies to
- *   [requiredResource2], [requiredResource3].
- * @param flags1 8 bytes with zero documented behavior from either primary source;
+ * @param required A `TECH` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference).
+ * @param upgradeTo A `PRTO` section self-reference, per the Conquests Rules Editor (not merely
+ *   a naming-based inference).
+ * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference). Same treatment applies to [requiredResource2], [requiredResource3].
+ * @param flags1 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated or decomposed. Same treatment as `RaceEntry.unknown`.
- * @param availableTo Opaque per-civilization availability bitmask; preserved raw, not
- *   decomposed.
- * @param flags2 8 bytes with zero documented behavior from either primary source;
+ * @param availableTo Per-civilization availability bitmask, per the Conquests Rules Editor;
+ *   preserved raw, not decomposed.
+ * @param flags2 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated or decomposed.
- * @param flags3 20 bytes with zero documented behavior from either primary source;
+ * @param flags3 20 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated or decomposed. Absent from [Civ3FormatEra.VANILLA]
  *   files (the item ends immediately after [hpBonus]), read defensively.
  * @param ignoreMovementCost One flag byte per `TERR` section entry, preserved raw as an opaque
@@ -28,24 +27,26 @@ import okio.ByteString
  *   12 `TERR` entries, real [Civ3FormatEra.CONQUESTS] files always have 14 (Conquests added 2 new
  *   terrain types, marshes and volcanoes). Absent from [Civ3FormatEra.VANILLA]
  *   files, read defensively — see `PrtoEntryParser`.
- * @param unknown 16 bytes with zero documented behavior from either primary source;
+ * @param unknown 16 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files (the entire tail from here through [airDefense] is a
  *   [Civ3FormatEra.CONQUESTS]-era expansion), read defensively.
- * @param unknown2 4 bytes with zero documented behavior from either primary source;
+ * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
- * @param stealthTargetUnitTypes Likely `PRTO` section self-references (naming convention
- *   only); not confirmed by either primary source. Confirmed absent from real
- *   [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files, read defensively.
- * @param unknown3 8 bytes with zero documented behavior from either primary source;
+ * @param enslaveResults A `PRTO` section self-reference, per the Conquests Rules Editor (not
+ *   merely a naming-based inference).
+ * @param stealthTargetUnitTypes `PRTO` section self-references, per the Conquests Rules Editor
+ *   (not merely a naming-based inference). Absent from [Civ3FormatEra.VANILLA] and
+ *   [Civ3FormatEra.PTW] files, read defensively.
+ * @param unknown3 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
  * @param workerStrength Read as an IEEE-754 single-precision float via bit-reinterpretation of
  *   a little-endian `Int` read (`Float.fromBits`) — the first `Float` field in this codebase.
  *   Absent from [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files, read
  *   defensively.
- * @param unknown4 4 bytes with zero documented behavior from either primary source;
+ * @param unknown4 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
  */

@@ -12,8 +12,18 @@ private fun ByteString.toIntLe(): Int =
         ((this[3].toInt() and 0xFF) shl 24)
 
 /**
- * Named accessors for [GameEntry.flags]'s 16 documented bits, per Apolyton's "Civilization III
- * BIX/BIQ file format" thread.
+ * Named accessors for [GameEntry.flags]'s 16 documented bits, per existing reverse-engineering
+ * documentation of the BIX/BIQ format.
+ *
+ * The Conquests Rules Editor corroborates this bit order via two adjacent checkbox lists:
+ * "Default Victory Conditions" (Domination, Space Race, Diplomatic, Conquest, Cultural —
+ * matching bits 0-4) and "Default Game Rules" (Accelerated Production, City Elimination,
+ * Regicide, Regicide (all Kings), Victory Point Scoring, Capture the Unit, Allow Cultural
+ * Conversions — matching bits 9-15). Two of those UI labels don't match the accessor names
+ * below: bit 13 ([victoryLocationsEnabled]) is labeled "Victory Point Scoring", and bit 14
+ * ([captureTheFlagEnabled]) is labeled "Capture the Unit". The victory-conditions list also
+ * shows a 6th, unselected item — "Wonder" — with no corresponding bit anywhere in this 16-bit
+ * field; its storage location (if any) is unknown.
  */
 val GameEntry.dominationVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 0)
 val GameEntry.spaceRaceVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 1)
@@ -35,7 +45,8 @@ val GameEntry.allowCulturalConversions: Boolean by BitCollection.int.extensionBi
 /**
  * [GameEntry.allianceWars] restructured from its flat, row-major 5x5 storage into a genuine
  * `List<List<Int>>`; `result[allianceA][allianceB]` is the war status between the two alliances,
- * per Apolyton's nested "for each alliance: war with alliance #0..#4" documentation. Indexing
+ * per existing reverse-engineering documentation's nested "for each alliance: war with alliance
+ * #0..#4" description. Indexing
  * outside `0..4` throws [IndexOutOfBoundsException] like any `List` access — an out-of-range
  * alliance number is a caller error, not a data-quality concern, since [GameEntry.allianceWars]'s
  * size is already a structural invariant enforced by [GameEntry]'s own `init` block.

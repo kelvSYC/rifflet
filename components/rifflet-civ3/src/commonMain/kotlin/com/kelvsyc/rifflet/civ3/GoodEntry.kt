@@ -3,11 +3,11 @@ package com.kelvsyc.rifflet.civ3
 /**
  * One entry of the `GOOD` section: a tradeable natural resource and its city-output bonuses.
  *
- * @param type Resource classification (e.g. bonus/luxury/strategic); undocumented semantics in
- *   both primary sources.
- * @param prerequisite Likely an index into the `TECH` section (inferred from the naming
- *   convention shared with `CtznEntry.prerequisite`/`GovtEntry.prerequisiteTechnology`); not
- *   confirmed by either primary source.
+ * @param type Resource classification: a 3-way choice per the Conquests Rules Editor — Bonus
+ *   Resource, Luxury, Strategic Resource, in that order; undocumented by either reverse-engineering source.
+ * @param prerequisite A `TECH` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference from the convention shared with `CtznEntry.prerequisite`/
+ *   `GovtEntry.prerequisiteTechnology`).
  */
 data class GoodEntry(
     val name: String,

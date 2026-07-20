@@ -5,7 +5,8 @@ import okio.ByteString
 /**
  * One entry of the `WSIZ` section: a world-size preset (map dimensions, civ count, tech rate).
  *
- * @param reserved 24 bytes Apolyton documents as `??? (empty)`; preserved raw, not validated.
+ * @param reserved 24 bytes existing reverse-engineering documentation lists as `??? (empty)`;
+ *   preserved raw, not validated.
  */
 data class WsizEntry(
     val optimalNumberOfCities: Int,

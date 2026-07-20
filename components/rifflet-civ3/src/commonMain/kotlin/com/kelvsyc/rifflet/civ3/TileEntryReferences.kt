@@ -2,7 +2,7 @@ package com.kelvsyc.rifflet.civ3
 
 /**
  * Resolves [TileEntry.resource] against [goods]. Likely a `GOOD` section index (naming
- * convention only); not confirmed by either primary source.
+ * convention only); not confirmed by either reverse-engineering source.
  */
 fun TileEntry.resourceGood(goods: List<GoodEntry>): GoodEntry? = goods.getOrNull(resource)
 
@@ -14,7 +14,7 @@ fun TileEntry.colonyClny(colonies: List<ClnyEntry>): ClnyEntry? = colonies.getOr
 
 /**
  * Resolves [TileEntry.continent] against [continents]. Likely a `CONT` section index (naming
- * convention only); not confirmed by either primary source.
+ * convention only); not confirmed by either reverse-engineering source.
  */
 fun TileEntry.continentCont(continents: List<ContEntry>): ContEntry? = continents.getOrNull(continent.toInt())
 

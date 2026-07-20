@@ -5,9 +5,9 @@ import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
 import com.kelvsyc.kotlin.core.traits.integral.int
 
 /**
- * Named accessors for [WmapEntry.flags]'s 3 documented bits, per Apolyton's "Civilization III
- * BIC file format (2nd thread)" (confirmed unchanged and complete by the later BIX/BIQ-era
- * documentation too).
+ * Named accessors for [WmapEntry.flags]'s 3 documented bits, per earlier reverse-engineering
+ * documentation of the BIC format (confirmed unchanged and complete by later BIX/BIQ-era
+ * reverse-engineering documentation too).
  */
 val WmapEntry.xWrapping: Boolean by BitCollection.int.extensionBitFlag({ flags }, 0)
 val WmapEntry.yWrapping: Boolean by BitCollection.int.extensionBitFlag({ flags }, 1)

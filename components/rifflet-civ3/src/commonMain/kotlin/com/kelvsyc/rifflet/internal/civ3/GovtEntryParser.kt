@@ -5,7 +5,7 @@ import com.kelvsyc.rifflet.civ3.GovtEntry
 import okio.Buffer
 
 /**
- * Parses one `GOVT` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `GOVT` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop. The embedded `numberOfGovernments`-sized relationship array is read as
  * a loop resuming the same cursor; `numberOfGovernments` itself is not stored on [GovtEntry] —

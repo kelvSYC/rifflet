@@ -3,8 +3,9 @@ package com.kelvsyc.rifflet.civ3
 /**
  * One entry of the `CITY` section: a placed city instance.
  *
- * @param buildingIds Likely `BLDG` section indices (naming convention/`QueryCiv3` comment only);
- *   `BLDG` itself remains unmodeled in this codebase. Not confirmed by Apolyton's documentation.
+ * @param buildingIds Likely `BLDG` section indices (naming convention/a separate
+ *   reverse-engineered reference implementation's comment only); `BLDG` itself remains unmodeled
+ *   in this codebase. Not confirmed by existing reverse-engineering documentation.
  * @param culture Accumulated culture points for this city — NOT an index into the `CULT`
  *   section, which models culture-opinion levels rather than per-city point totals.
  * @param owner Meaning depends on [ownerType]: a `RACE` section index when Civ, a player index

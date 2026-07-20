@@ -4,7 +4,7 @@ import com.kelvsyc.rifflet.civ3.GovtRelationship
 import okio.Buffer
 
 /**
- * Parses one government-relationship entry (per the Apolyton BIX/BIQ format documentation),
+ * Parses one government-relationship entry (per existing reverse-engineering documentation of the BIX/BIQ format),
  * 12 bytes: `canBribe`, `briberyModifier`, `resistanceModifier`, each a little-endian `Int`.
  * Reads directly off [item], continuing whatever cursor position the caller (`GovtEntryParser`)
  * has already reached on the shared `GOVT` record `Buffer`.

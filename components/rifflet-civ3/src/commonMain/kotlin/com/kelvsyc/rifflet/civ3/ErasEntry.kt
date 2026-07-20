@@ -5,7 +5,8 @@ import okio.ByteString
 /**
  * One entry of the `ERAS` section: a game era's civilopedia text and researcher-name pool.
  *
- * @param unknown 4 bytes Apolyton documents as `??? (=1)`; preserved raw, not validated.
+ * @param unknown 4 bytes existing reverse-engineering documentation lists as `??? (=1)`;
+ *   preserved raw, not validated.
  */
 data class ErasEntry(
     val name: String,

@@ -62,9 +62,10 @@ import okio.BufferedSource
  * little longer than usual.
  *
  * `FLAV` is the sole exception to the length-prefixed-item framing described above — its items
- * have no length field of their own in the file format (confirmed by both Apolyton's
- * documentation and `QueryCiv3`'s `Flav.cs`, the only section struct without a leading `Length`
- * field), so [parseSection] reads it as a special case directly off the shared [BufferedSource],
+ * have no length field of their own in the file format (confirmed by both existing
+ * reverse-engineering documentation and a separate reverse-engineered reference implementation's
+ * equivalent struct, the only section struct without a leading `Length` field), so [parseSection]
+ * reads it as a special case directly off the shared [BufferedSource],
  * bypassing the generic zero-copy-[Buffer] item slicing entirely. Each FLAV item is itself a
  * "flavor group" containing a nested dynamic list of flavors — see [FlavGroupEntryParser].
  *

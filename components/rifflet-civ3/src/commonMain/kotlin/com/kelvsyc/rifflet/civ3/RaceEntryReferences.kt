@@ -4,7 +4,7 @@ package com.kelvsyc.rifflet.civ3
  * Resolves [RaceEntry.freeTech1] against [techs]. Likely a `TECH` section index — inferred from
  * the field name and the same naming convention as `CtznEntry.prerequisite`/
  * `GovtEntry.prerequisiteTechnology` (see [CtznEntry.prerequisite]'s KDoc); not confirmed by
- * either primary source.
+ * either reverse-engineering source.
  */
 fun RaceEntry.freeTech1Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(freeTech1)
 
@@ -25,14 +25,14 @@ fun RaceEntry.freeTech4Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNul
 
 /**
  * Resolves [RaceEntry.unitTypeForKing] against [units]. A `PRTO` section index — explicitly
- * documented by Apolyton's BIX/BIQ format reference ("King Unit... an index into the unit
+ * documented by existing reverse-engineering work ("King Unit... an index into the unit
  * list"), not merely a naming-based inference.
  */
 fun RaceEntry.unitTypeForKingPrto(units: List<PrtoEntry>): PrtoEntry? = units.getOrNull(unitTypeForKing)
 
 /**
  * Resolves [RaceEntry.shunnedGovernment] against [governments]. Likely a `GOVT` section index —
- * inferred from the field name; not itself documented by either primary source. Real Conquests
+ * inferred from the field name; not itself documented by either reverse-engineering source. Real Conquests
  * map-editor default-ruleset data supports the inference: every civilization's value is a small
  * non-negative int within the file's actual `GOVT` count, with `-1` for the Barbarian entry — the
  * same shape as every other confirmed reference field in this codebase. Same treatment as

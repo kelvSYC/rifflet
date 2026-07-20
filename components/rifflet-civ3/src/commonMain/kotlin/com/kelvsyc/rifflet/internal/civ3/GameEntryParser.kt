@@ -6,15 +6,17 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `GAME` item, per the Apolyton BIX/BIQ format documentation cross-validated against
- * `QueryCiv3`'s struct. Reads directly off [item], a zero-copy-transferred [Buffer] already
- * stripped of its own length prefix by the generic section loop.
+ * Parses one `GAME` item, per existing reverse-engineering documentation of the BIX/BIQ format,
+ * cross-validated against a separate reverse-engineered reference implementation's struct. Reads
+ * directly off [item], a zero-copy-transferred [Buffer] already stripped of its own length
+ * prefix by the generic section loop.
  *
  * [GameEntry.numberOfPlayableCivs] is read once and reused (not re-read) to size two separate
  * dynamic reads at different points in the layout: [GameEntry.playableCivIds] immediately after
  * it, and [GameEntry.civAllianceStatuses] much later, after [GameEntry.scenarioSearchFolders].
- * A 4-byte BIX-only `mapVisible (long)` field documented by Apolyton between those two gaps is
- * deliberately NOT read here — see [GameEntry]'s class-level KDoc for why.
+ * A 4-byte BIX-only `mapVisible (long)` field documented by existing reverse-engineering work
+ * between those two gaps is deliberately NOT read here — see [GameEntry]'s class-level KDoc for
+ * why.
  *
  * [GameEntry.numberOfPlayableCivs] is validated via [requireSaneCount] immediately after being
  * read, before it sizes [GameEntry.playableCivIds] or (much later) [GameEntry.civAllianceStatuses]

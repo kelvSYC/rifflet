@@ -6,7 +6,7 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `RACE` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `RACE` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop. [erasCount] comes from the already-parsed `ERAS` section (see
  * `Civ3RootParserImpl`'s cross-section threading) and sizes the embedded `eras` array; none of

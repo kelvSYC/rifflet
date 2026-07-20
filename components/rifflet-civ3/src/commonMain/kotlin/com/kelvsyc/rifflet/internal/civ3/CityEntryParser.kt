@@ -5,9 +5,10 @@ import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import okio.Buffer
 
 /**
- * Parses one `CITY` item, per the Apolyton BIX/BIQ format documentation (the `name` field is 24
- * bytes, resolving a discrepancy between `QueryCiv3`'s `City.cs` struct declaration — 24 bytes —
- * and its own buggy 30-byte `Name` accessor; Apolyton's text confirms 24 bytes). Reads directly
+ * Parses one `CITY` item, per existing reverse-engineering documentation of the BIX/BIQ format
+ * (the `name` field is 24 bytes, resolving a discrepancy between a separate reverse-engineered
+ * reference implementation's struct declaration — 24 bytes — and its own buggy 30-byte accessor;
+ * existing reverse-engineering documentation confirms 24 bytes). Reads directly
  * off [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *

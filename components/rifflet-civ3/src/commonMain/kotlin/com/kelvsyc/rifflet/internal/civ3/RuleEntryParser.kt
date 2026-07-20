@@ -5,15 +5,16 @@ import com.kelvsyc.rifflet.civ3.RuleEntry
 import okio.Buffer
 
 /**
- * Parses one `RULE` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `RULE` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * Both trailing fields are read defensively: [Civ3FormatEra.VANILLA] files have neither
  * [RuleEntry.flagUnitType] nor [RuleEntry.upgradeCost]; [Civ3FormatEra.PTW] files (`VER#` header
  * `minor=18` — the only PTW minor confirmed to have a `RULE` section, so other PTW minors' shape
- * here is unconfirmed) have [RuleEntry.flagUnitType] but not [RuleEntry.upgradeCost]
- * (`QueryCiv3`'s struct comments the latter `// Only in conquests`); [Civ3FormatEra.CONQUESTS]
+ * here is unconfirmed) have [RuleEntry.flagUnitType] but not [RuleEntry.upgradeCost] (a separate
+ * reverse-engineered reference implementation's struct comments the latter
+ * `// Only in conquests`); [Civ3FormatEra.CONQUESTS]
  * files have both. Because the generic section loop in `Civ3RootParserImpl` already slices
  * [item] to the file's own declared length, `item.size` reliably reflects how many bytes
  * actually remain for this specific file.

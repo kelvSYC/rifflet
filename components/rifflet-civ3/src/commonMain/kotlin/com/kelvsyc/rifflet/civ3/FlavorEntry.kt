@@ -11,7 +11,7 @@ import okio.ByteString
  * per-flavor relation count dynamically, so this type models them as such rather than assuming
  * fixed sizes.
  *
- * @param unknown 4 bytes with zero documented behavior from either primary source;
+ * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  */
 data class FlavorEntry(

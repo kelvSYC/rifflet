@@ -4,12 +4,14 @@ import okio.ByteString
 
 /**
  * One entry of the `GAME` section: global scenario/ruleset settings (there is typically exactly
- * one `GAME` entry per file, per Apolyton's own "(1)" annotation on the section's item count).
+ * one `GAME` entry per file, per existing reverse-engineering documentation's own "(1)"
+ * annotation on the section's item count).
  *
- * A 4-byte `mapVisible (long)` field is documented by Apolyton as present only in BIX files
- * (`major >= 11.19`, absent from BIQ/`major = 12`), positioned between [civAllianceStatuses] and
- * [victoryPointLimit]. `QueryCiv3` never actually parses this field — it exists only as a comment
- * in its source — and this codebase does not parse it either. Do not confuse this skipped field
+ * A 4-byte `mapVisible (long)` field is documented by existing reverse-engineering work as
+ * present only in BIX files (`major >= 11.19`, absent from BIQ/`major = 12`), positioned between
+ * [civAllianceStatuses] and [victoryPointLimit]. A separate reverse-engineered reference
+ * implementation never actually parses this field — it exists only as a comment in its source —
+ * and this codebase does not parse it either. Do not confuse this skipped field
  * with [mapVisible] below, an unconditional 1-byte field that IS modeled.
  *
  * Every field after the fixed 5-field header ([defaultGameRules]/[defaultVictoryConditions]/
@@ -36,7 +38,7 @@ import okio.ByteString
  *   [civAllianceStatuses] (0 means "all civs playable"); stored explicitly because its value
  *   0 carries distinct semantic meaning beyond mere list-size recoverability.
  * @param playableCivIds Likely `RACE` section indices (naming convention only); not confirmed
- *   by either primary source. Sized by [numberOfPlayableCivs]. Stays unconditional even after
+ *   by either reverse-engineering source. Sized by [numberOfPlayableCivs]. Stays unconditional even after
  *   this class's other defensive-parsing extensions — every known cutoff tier includes it, though
  *   [Civ3FormatEra.VANILLA]'s behavior when `numberOfPlayableCivs > 0` is unconfirmed.
  * @param flags 4 bytes with 16 named booleans (victory condition toggles, game rule toggles);
@@ -46,32 +48,34 @@ import okio.ByteString
  *   [Civ3FormatEra.PTW] files — defaults to [numberOfPlayableCivs] zeros ("no alliance", which is
  *   accurate: [Civ3FormatEra.PTW] has no alliance concept at all) rather than an empty list, to
  *   satisfy this property's own size invariant.
- * @param unknown 5 bytes with zero documented behavior from either primary source; preserved raw,
+ * @param unknown 5 bytes with zero documented behavior from either reverse-engineering source; preserved raw,
  *   not validated. Same treatment as `RaceEntry.unknown`. Absent from [Civ3FormatEra.PTW] files,
  *   read defensively.
  * @param allianceNames 5 fixed alliance-name slots (256 bytes each), index 0 conventionally
- *   "unallied"/blank, confirmed explicitly by Apolyton. Absent from [Civ3FormatEra.PTW] files
- *   (alliances are a [Civ3FormatEra.CONQUESTS]-only feature), read defensively.
- * @param allianceWars A flat, row-major 5×5 matrix of war-status values between alliances; index
- *   `[i, j]` is `allianceWars[i * 5 + j]`. Confirmed explicitly by Apolyton's nested "for each
- *   alliance: war with alliance #0..#4" documentation. Absent from [Civ3FormatEra.PTW] files,
+ *   "unallied"/blank, confirmed explicitly by existing reverse-engineering documentation. Absent
+ *   from [Civ3FormatEra.PTW] files (alliances are a [Civ3FormatEra.CONQUESTS]-only feature),
  *   read defensively.
- * @param unknown2 264 bytes with zero documented *meaning* from either primary source, though
+ * @param allianceWars A flat, row-major 5×5 matrix of war-status values between alliances; index
+ *   `[i, j]` is `allianceWars[i * 5 + j]`. Confirmed explicitly by existing reverse-engineering
+ *   documentation's nested "for each alliance: war with alliance #0..#4" description. Absent
+ *   from [Civ3FormatEra.PTW] files, read defensively.
+ * @param unknown2 264 bytes with zero documented *meaning* from either reverse-engineering source, though
  *   both sources agree on its byte sub-structure (a 4-byte int followed by a 260-byte string
  *   region) without confirming what either part represents; preserved raw as a single opaque
- *   region, not split, matching `QueryCiv3`'s own grouping. Absent from [Civ3FormatEra.PTW]
+ *   region, not split, matching a separate reverse-engineered reference implementation's own
+ *   grouping. Absent from [Civ3FormatEra.PTW]
  *   files, read defensively. The leading int defaults to `0` and the string region defaults to
  *   the literal ASCII text `"Unknown"` — reproduced identically across multiple unrelated real
  *   files, which argues against this being uninitialized memory (unlike the padding bytes that
  *   follow it, which vary and do look uninitialized). Structural position (directly between the
  *   plague fields and [eruptionPeriod]) is suggestive but unconfirmed: possibly a name field for
  *   Conquests' other catastrophe type (eruptions), analogous to [plagueName] for plagues.
- * @param mapVisible An unconditional 1-byte field per both primary sources' original
+ * @param mapVisible An unconditional 1-byte field per both reverse-engineering sources' original
  *   documentation — but absent from [Civ3FormatEra.PTW] files along with every other field from
  *   [civAllianceStatuses] onward, so "unconditional" only holds for [Civ3FormatEra.CONQUESTS].
  *   Distinct from the BIX-only `mapVisible (long)` field this codebase does not parse (see the
  *   class-level note above).
- * @param unknown3 4 bytes with zero documented behavior from either primary source; preserved
+ * @param unknown3 4 bytes with zero documented behavior from either reverse-engineering source; preserved
  *   raw, not validated. Absent from [Civ3FormatEra.PTW] files, read defensively. Defaults to
  *   `0xFFFFFFFF` (-1 as a signed Int) — matching Civ3's common "-1 = none/unset" sentinel
  *   convention used elsewhere in this format (e.g. `barbarianTribe`, `victoryPointLocation`),
