@@ -27,6 +27,18 @@ import okio.ByteString
  * `unknown6` is a further, genuinely-unexplained 49-byte [Civ3FormatEra.CONQUESTS] sub-tier —
  * see [TileEntry.unknown6]'s KDoc for what's confirmed and what isn't. It is guarded the same
  * defensive way as every other optional field here.
+ *
+ * The two `Short`s immediately after `barbarianTribe` are read `city` then `colony` — the
+ * OPPOSITE of the byte order both cross-referenced sources originally documented (`colony` then
+ * `city`). Confirmed against two real map-editor exports (one PTW, one Conquests), each with
+ * exactly one placed colony and one placed city at known coordinates: computing each object's
+ * expected `TILE` array index from its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` and this
+ * codebase's confirmed isometric tile-index formula (`(y/2)*width + (y%2==1 ? width/2 : 0) +
+ * x/2`), the *first* `Short` at that tile correctly identified the placed `CITY` entry and the
+ * *second* correctly identified the placed `CLNY` entry — consistently in both files. `TileEntry`'s
+ * own field names (`colony`, `city`) are kept as originally documented; only the read order here
+ * changes, so downstream code (`TileEntry.colony`/`.city`, `TileEntryReferences.kt`'s
+ * `colonyClny`/`cityCity`) needed no changes.
  */
 internal object TileEntryParser {
     fun parse(item: Buffer): TileEntry {
@@ -41,8 +53,8 @@ internal object TileEntryParser {
         val bonusFlags = item.readByte()
         val riverCrossingFlags = item.readByte()
         val barbarianTribe = item.readShortLe()
-        val colony = item.readShortLe()
         val city = item.readShortLe()
+        val colony = item.readShortLe()
         val continent = item.readShortLe()
         val unknown2 = if (item.size >= 1L) item.readByteString(1L) else ByteString.of(0)
         val victoryPointLocation = if (item.size >= 2L) item.readShortLe() else 0.toShort()

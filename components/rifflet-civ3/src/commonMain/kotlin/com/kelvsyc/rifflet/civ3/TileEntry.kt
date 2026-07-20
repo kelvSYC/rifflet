@@ -36,10 +36,12 @@ import okio.ByteString
  *   sibling accessors in `TileEntryFlags.kt`.
  * @param riverCrossingFlags 1 byte with 8 named booleans (compass directions); see
  *   [TileEntry.crossingN] and its sibling accessors in `TileEntryFlags.kt`.
- * @param colony Likely a `CLNY` section index (naming convention only); not confirmed by either
- *   cross-referenced source.
- * @param city Likely a reference to a placed city (naming convention only); not confirmed by
- *   either cross-referenced source.
+ * @param colony A `CLNY` section index — confirmed (2026-07-20) against real PTW and Conquests
+ *   map-editor exports, each with one placed colony/city at known coordinates; see
+ *   `TileEntryParser`'s KDoc for the byte-order correction this confirmation also revealed.
+ * @param city A reference to a placed `CITY` entry — confirmed the same way as [colony], same
+ *   date.
+
  * @param continent Likely a `CONT` section index (naming convention only); not confirmed by
  *   either cross-referenced source.
  * @param unknown2 1 byte with zero documented behavior from either cross-referenced source;
