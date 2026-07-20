@@ -10,6 +10,8 @@ private fun validRaceEntry(
     freeTech3: Int = 0,
     freeTech4: Int = 0,
     unitTypeForKing: Int = 0,
+    shunnedGovernment: Int = 0,
+    favoriteGovernment: Int = 0,
 ): RaceEntry = RaceEntry(
     cityNames = emptyList(),
     greatLeaderNames = emptyList(),
@@ -25,8 +27,8 @@ private fun validRaceEntry(
     civilizationGender = 0,
     aggressionLevel = 0,
     uniqueCivilizationCounter = 0,
-    shunnedGovernment = 0,
-    favoriteGovernment = 0,
+    shunnedGovernment = shunnedGovernment,
+    favoriteGovernment = favoriteGovernment,
     defaultColor = 0,
     uniqueColor = 0,
     freeTech1 = freeTech1,
@@ -103,6 +105,49 @@ private fun validPrtoEntry(): PrtoEntry = PrtoEntry(
     airDefense = 0,
 )
 
+private fun validGovtEntry(): GovtEntry = GovtEntry(
+    defaultType = 0,
+    transitionType = 0,
+    requiresMaintenance = 0,
+    toggle1 = 0,
+    tilePenalty = 0,
+    tradeBonus = 0,
+    name = "",
+    civilopediaEntry = "",
+    maleRulerTitle1 = "",
+    femaleRulerTitle1 = "",
+    maleRulerTitle2 = "",
+    femaleRulerTitle2 = "",
+    maleRulerTitle3 = "",
+    femaleRulerTitle3 = "",
+    maleRulerTitle4 = "",
+    femaleRulerTitle4 = "",
+    corruption = 0,
+    immuneTo = 0,
+    diplomatsAre = 0,
+    spiesAre = 0,
+    relationships = emptyList(),
+    hurrying = 0,
+    assimilationChance = 0,
+    draftLimit = 0,
+    militaryPoliceLimit = 0,
+    rulerTitlePairsUsed = 0,
+    prerequisiteTechnology = 0,
+    scienceRateCap = 0,
+    workerRate = 0,
+    toggle2 = 0,
+    toggle3 = 0,
+    unknown = ByteString.of(0, 0, 0, 0),
+    freeUnits = 0,
+    freeUnitsPerTown = 0,
+    freeUnitsPerCity = 0,
+    freeUnitsPerMetropolis = 0,
+    unitCost = 0,
+    warWeariness = 0,
+    xenophobic = 0,
+    forceResettle = 0,
+)
+
 class RaceEntryReferencesTest : FunSpec({
 
     test("freeTech1Tech resolves against the TECH list") {
@@ -133,5 +178,17 @@ class RaceEntryReferencesTest : FunSpec({
         val prto = validPrtoEntry()
         validRaceEntry(unitTypeForKing = 0).unitTypeForKingPrto(listOf(prto)) shouldBe prto
         validRaceEntry(unitTypeForKing = 5).unitTypeForKingPrto(emptyList()) shouldBe null
+    }
+
+    test("shunnedGovernmentGovt resolves against the GOVT list") {
+        val govt = validGovtEntry()
+        validRaceEntry(shunnedGovernment = 0).shunnedGovernmentGovt(listOf(govt)) shouldBe govt
+        validRaceEntry(shunnedGovernment = 5).shunnedGovernmentGovt(emptyList()) shouldBe null
+    }
+
+    test("favoriteGovernmentGovt resolves against the GOVT list") {
+        val govt = validGovtEntry()
+        validRaceEntry(favoriteGovernment = 0).favoriteGovernmentGovt(listOf(govt)) shouldBe govt
+        validRaceEntry(favoriteGovernment = 5).favoriteGovernmentGovt(emptyList()) shouldBe null
     }
 })

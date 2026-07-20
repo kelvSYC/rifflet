@@ -23,7 +23,17 @@ import okio.ByteString
  *   fuller "Civilization III BIX/BIQ file format" thread (5 pages plus a third-party archive of
  *   a related dead thread) — neither names a single bit for this field, unlike every other
  *   opaque flags field in this codebase. `QueryCiv3` likewise exposes no named booleans for it.
- *   This is a confirmed dead end, not merely unresearched.
+ *   Largely explained (2026-07-20) by real Conquests map-editor default-ruleset data: all 14
+ *   default terrain types' values are dominated by a repeating `0xCC` bit pattern across roughly
+ *   the top 26 of the 32 bits — the classic MSVC debug-CRT poison pattern for uninitialized
+ *   *stack* memory (distinct from the `0xCD` heap-poison pattern separately found in
+ *   `GameEntry.unknown2`) — strongly suggesting most of this field is genuinely unpopulated
+ *   engine memory, consistent with neither primary source ever documenting it. The low ~4 bits
+ *   fall outside that pattern and vary meaningfully by terrain (e.g. Mountains/Volcano share one
+ *   bit, Jungle another, Marsh both, Sea/Ocean are entirely zero) — real signal, not yet reducible
+ *   to individually-nameable flags from one file's worth of default terrains. Not yet checked
+ *   against a PTW or vanilla map editor, only Conquests (`Civ3ConquestsEdit.exe`) — the pattern
+ *   could plausibly differ by era.
  */
 data class TerrEntry(
     val numberOfPossibleResources: Int,

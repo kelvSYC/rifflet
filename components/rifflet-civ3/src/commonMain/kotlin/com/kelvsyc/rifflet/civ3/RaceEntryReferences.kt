@@ -31,3 +31,20 @@ fun RaceEntry.freeTech4Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNul
  * list"), not merely a naming-based inference.
  */
 fun RaceEntry.unitTypeForKingPrto(units: List<PrtoEntry>): PrtoEntry? = units.getOrNull(unitTypeForKing)
+
+/**
+ * Resolves [RaceEntry.shunnedGovernment] against [governments]. Likely a `GOVT` section index —
+ * inferred from the field name; not confirmed by either cross-referenced source's own
+ * documentation. Checked against real Conquests map-editor default-ruleset data (2026-07-20):
+ * every one of 32 real civilizations' values is a small non-negative int within the file's
+ * actual `GOVT` count, with `-1` for the Barbarian entry — the same shape as every other
+ * confirmed reference field in this codebase, though not itself independently documented by
+ * either primary source. Same treatment as [RaceEntry.freeTech1].
+ */
+fun RaceEntry.shunnedGovernmentGovt(governments: List<GovtEntry>): GovtEntry? = governments.getOrNull(shunnedGovernment)
+
+/**
+ * Resolves [RaceEntry.favoriteGovernment] against [governments]. Same treatment as
+ * [RaceEntry.shunnedGovernment].
+ */
+fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? = governments.getOrNull(favoriteGovernment)
