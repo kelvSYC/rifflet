@@ -11,5 +11,6 @@ kotlin {
     sourceSets.commonMain.dependencies {
         api("com.kelvsyc.rifflet:rifflet-core")
         implementation(libs.okio)
+        implementation(libs.kotlin.core)
     }
 }

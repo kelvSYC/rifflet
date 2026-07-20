@@ -1,6 +1,9 @@
 package com.kelvsyc.rifflet.civ3
 
 import okio.ByteString
+import com.kelvsyc.kotlin.core.traits.integral.BitCollection
+import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
+import com.kelvsyc.kotlin.core.traits.integral.int
 
 private fun ByteString.toIntLe(): Int =
     (this[0].toInt() and 0xFF) or
@@ -12,22 +15,22 @@ private fun ByteString.toIntLe(): Int =
  * Named accessors for [GameEntry.flags]'s 16 documented bits, per Apolyton's "Civilization III
  * BIX/BIQ file format" thread.
  */
-val GameEntry.dominationVictoryEnabled: Boolean get() = flags.toIntLe() and (1 shl 0) != 0
-val GameEntry.spaceRaceVictoryEnabled: Boolean get() = flags.toIntLe() and (1 shl 1) != 0
-val GameEntry.diplomaticVictoryEnabled: Boolean get() = flags.toIntLe() and (1 shl 2) != 0
-val GameEntry.victoryByConquestEnabled: Boolean get() = flags.toIntLe() and (1 shl 3) != 0
-val GameEntry.culturalVictoryEnabled: Boolean get() = flags.toIntLe() and (1 shl 4) != 0
-val GameEntry.civSpecificAbilitiesEnabled: Boolean get() = flags.toIntLe() and (1 shl 5) != 0
-val GameEntry.culturallyLinkedStart: Boolean get() = flags.toIntLe() and (1 shl 6) != 0
-val GameEntry.restartPlayers: Boolean get() = flags.toIntLe() and (1 shl 7) != 0
-val GameEntry.preserveRandomSeed: Boolean get() = flags.toIntLe() and (1 shl 8) != 0
-val GameEntry.acceleratedProduction: Boolean get() = flags.toIntLe() and (1 shl 9) != 0
-val GameEntry.eliminationEnabled: Boolean get() = flags.toIntLe() and (1 shl 10) != 0
-val GameEntry.regicideEnabled: Boolean get() = flags.toIntLe() and (1 shl 11) != 0
-val GameEntry.massRegicideEnabled: Boolean get() = flags.toIntLe() and (1 shl 12) != 0
-val GameEntry.victoryLocationsEnabled: Boolean get() = flags.toIntLe() and (1 shl 13) != 0
-val GameEntry.captureTheFlagEnabled: Boolean get() = flags.toIntLe() and (1 shl 14) != 0
-val GameEntry.allowCulturalConversions: Boolean get() = flags.toIntLe() and (1 shl 15) != 0
+val GameEntry.dominationVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 0)
+val GameEntry.spaceRaceVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 1)
+val GameEntry.diplomaticVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 2)
+val GameEntry.victoryByConquestEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 3)
+val GameEntry.culturalVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 4)
+val GameEntry.civSpecificAbilitiesEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 5)
+val GameEntry.culturallyLinkedStart: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 6)
+val GameEntry.restartPlayers: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 7)
+val GameEntry.preserveRandomSeed: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 8)
+val GameEntry.acceleratedProduction: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 9)
+val GameEntry.eliminationEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 10)
+val GameEntry.regicideEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 11)
+val GameEntry.massRegicideEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 12)
+val GameEntry.victoryLocationsEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 13)
+val GameEntry.captureTheFlagEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 14)
+val GameEntry.allowCulturalConversions: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 15)
 
 /**
  * [GameEntry.allianceWars] restructured from its flat, row-major 5x5 storage into a genuine
