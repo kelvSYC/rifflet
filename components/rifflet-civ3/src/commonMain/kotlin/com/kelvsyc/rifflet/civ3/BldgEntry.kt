@@ -6,20 +6,20 @@ import okio.ByteString
  * One entry of the `BLDG` section: a building or wonder definition.
  *
  * @param requiredBuilding Likely a `BLDG` section self-reference (naming convention only); not
- *   confirmed by either cross-referenced source.
+ *   confirmed by either primary source.
  * @param requiredGovernment Likely a `GOVT` section index (naming convention only); not
- *   confirmed by either cross-referenced source.
+ *   confirmed by either primary source.
  * @param requiredAdvance Likely a `TECH` section index (naming convention only); not confirmed
- *   by either cross-referenced source. Same treatment applies to [renderedObsoleteBy].
+ *   by either primary source. Same treatment applies to [renderedObsoleteBy].
  * @param requiredResource1 Likely a `GOOD` section index (naming convention only); not
- *   confirmed by either cross-referenced source. Same treatment applies to [requiredResource2].
+ *   confirmed by either primary source. Same treatment applies to [requiredResource2].
  * @param flags 16 bytes, four packed 4-byte named sub-fields per Apolyton's "Civilization III
  *   BIX/BIQ file format" thread: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
  *   (bytes 4-7), [BldgEntry.smallWonders] (bytes 8-11), [BldgEntry.wonders] (bytes 12-15) — see
  *   each sub-field property and its sibling named-bit accessors in `BldgEntryFlags.kt`.
  * @param flavors Opaque; Apolyton documents this as a binary flags field, but it is preserved
  *   raw and not decomposed, matching this codebase's established flags treatment.
- * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown 4 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated.
  * @param unitProduced A `PRTO` section index — explicitly documented by Apolyton's BIX/BIQ
  *   format reference ("Unit produced (PRTO ref)"), not merely a naming-based inference.

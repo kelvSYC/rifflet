@@ -8,7 +8,7 @@ fun UnitEntry.resolveOwner(races: List<RaceEntry>): Owner = resolveOwner(ownerTy
 
 /**
  * Resolves [UnitEntry.experienceLevel] against [experienceLevels]. Likely an `EXPR` section
- * index (naming convention only); not confirmed by either cross-referenced source.
+ * index (naming convention only); not confirmed by either primary source.
  */
 fun UnitEntry.experienceLevelExpr(experienceLevels: List<ExprEntry>): ExprEntry? =
     experienceLevels.getOrNull(experienceLevel)

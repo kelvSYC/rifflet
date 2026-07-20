@@ -11,7 +11,7 @@ import okio.ByteString
  * @param bonuses 4 bytes of packed boolean flags (civilization traits); see [RaceEntry.militaristic]
  *   and its sibling accessors in `RaceEntryFlags.kt` for the named per-bit accessors. Likewise
  *   for [governorSettings], [buildNever], and [buildOften] — see their own accessor files.
- * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown 4 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated.
  */
 data class RaceEntry(

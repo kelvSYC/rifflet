@@ -9,18 +9,14 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * Both trailing fields are read defensively, confirmed via byte-count algebra across all 45
- * real files with a `RULE` section (correctly accounting for the section's two dynamic-array
- * counts so genuine content differences aren't mistaken for structural ones), zero anomalies:
- * real [Civ3FormatEra.VANILLA] files have neither [RuleEntry.flagUnitType] nor
- * [RuleEntry.upgradeCost]; real [Civ3FormatEra.PTW] files (`VER#` header `minor=18`, unanimous
- * across all 15 real PTW files — the only PTW minor sampled with a `RULE` section, so other PTW
- * minors' shape here is unconfirmed) have [RuleEntry.flagUnitType] but not
- * [RuleEntry.upgradeCost] (`QueryCiv3`'s struct comments the latter `// Only in conquests`);
- * real [Civ3FormatEra.CONQUESTS] files (unanimous across all 29 real Conquests files) have both.
- * Because the generic section loop in `Civ3RootParserImpl` already slices [item] to the file's
- * own declared length, `item.size` reliably reflects how many bytes actually remain for this
- * specific file.
+ * Both trailing fields are read defensively: [Civ3FormatEra.VANILLA] files have neither
+ * [RuleEntry.flagUnitType] nor [RuleEntry.upgradeCost]; [Civ3FormatEra.PTW] files (`VER#` header
+ * `minor=18` — the only PTW minor confirmed to have a `RULE` section, so other PTW minors' shape
+ * here is unconfirmed) have [RuleEntry.flagUnitType] but not [RuleEntry.upgradeCost]
+ * (`QueryCiv3`'s struct comments the latter `// Only in conquests`); [Civ3FormatEra.CONQUESTS]
+ * files have both. Because the generic section loop in `Civ3RootParserImpl` already slices
+ * [item] to the file's own declared length, `item.size` reliably reflects how many bytes
+ * actually remain for this specific file.
  *
  * Both dynamic-array counts (`numberOfSpaceshipParts`, `numberOfCultureLevels`) are validated
  * via [requireSaneCount] before sizing their respective lists — see that function's KDoc for

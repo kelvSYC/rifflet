@@ -5,7 +5,7 @@ package com.kelvsyc.rifflet.civ3
  *
  * @param prerequisite Likely an index into the `TECH` section (inferred from the naming
  *   convention shared with `GovtEntry.prerequisiteTechnology`/`RaceEntry.freeTech1`..`4`); not
- *   confirmed by either cross-referenced source.
+ *   confirmed by either primary source.
  */
 data class CtznEntry(
     val defaultCitizen: Int,

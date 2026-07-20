@@ -46,13 +46,13 @@ import okio.BufferedSource
  * requires one. The caller is expected to have already consumed the leading file magic.
  *
  * `RACE` sections need the entry count of the most recently parsed `ERAS` section — a genuine
- * cross-section parse-order dependency where `ERAS` really does always precede `RACE` in real
- * files, confirmed by direct inspection — [parse] tracks this in a local variable across the
- * section loop and passes it to [parseSection].
+ * cross-section parse-order dependency, since `ERAS` always precedes `RACE` in the file's fixed
+ * section order — [parse] tracks this in a local variable across the section loop and passes it
+ * to [parseSection].
  *
- * `PRTO` sections likewise need the entry count of the file's `TERR` section, but real files
- * (confirmed by direct inspection of the fixed, non-alphabetical section order every real file
- * uses) always place `PRTO` *before* `TERR` — the opposite of the `ERAS`/`RACE` relationship.
+ * `PRTO` sections likewise need the entry count of the file's `TERR` section, but the file's
+ * fixed, non-alphabetical section order always places `PRTO` *before* `TERR` — the opposite of
+ * the `ERAS`/`RACE` relationship.
  * [parseSection] cannot resolve `PRTO` immediately, so [parse] defers it: it stashes `PRTO`'s raw
  * items and its position in the eventual [Civ3Section] list, keeps scanning the rest of the file
  * (so `TERR`, wherever it falls, is still reached), and only parses the stashed items into a

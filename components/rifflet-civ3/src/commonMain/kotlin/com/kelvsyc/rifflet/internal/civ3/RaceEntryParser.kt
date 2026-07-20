@@ -19,18 +19,14 @@ import okio.ByteString
  * fields).
  *
  * [RaceEntry.unitTypeForKing] through [RaceEntry.scientificLeaderNames] form a staggered
- * two-tier cutoff, confirmed via byte-count algebra across all real `RACE` items in a mounted
- * install: [Civ3FormatEra.VANILLA] items end right after [RaceEntry.plurality] (none of the five
- * present, zero anomalies across all sampled [Civ3FormatEra.VANILLA] items);
- * [Civ3FormatEra.PTW] items include [RaceEntry.unitTypeForKing] only (zero anomalies across all
- * sampled [Civ3FormatEra.PTW] items with a `RACE` section — PTW introduced multiplayer regicide,
- * which needs a king-designated unit type); [Civ3FormatEra.CONQUESTS] items include all five,
- * with [RaceEntry.scientificLeaderNames]' own length fully explaining the residual byte count in
- * every sample (Conquests introduced scientific leaders). Each field is guarded independently,
- * not nested, since [Civ3FormatEra.PTW] reads [RaceEntry.unitTypeForKing] and then stops. Only
- * `minor=18` [Civ3FormatEra.PTW] files happened to include a `RACE` section in the sampled
- * install (other PTW minors' files are partial scenario overlays that omit it entirely), so
- * other PTW minors' shape here is unconfirmed.
+ * two-tier cutoff: [Civ3FormatEra.VANILLA] items end right after [RaceEntry.plurality] (none of
+ * the five present); [Civ3FormatEra.PTW] items include [RaceEntry.unitTypeForKing] only (PTW
+ * introduced multiplayer regicide, which needs a king-designated unit type);
+ * [Civ3FormatEra.CONQUESTS] items include all five (Conquests introduced scientific leaders).
+ * Each field is guarded independently, not nested, since [Civ3FormatEra.PTW] reads
+ * [RaceEntry.unitTypeForKing] and then stops. Only `minor=18` [Civ3FormatEra.PTW] files are
+ * confirmed to include a `RACE` section (other PTW minors' files are partial scenario overlays
+ * that omit it entirely), so other PTW minors' shape here is unconfirmed.
  */
 internal object RaceEntryParser {
     fun parse(item: Buffer, erasCount: Int): RaceEntry {

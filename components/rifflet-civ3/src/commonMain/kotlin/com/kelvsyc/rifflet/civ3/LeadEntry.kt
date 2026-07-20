@@ -5,15 +5,15 @@ import okio.ByteString
 /**
  * One entry of the `LEAD` section: a player/leader slot definition.
  *
- * @param unknown 8 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown 8 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param startingTechnologyIds Likely `TECH` section indices (naming convention only); not
- *   confirmed by either cross-referenced source.
+ *   confirmed by either primary source.
  * @param government Likely a `GOVT` section index (naming convention only); not confirmed by
- *   either cross-referenced source.
+ *   either primary source.
  * @param civ -2 = random, -3 = any; otherwise likely a `RACE` section index (naming convention
- *   only); not confirmed by either cross-referenced source.
- * @param unknown2 4 bytes with zero documented behavior from either cross-referenced source;
+ *   only); not confirmed by either primary source.
+ * @param unknown2 4 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  */
 data class LeadEntry(

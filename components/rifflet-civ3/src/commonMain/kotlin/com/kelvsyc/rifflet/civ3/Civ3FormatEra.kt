@@ -10,10 +10,10 @@ package com.kelvsyc.rifflet.civ3
  *   landmarks, and terrain disease, among other features.
  *
  * See individual section parsers' KDoc for exactly which fields are absent in which era. This
- * mapping does not capture every real-data structural variation on its own — some sections have
- * confirmed sub-tiers *within* an era (e.g. `GAME`'s PTW-minor-dependent cutoffs, or `TILE`'s
- * `major=2` vs. `major=3`/`4` distinction, both within [VANILLA]) — see those sections' own KDoc
- * for the finer-grained detail where it exists.
+ * mapping does not capture every structural variation on its own — some sections have sub-tiers
+ * *within* an era (e.g. `GAME`'s PTW-minor-dependent cutoffs, or `TILE`'s `major=2` vs.
+ * `major=3`/`4` distinction, both within [VANILLA]) — see those sections' own KDoc for the
+ * finer-grained detail where it exists.
  */
 enum class Civ3FormatEra {
     VANILLA,

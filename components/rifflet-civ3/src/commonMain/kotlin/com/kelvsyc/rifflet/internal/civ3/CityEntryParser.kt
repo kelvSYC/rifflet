@@ -14,8 +14,7 @@ import okio.Buffer
  * `numberOfBuildings` is validated via [requireSaneCount] before sizing
  * [CityEntry.buildingIds] — see that function's KDoc for why.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object CityEntryParser {
     fun parse(item: Buffer): CityEntry {

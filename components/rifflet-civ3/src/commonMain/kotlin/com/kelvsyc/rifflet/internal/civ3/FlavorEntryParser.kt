@@ -16,8 +16,7 @@ import okio.BufferedSource
  * `numberOfRelations` is validated via [requireSaneCount] before sizing [FlavorEntry.relations]
  * — see that function's KDoc for why.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object FlavorEntryParser {
     fun parse(source: BufferedSource): FlavorEntry {

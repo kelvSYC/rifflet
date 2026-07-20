@@ -9,8 +9,7 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object GoodEntryParser {
     fun parse(item: Buffer): GoodEntry {

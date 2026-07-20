@@ -10,8 +10,7 @@ import okio.Buffer
  * generic section loop (`Civ3RootParserImpl.parseSection`) — no [okio.ByteString] materialization
  * needed for a modeled section.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object WsizEntryParser {
     fun parse(item: Buffer): WsizEntry {

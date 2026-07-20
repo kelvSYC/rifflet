@@ -7,16 +7,16 @@ import okio.ByteString
  * `RULE` entry per file, per Apolyton's own "(1)" annotation on the section's item count).
  *
  * @param advancedBarbarianUnitType Likely a `PRTO` section index (naming convention only); not
- *   confirmed by either cross-referenced source. Same treatment applies to
+ *   confirmed by either primary source. Same treatment applies to
  *   [basicBarbarianUnitType], [barbarianSeaUnitType], [battleCreatedUnit], [buildArmyUnit],
  *   [scout], [slave], [startUnit1], [startUnit2].
- * @param unknown 8 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown 8 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param defaultMoneyResource Likely a `GOOD` section index (naming convention only); not
- *   confirmed by either cross-referenced source.
- * @param unknown2 4 bytes with zero documented behavior from either cross-referenced source;
+ *   confirmed by either primary source.
+ * @param unknown2 4 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param unknown3 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown3 4 bytes with zero documented behavior from either primary source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param flagUnitType A `PRTO` section index — explicitly documented by Apolyton's BIX/BIQ
  *   format reference ("flag unit (PRTO ref)"), not merely a naming-based inference.

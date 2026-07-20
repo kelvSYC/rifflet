@@ -9,15 +9,13 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * The trailing field (`militaryLaw`) is read defensively: real [Civ3FormatEra.VANILLA] files
- * (`major=4`, confirmed against a genuine default-rules `.bic` file) omit it entirely — the
- * 116-byte [Civ3FormatEra.VANILLA] record is an exact prefix of the 120-byte
- * [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS] record — so the read checks `item.size` first and
- * defaults when absent, matching `BldgEntryParser`/`CtznEntryParser`/`TileEntryParser`'s
- * established length-aware defensive parsing pattern. [Civ3FormatEra.PTW] and
- * [Civ3FormatEra.CONQUESTS] were not distinguished from each other during the original
- * investigation of this section (both simply have `militaryLaw`), so no PTW-minor-specific
- * breakdown is recorded.
+ * The trailing field (`militaryLaw`) is read defensively: [Civ3FormatEra.VANILLA] files
+ * (`major=4`) omit it entirely — the 116-byte [Civ3FormatEra.VANILLA] record is an exact prefix
+ * of the 120-byte [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS] record — so the read checks
+ * `item.size` first and defaults when absent, matching
+ * `BldgEntryParser`/`CtznEntryParser`/`TileEntryParser`'s established length-aware defensive
+ * parsing pattern. [Civ3FormatEra.PTW] and [Civ3FormatEra.CONQUESTS] both have `militaryLaw`; no
+ * PTW-minor-specific breakdown is recorded.
  */
 internal object DiffEntryParser {
     fun parse(item: Buffer): DiffEntry {

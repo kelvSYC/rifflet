@@ -4,10 +4,10 @@ package com.kelvsyc.rifflet.civ3
  * One entry of the `UNIT` section: a placed unit instance.
  *
  * @param legacyName [Civ3FormatEra.VANILLA]-era name field; unused in
- *   [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files per both cross-referenced sources —
+ *   [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files per both primary sources —
  *   see [name].
  * @param experienceLevel Likely an `EXPR` section index (naming convention only); not confirmed
- *   by either cross-referenced source.
+ *   by either primary source.
  * @param owner Meaning depends on [ownerType]: a `RACE` section index when Civ, a player index
  *   (0-based) when Player, or a barbarian tribe ID when Barbarian — same treatment as
  *   `SlocEntry.owner`/`ClnyEntry.owner`.

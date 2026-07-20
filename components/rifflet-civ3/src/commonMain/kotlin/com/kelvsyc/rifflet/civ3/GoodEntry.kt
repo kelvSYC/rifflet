@@ -4,10 +4,10 @@ package com.kelvsyc.rifflet.civ3
  * One entry of the `GOOD` section: a tradeable natural resource and its city-output bonuses.
  *
  * @param type Resource classification (e.g. bonus/luxury/strategic); undocumented semantics in
- *   both cross-referenced sources.
+ *   both primary sources.
  * @param prerequisite Likely an index into the `TECH` section (inferred from the naming
  *   convention shared with `CtznEntry.prerequisite`/`GovtEntry.prerequisiteTechnology`); not
- *   confirmed by either cross-referenced source.
+ *   confirmed by either primary source.
  */
 data class GoodEntry(
     val name: String,
