@@ -3,9 +3,10 @@ package com.kelvsyc.rifflet.civ3
 /**
  * One entry of the `CTZN` section: a citizen type's naming and economic-output parameters.
  *
- * @param prerequisite Likely an index into the `TECH` section (inferred from the naming
- *   convention shared with `GovtEntry.prerequisiteTechnology`/`RaceEntry.freeTech1`..`4`); not
- *   confirmed by either cross-referenced source.
+ * @param prerequisite A `TECH` section index, per the Conquests Rules Editor — disabled there
+ *   for the default citizen type, which needs no prerequisite (not merely a naming-based
+ *   inference from the convention shared with
+ *   `GovtEntry.prerequisiteTechnology`/`RaceEntry.freeTech1`..`4`).
  */
 data class CtznEntry(
     val defaultCitizen: Int,

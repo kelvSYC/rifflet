@@ -735,8 +735,9 @@ private fun tileItemBody(): Buffer = Buffer().apply {
     writeByte(4) // bonusFlags
     writeByte(0) // riverCrossingFlags
     writeShortLe(7) // barbarianTribe
-    writeShortLe(2) // colony
-    writeShortLe(9) // city
+    writeShortLe(2) // city (first short in the item; see TileEntryParser's KDoc for the confirmed
+    // colony/city byte-order swap)
+    writeShortLe(9) // colony (second short in the item; see above)
     writeShortLe(1) // continent
     write(byteArrayOf(0x33)) // unknown2
     writeShortLe(-1) // victoryPointLocation
@@ -1762,8 +1763,8 @@ class Civ3RootParserTest : FunSpec({
                         bonusFlags = 4,
                         riverCrossingFlags = 0,
                         barbarianTribe = 7,
-                        colony = 2,
-                        city = 9,
+                        colony = 9,
+                        city = 2,
                         continent = 1,
                         unknown2 = ByteString.of(0x33),
                         victoryPointLocation = -1,

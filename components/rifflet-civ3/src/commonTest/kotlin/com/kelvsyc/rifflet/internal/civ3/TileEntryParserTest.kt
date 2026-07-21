@@ -40,8 +40,9 @@ private fun tileItemBinary(
     writeByte(4) // bonusFlags
     writeByte(0) // riverCrossingFlags
     writeShortLe(7) // barbarianTribe
-    writeShortLe(2) // colony
-    writeShortLe(9) // city
+    writeShortLe(2) // city (first short in the item; confirmed swapped vs. the field's own name
+    // — see TileEntryParser's KDoc)
+    writeShortLe(9) // colony (second short in the item; see above)
     writeShortLe(1) // continent
     if (tier >= 2) {
         write(byteArrayOf(0x33)) // unknown2
@@ -80,8 +81,8 @@ class TileEntryParserTest : FunSpec({
             bonusFlags = 4,
             riverCrossingFlags = 0,
             barbarianTribe = 7,
-            colony = 2,
-            city = 9,
+            colony = 9,
+            city = 2,
             continent = 1,
             unknown2 = ByteString.of(0),
             victoryPointLocation = 0,
@@ -119,8 +120,8 @@ class TileEntryParserTest : FunSpec({
             bonusFlags = 4,
             riverCrossingFlags = 0,
             barbarianTribe = 7,
-            colony = 2,
-            city = 9,
+            colony = 9,
+            city = 2,
             continent = 1,
             unknown2 = ByteString.of(0x33),
             victoryPointLocation = -1,
@@ -150,8 +151,8 @@ class TileEntryParserTest : FunSpec({
             bonusFlags = 4,
             riverCrossingFlags = 0,
             barbarianTribe = 7,
-            colony = 2,
-            city = 9,
+            colony = 9,
+            city = 2,
             continent = 1,
             unknown2 = ByteString.of(0x33),
             victoryPointLocation = -1,
@@ -181,8 +182,8 @@ class TileEntryParserTest : FunSpec({
             bonusFlags = 4,
             riverCrossingFlags = 0,
             barbarianTribe = 7,
-            colony = 2,
-            city = 9,
+            colony = 9,
+            city = 2,
             continent = 1,
             unknown2 = ByteString.of(0x33),
             victoryPointLocation = -1,

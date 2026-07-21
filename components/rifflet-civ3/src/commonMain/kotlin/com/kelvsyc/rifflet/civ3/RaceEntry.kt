@@ -8,10 +8,16 @@ import okio.ByteString
  *
  * @param eras Sized from the already-parsed `ERAS` section's entry count, not from any field
  *   within this record.
- * @param bonuses 4 bytes of packed boolean flags (civilization traits); see [RaceEntry.militaristic]
- *   and its sibling accessors in `RaceEntryFlags.kt` for the named per-bit accessors. Likewise
- *   for [governorSettings], [buildNever], and [buildOften] — see their own accessor files.
- * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param bonuses 4 bytes of packed boolean flags. [RaceEntry.militaristic] and its 7 sibling
+ *   trait accessors in `RaceEntryFlags.kt` cover bits 0-7, documented by existing
+ *   reverse-engineering work. The Conquests Rules Editor shows this same field also backing 7
+ *   more named booleans — "Flavor1" through
+ *   "Flavor7" — matching the `FLAV` section's 7 flavor slots (see `FlavorEntry`/
+ *   `TechEntry.flavors`/`BldgEntry.flavors`). Their bit positions within [bonuses] are
+ *   unconfirmed (presumably 8-14, but not byte-level validated), so no accessors are exposed for
+ *   them yet. Likewise for [governorSettings], [buildNever], and [buildOften] — see their own
+ *   accessor files.
+ * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
  */
 data class RaceEntry(

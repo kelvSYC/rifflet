@@ -4,7 +4,7 @@ package com.kelvsyc.rifflet.civ3
  * The resolved meaning of an `ownerType`/`owner` field pair, a pattern shared verbatim across
  * [CityEntry], [ClnyEntry], [SlocEntry], and [UnitEntry]: `ownerType` discriminates what `owner`
  * means (0=None, 1=Barbarian, 2=Civ → a `RACE` section index, 3=Player → a 0-based player
- * index), explicitly documented by Apolyton's BIX/BIQ format reference.
+ * index), explicitly documented by existing reverse-engineering work.
  */
 sealed interface Owner {
     /** `ownerType == 0`: unowned. */

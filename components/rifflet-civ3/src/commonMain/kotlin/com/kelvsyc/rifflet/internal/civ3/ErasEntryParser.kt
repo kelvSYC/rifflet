@@ -6,7 +6,7 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `ERAS` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `ERAS` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *

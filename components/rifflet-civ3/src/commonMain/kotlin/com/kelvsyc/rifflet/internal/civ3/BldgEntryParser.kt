@@ -6,12 +6,14 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `BLDG` item, per the Apolyton BIX/BIQ format documentation cross-validated against
- * `QueryCiv3`'s grouped flags region (the two sources' byte counts for the flags region between
- * `requiredResource2` and `numberOfArmiesRequired` reconcile exactly at 16 bytes, confirming
- * `QueryCiv3`'s consolidated `Flags[16]` grouping matches Apolyton's four separate 4-byte
- * binary-flag fields for the same region). Reads directly off [item], a zero-copy-transferred
- * [Buffer] already stripped of its own length prefix by the generic section loop.
+ * Parses one `BLDG` item, per existing reverse-engineering documentation of the BIX/BIQ format,
+ * cross-validated against a separate reverse-engineered reference implementation's grouped flags
+ * region (the two sources' byte counts for the flags region between `requiredResource2` and
+ * `numberOfArmiesRequired` reconcile exactly at 16 bytes, confirming that implementation's
+ * consolidated `Flags[16]` grouping matches the four separate 4-byte binary-flag fields from
+ * existing reverse-engineering documentation for the same region). Reads directly off [item], a
+ * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic section
+ * loop.
  *
  * The trailing four fields (`flavors`, `unknown`, `unitProduced`, `unitFrequency`) are read
  * defensively: real [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files omit them entirely

@@ -7,9 +7,9 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `TERR` item, per the Apolyton BIX/BIQ format documentation, which reconciles
- * exactly with `QueryCiv3`'s struct field-by-field (a first for this project — every other
- * section needed at least one cross-source reconciliation). Reads directly off [item], a
+ * Parses one `TERR` item, per existing reverse-engineering documentation of the BIX/BIQ format,
+ * which reconciles exactly with a separate reverse-engineered reference implementation's struct
+ * field-by-field. Reads directly off [item], a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
  *
@@ -25,17 +25,13 @@ import okio.ByteString
  * doesn't fit `requireSaneCount`'s `count * minBytesPerElement` model directly.
  *
  * [TerrEntry.impassable] through [TerrEntry.diseaseStrength] (21 fields) form a three-tier
- * cutoff, confirmed via byte-count algebra across all real `TERR` items in a mounted install:
- * [Civ3FormatEra.VANILLA] items end right after [TerrEntry.allowColonies] (none of the 21
- * present, zero anomalies across all sampled [Civ3FormatEra.VANILLA] items);
- * [Civ3FormatEra.PTW] items include the six boolean flags [TerrEntry.impassable] through
- * [TerrEntry.allowRadarTowers] only (zero anomalies across all sampled [Civ3FormatEra.PTW]
- * items — only `minor=18` [Civ3FormatEra.PTW] files happened to include a `TERR` section in the
- * sampled install, so other PTW minors' shape here is unconfirmed); [Civ3FormatEra.CONQUESTS]
- * items include all 21, including the landmark system and [TerrEntry.diseaseStrength] — both new
- * Conquests features (zero anomalies across all sampled [Civ3FormatEra.CONQUESTS] items). Each
- * field is guarded independently, not nested, since [Civ3FormatEra.PTW] reads six fields and
- * then stops.
+ * cutoff: [Civ3FormatEra.VANILLA] items end right after [TerrEntry.allowColonies] (none of the
+ * 21 present); [Civ3FormatEra.PTW] items include the six boolean flags [TerrEntry.impassable]
+ * through [TerrEntry.allowRadarTowers] only (only `minor=18` [Civ3FormatEra.PTW] files are
+ * confirmed to include a `TERR` section, so other PTW minors' shape here is unconfirmed);
+ * [Civ3FormatEra.CONQUESTS] items include all 21, including the landmark system and
+ * [TerrEntry.diseaseStrength] — both new Conquests features. Each field is guarded
+ * independently, not nested, since [Civ3FormatEra.PTW] reads six fields and then stops.
  */
 internal object TerrEntryParser {
     fun parse(item: Buffer): TerrEntry {

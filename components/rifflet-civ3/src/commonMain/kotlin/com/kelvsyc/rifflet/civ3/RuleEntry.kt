@@ -4,23 +4,29 @@ import okio.ByteString
 
 /**
  * One entry of the `RULE` section: general game-rule settings (there is always exactly one
- * `RULE` entry per file, per Apolyton's own "(1)" annotation on the section's item count).
+ * `RULE` entry per file, per existing reverse-engineering documentation's own "(1)" annotation
+ * on the section's item count).
  *
- * @param advancedBarbarianUnitType Likely a `PRTO` section index (naming convention only); not
- *   confirmed by either cross-referenced source. Same treatment applies to
- *   [basicBarbarianUnitType], [barbarianSeaUnitType], [battleCreatedUnit], [buildArmyUnit],
- *   [scout], [slave], [startUnit1], [startUnit2].
- * @param unknown 8 bytes with zero documented behavior from either cross-referenced source;
+ * @param advancedBarbarianUnitType A `PRTO` section index, per the Conquests Rules Editor (not
+ *   merely a naming-based inference). Same treatment applies to [basicBarbarianUnitType],
+ *   [barbarianSeaUnitType], [battleCreatedUnit], [buildArmyUnit], [scout], [slave],
+ *   [startUnit1], [startUnit2] — the editor's "Default Units" group presents all of these as
+ *   dropdowns of unit names, with [slave] labeled "Captured Unit".
+ * @param unknown 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param defaultMoneyResource Likely a `GOOD` section index (naming convention only); not
- *   confirmed by either cross-referenced source.
- * @param unknown2 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param defaultMoneyResource A `GOOD` section index, per the Conquests Rules Editor (not
+ *   merely a naming-based inference).
+ * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param unknown3 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown3 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param flagUnitType A `PRTO` section index — explicitly documented by Apolyton's BIX/BIQ
- *   format reference ("flag unit (PRTO ref)"), not merely a naming-based inference.
- * @param upgradeCost [Civ3FormatEra.CONQUESTS]-only per `QueryCiv3`'s comment; read defensively,
+ * @param flagUnitType A `PRTO` section index — explicitly documented by existing
+ *   reverse-engineering work ("flag unit (PRTO ref)"), not merely a naming-based inference, and
+ *   corroborated by the Conquests Rules Editor's "Flag Unit" dropdown.
+ * @param defaultDifficultyLevel A `DIFF` section index, per the Conquests Rules Editor's
+ *   "Artificial Intelligence &gt; Default Difficulty Level" dropdown.
+ * @param upgradeCost [Civ3FormatEra.CONQUESTS]-only per a separate reverse-engineered reference
+ *   implementation's comment; read defensively,
  *   defaults to `0` when absent from a file's declared item length — same treatment as
  *   `TechEntry.unknown`'s disputed trailing field, just `Int`-typed rather than
  *   `ByteString`-typed.

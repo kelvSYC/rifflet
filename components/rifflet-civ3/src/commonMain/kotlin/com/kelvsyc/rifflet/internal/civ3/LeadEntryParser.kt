@@ -7,7 +7,7 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `LEAD` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `LEAD` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop. Reads its two dynamic arrays — [LeadEntry.startUnits] (a paired record
  * type, matching `GovtEntryParser`'s `relationships` read) and [LeadEntry.startingTechnologyIds]
@@ -18,12 +18,10 @@ import okio.ByteString
  * that function's KDoc for why.
  *
  * [LeadEntry.skipFirstTurn], [LeadEntry.unknown2], and [LeadEntry.startEmbassies] are absent from
- * [Civ3FormatEra.PTW] items (confirmed via byte-count algebra across all real [Civ3FormatEra.PTW]
- * `LEAD` items in a mounted install: residual 0 for every sampled PTW minor — 6, 9, 10, and 18 —
- * confirmed uniform across all of them, vs. residual 9 — all three fields present — for every
- * sampled [Civ3FormatEra.CONQUESTS] minor); they default to zero/empty when the item ends after
- * [LeadEntry.color]. No real [Civ3FormatEra.VANILLA] file in the sampled install has a `LEAD`
- * section at all, so [Civ3FormatEra.VANILLA]'s shape here remains unconfirmed.
+ * [Civ3FormatEra.PTW] items and present, as a group, in every [Civ3FormatEra.CONQUESTS] item —
+ * they default to zero/empty when the item ends after [LeadEntry.color].
+ * [Civ3FormatEra.VANILLA]'s shape here is unconfirmed: no known real file has a `LEAD` section at
+ * all in that era.
  */
 internal object LeadEntryParser {
     fun parse(item: Buffer): LeadEntry {

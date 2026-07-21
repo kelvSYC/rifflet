@@ -5,21 +5,19 @@ import com.kelvsyc.rifflet.civ3.GovtEntry
 import okio.Buffer
 
 /**
- * Parses one `GOVT` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `GOVT` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop. The embedded `numberOfGovernments`-sized relationship array is read as
  * a loop resuming the same cursor; `numberOfGovernments` itself is not stored on [GovtEntry] —
  * `relationships.size` is already that count. The 8 ruler-title fields are always read
  * unconditionally — they do not vary with any other section's entry count.
  *
- * The trailing 2 fields (`xenophobic`, `forceResettle`) are read defensively: real
+ * The trailing 2 fields (`xenophobic`, `forceResettle`) are read defensively:
  * [Civ3FormatEra.VANILLA] (`major=4`) and [Civ3FormatEra.PTW] (`major=11`) files omit them
- * entirely — confirmed via byte-count algebra across 4 real samples with different government
- * counts, cross-checked against the fixed 12-byte [GovtRelationship] size — so each read checks
- * `item.size` first and defaults when absent, matching
+ * entirely, so each read checks `item.size` first and defaults when absent, matching
  * `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`'s established
- * length-aware defensive parsing pattern. With only 4 total real samples, no per-minor breakdown
- * within [Civ3FormatEra.PTW] was recorded.
+ * length-aware defensive parsing pattern. No per-minor breakdown within [Civ3FormatEra.PTW] is
+ * recorded — the available samples don't distinguish one.
  *
  * `numberOfGovernments` is validated via [requireSaneCount] before sizing
  * [GovtEntry.relationships] — see that function's KDoc for why.

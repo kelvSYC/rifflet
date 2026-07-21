@@ -7,7 +7,7 @@ package com.kelvsyc.rifflet.civ3
  * @param ownerType 0=None, 1=Barbarian, 2=Civ, 3=Player.
  * @param owner Meaning depends on [ownerType]: a `RACE` section index when Civ, a player index
  *   (0-based) when Player, or a barbarian tribe ID when Barbarian — explicitly documented by
- *   Apolyton's BIX/BIQ format reference. Same treatment as `SlocEntry.owner`.
+ *   existing reverse-engineering work. Same treatment as `SlocEntry.owner`.
  */
 data class ClnyEntry(
     val ownerType: Int,

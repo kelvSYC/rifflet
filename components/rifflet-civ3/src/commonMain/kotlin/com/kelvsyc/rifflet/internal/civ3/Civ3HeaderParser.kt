@@ -8,7 +8,7 @@ import okio.BufferedSource
 
 /**
  * Parses the `VER#` section that begins every Civ3 BIC/BIX/BIQ file (immediately after the
- * leading file magic), per the Apolyton BIX/BIQ format documentation:
+ * leading file magic), per existing reverse-engineering documentation of the BIX/BIQ format:
  *
  * ```
  * 4 char "VER#"

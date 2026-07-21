@@ -6,15 +6,17 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `GAME` item, per the Apolyton BIX/BIQ format documentation cross-validated against
- * `QueryCiv3`'s struct. Reads directly off [item], a zero-copy-transferred [Buffer] already
- * stripped of its own length prefix by the generic section loop.
+ * Parses one `GAME` item, per existing reverse-engineering documentation of the BIX/BIQ format,
+ * cross-validated against a separate reverse-engineered reference implementation's struct. Reads
+ * directly off [item], a zero-copy-transferred [Buffer] already stripped of its own length
+ * prefix by the generic section loop.
  *
  * [GameEntry.numberOfPlayableCivs] is read once and reused (not re-read) to size two separate
  * dynamic reads at different points in the layout: [GameEntry.playableCivIds] immediately after
  * it, and [GameEntry.civAllianceStatuses] much later, after [GameEntry.scenarioSearchFolders].
- * A 4-byte BIX-only `mapVisible (long)` field documented by Apolyton between those two gaps is
- * deliberately NOT read here — see [GameEntry]'s class-level KDoc for why.
+ * A 4-byte BIX-only `mapVisible (long)` field documented by existing reverse-engineering work
+ * between those two gaps is deliberately NOT read here — see [GameEntry]'s class-level KDoc for
+ * why.
  *
  * [GameEntry.numberOfPlayableCivs] is validated via [requireSaneCount] immediately after being
  * read, before it sizes [GameEntry.playableCivIds] or (much later) [GameEntry.civAllianceStatuses]
@@ -22,19 +24,17 @@ import okio.ByteString
  *
  * Every field after the fixed 5-field header ([GameEntry.defaultGameRules]/
  * [GameEntry.defaultVictoryConditions]/[GameEntry.numberOfPlayableCivs]/
- * [GameEntry.playableCivIds]/[GameEntry.flags]) is read defensively — confirmed via an
- * exhaustive byte-count scan across all 92 real files with a `GAME` section, grouped by exact
- * `VER#` header `(magic, major, minor)`, zero anomalies: real [Civ3FormatEra.VANILLA] files can
- * end immediately after [GameEntry.flags] (a bare 16-byte item); real [Civ3FormatEra.PTW] files
- * are this codebase's one confirmed case of genuine within-era `minor` sensitivity — they end at
- * one of 3 different real cutoff points depending on `minor`
+ * [GameEntry.playableCivIds]/[GameEntry.flags]) is read defensively: [Civ3FormatEra.VANILLA]
+ * files can end immediately after [GameEntry.flags] (a bare 16-byte item); [Civ3FormatEra.PTW]
+ * files are the one confirmed case of genuine within-era `minor` sensitivity in this codebase —
+ * they end at one of 3 different cutoff points depending on `minor`
  * ([GameEntry.autoPlaceVictoryLocations] for `minor=6/9/10`, [GameEntry.debugMode] for
- * `minor=13`, [GameEntry.scenarioSearchFolders] for the dominant `minor=18` tier); real
+ * `minor=13`, [GameEntry.scenarioSearchFolders] for the dominant `minor=18` tier);
  * [Civ3FormatEra.CONQUESTS] files always include everything through
- * [GameEntry.scenarioSearchFolders] and additionally omit only the trailing mp-timing fields on
- * `minor=6`. `civAllianceStatuses` defaults to `numberOfPlayableCivs` zeros (not an empty list)
- * to satisfy its own size invariant; every other newly-guarded field defaults to the same
- * full-sized zero/empty placeholder already used throughout this codebase.
+ * [GameEntry.scenarioSearchFolders] and omit only the trailing mp-timing fields on `minor=6`.
+ * `civAllianceStatuses` defaults to `numberOfPlayableCivs` zeros (not an empty list) to satisfy
+ * its own size invariant; every other newly-guarded field defaults to the same full-sized
+ * zero/empty placeholder used throughout this codebase.
  */
 internal object GameEntryParser {
     fun parse(item: Buffer): GameEntry {

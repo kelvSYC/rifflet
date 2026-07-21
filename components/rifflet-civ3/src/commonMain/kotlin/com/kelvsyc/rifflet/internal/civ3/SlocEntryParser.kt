@@ -5,12 +5,11 @@ import com.kelvsyc.rifflet.civ3.SlocEntry
 import okio.Buffer
 
 /**
- * Parses one `SLOC` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `SLOC` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object SlocEntryParser {
     fun parse(item: Buffer): SlocEntry {

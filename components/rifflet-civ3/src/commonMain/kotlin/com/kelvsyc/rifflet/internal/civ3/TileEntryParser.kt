@@ -6,27 +6,41 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `TILE` item, per `QueryCiv3`'s struct, confirmed against real files of all three
- * [Civ3FormatEra] values. Reads directly off [item], a zero-copy-transferred [Buffer] already
- * stripped of its own length prefix by the generic section loop.
+ * Parses one `TILE` item, per a separate reverse-engineered reference implementation's struct —
+ * that implementation's own authors describe `TILE` as their least-complete, most tangled
+ * struct. Reads directly off [item], a
+ * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
+ * section loop.
  *
- * The real version ladder has (at least) four steps by exact header `major` value — `major=2`
+ * The version ladder has (at least) four steps by exact header `major` value — `major=2`
  * (22 bytes), `major=3`/`4` (23 bytes, +`unknown2`), `major=11`/[Civ3FormatEra.PTW] (29 bytes,
  * +`victoryPointLocation`/`ruin`), `major=12`/[Civ3FormatEra.CONQUESTS] (45 bytes, +7 more
  * fields) — but the code only needs three independent guards, since
  * `unknown2`/`victoryPointLocation`/`ruin` are each checked against `item.size` on their own, not
- * as a combined tier. Note that `major=2` and `major=3`/`4` are a two-step ladder *within*
+ * as a combined tier. `major=2` and `major=3`/`4` are a two-step ladder *within*
  * [Civ3FormatEra.VANILLA] alone — [Civ3FormatEra] itself only distinguishes
  * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS] at the major-version-range
  * level, so this section's `unknown2` cutoff is finer-grained than [Civ3FormatEra] alone conveys
  * — use the raw `major` value (via [Civ3Header.major]), not just [Civ3Header.formatEra], when
- * this level of precision matters. The same length-aware defensive parsing pattern is already
- * used by `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`/
- * `TechEntryParser`/`UnitEntryParser`/`RuleEntryParser`.
+ * this level of precision matters. The same length-aware defensive parsing pattern is used by
+ * `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`/`TechEntryParser`/
+ * `UnitEntryParser`/`RuleEntryParser`.
  *
- * `unknown6` is a further, genuinely-unexplained 49-byte [Civ3FormatEra.CONQUESTS] sub-tier —
- * see [TileEntry.unknown6]'s KDoc for what's confirmed and what isn't. It is guarded the same
- * defensive way as every other optional field here.
+ * `unknown6` is a further, unexplained 49-byte [Civ3FormatEra.CONQUESTS] sub-tier — see
+ * [TileEntry.unknown6]'s KDoc for what's known. It is guarded the same defensive way as every
+ * other optional field here.
+ *
+ * The two `Short`s immediately after `barbarianTribe` are read `city` then `colony` — the
+ * opposite of the byte order both existing reverse-engineering efforts document (`colony` then
+ * `city`). Verified
+ * against two real map-editor exports (one PTW, one Conquests), each with one placed colony and
+ * one placed city at known coordinates: computing each object's expected `TILE` array index from
+ * its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` and this codebase's isometric tile-index
+ * formula (`(y/2)*width + (y%2==1 ? width/2 : 0) + x/2`), the *first* `Short` at that tile
+ * identifies the placed `CITY` entry and the *second* identifies the placed `CLNY` entry, in both
+ * files. `TileEntry`'s own field names (`colony`, `city`) match their documented meaning; only
+ * the read order here is corrected, so downstream code (`TileEntry.colony`/`.city`,
+ * `TileEntryReferences.kt`'s `colonyClny`/`cityCity`) needed no changes.
  */
 internal object TileEntryParser {
     fun parse(item: Buffer): TileEntry {
@@ -41,8 +55,8 @@ internal object TileEntryParser {
         val bonusFlags = item.readByte()
         val riverCrossingFlags = item.readByte()
         val barbarianTribe = item.readShortLe()
-        val colony = item.readShortLe()
         val city = item.readShortLe()
+        val colony = item.readShortLe()
         val continent = item.readShortLe()
         val unknown2 = if (item.size >= 1L) item.readByteString(1L) else ByteString.of(0)
         val victoryPointLocation = if (item.size >= 2L) item.readShortLe() else 0.toShort()

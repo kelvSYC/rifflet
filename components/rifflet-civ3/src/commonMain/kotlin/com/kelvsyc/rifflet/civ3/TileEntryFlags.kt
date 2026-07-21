@@ -5,8 +5,8 @@ import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
 import com.kelvsyc.kotlin.core.traits.integral.byte
 
 /**
- * Named accessors for [TileEntry.overlayFlags]'s 8 documented bits, per Apolyton's
- * "Civilization III BIX/BIQ file format" thread.
+ * Named accessors for [TileEntry.overlayFlags]'s 8 documented bits, per existing
+ * reverse-engineering documentation of the BIX/BIQ format.
  */
 val TileEntry.road: Boolean by BitCollection.byte.extensionBitFlag({ overlayFlags }, 0)
 val TileEntry.railroad: Boolean by BitCollection.byte.extensionBitFlag({ overlayFlags }, 1)
@@ -27,8 +27,8 @@ val TileEntry.snowCappedMountains: Boolean by BitCollection.byte.extensionBitFla
 val TileEntry.pineForest: Boolean by BitCollection.byte.extensionBitFlag({ bonusFlags }, 5)
 
 /**
- * Named accessors for [TileEntry.riverConnections]'s 4 documented bits, per Apolyton's
- * "Civilization III BIX/BIQ file format" thread.
+ * Named accessors for [TileEntry.riverConnections]'s 4 documented bits, per existing
+ * reverse-engineering documentation of the BIX/BIQ format.
  */
 val TileEntry.riverInNorth: Boolean by BitCollection.byte.extensionBitFlag({ riverConnections }, 0)
 val TileEntry.riverInWest: Boolean by BitCollection.byte.extensionBitFlag({ riverConnections }, 1)

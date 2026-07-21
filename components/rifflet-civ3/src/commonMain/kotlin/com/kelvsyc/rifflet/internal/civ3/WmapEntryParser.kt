@@ -5,15 +5,14 @@ import com.kelvsyc.rifflet.civ3.WmapEntry
 import okio.Buffer
 
 /**
- * Parses one `WMAP` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `WMAP` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop — `WMAP` retains a normal length prefix, unlike `FLAV`.
  *
  * `numberOfResources` is validated via [requireSaneCount] before sizing
  * [WmapEntry.resourceIds] — see that function's KDoc for why.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object WmapEntryParser {
     fun parse(item: Buffer): WmapEntry {

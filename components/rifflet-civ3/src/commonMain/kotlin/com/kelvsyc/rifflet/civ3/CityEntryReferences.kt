@@ -9,9 +9,9 @@ fun CityEntry.resolveOwner(races: List<RaceEntry>): Owner = resolveOwner(ownerTy
 /**
  * Resolves each id in [CityEntry.buildingIds] against [buildings], preserving position: the
  * result is the same length as [CityEntry.buildingIds], with `null` at any position whose id
- * doesn't resolve. Likely `BLDG` section indices (naming convention/`QueryCiv3` comment only);
- * `BLDG` itself remains unmodeled in this codebase's naming; not confirmed by Apolyton's
- * documentation.
+ * doesn't resolve. Likely `BLDG` section indices (naming convention/a separate reverse-engineered
+ * reference implementation's comment only); `BLDG` itself remains unmodeled in this codebase's
+ * naming; not confirmed by existing reverse-engineering documentation.
  */
 fun CityEntry.buildingsBldg(buildings: List<BldgEntry>): List<BldgEntry?> =
     buildingIds.map { buildings.getOrNull(it) }

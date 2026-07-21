@@ -6,10 +6,11 @@ package com.kelvsyc.rifflet.civ3
  *
  * @param turnsToComplete Relative to terrain with a movement cost of 2 (e.g. Forest); other
  *   terrain's actual duration is scaled by its own movement cost.
- * @param required Likely a `TECH` section index (naming convention shared with
- *   `CtznEntry.prerequisite`); not confirmed by either cross-referenced source.
- * @param requiredResource1 Likely a `GOOD` section index (naming convention shared with
- *   `PRTO`'s `RequiredResource1`..`3` fields); not confirmed by either cross-referenced source.
+ * @param required A `TECH` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference from the convention shared with `CtznEntry.prerequisite`).
+ * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference from the convention shared with `PRTO`'s `RequiredResource1`..`3`
+ *   fields). Same treatment applies to [requiredResource2].
  */
 data class TfrmEntry(
     val name: String,

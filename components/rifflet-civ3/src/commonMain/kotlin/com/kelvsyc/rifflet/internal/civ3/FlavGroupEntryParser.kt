@@ -5,20 +5,17 @@ import com.kelvsyc.rifflet.civ3.FlavGroupEntry
 import okio.BufferedSource
 
 /**
- * Parses one `FLAV` flavor group, per the Apolyton BIX/BIQ format documentation: a 4-byte
+ * Parses one `FLAV` flavor group, per existing reverse-engineering documentation of the BIX/BIQ format: a 4-byte
  * `numberOfFlavors` count immediately followed by that many flavors, each parsed by
  * [FlavorEntryParser]. This is the nesting level `Civ3RootParserImpl`'s FLAV special case
- * invokes once per section-level item (typically once per file, since the outer "number of
- * flavorgroups" count is almost always 1) — confirmed against a real [Civ3FormatEra.CONQUESTS]
- * scenario file, where `numberOfFlavors=7` decodes cleanly into 7 named flavors before landing
- * exactly on the next section's marker with zero byte drift.
+ * invokes once per section-level item — typically once per file, since the outer "number of
+ * flavorgroups" count is almost always 1.
  *
  * `numberOfFlavors` is validated via [requireSaneCount] before sizing [FlavGroupEntry.flavors] —
  * see that function's KDoc for why. `264L` is [FlavorEntry]'s own minimum possible byte width
  * (4-byte `unknown` + 256-byte `name` + a 4-byte relations count, with zero relations).
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object FlavGroupEntryParser {
     fun parse(source: BufferedSource): FlavGroupEntry {

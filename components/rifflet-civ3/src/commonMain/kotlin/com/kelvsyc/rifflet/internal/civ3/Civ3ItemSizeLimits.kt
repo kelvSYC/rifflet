@@ -20,9 +20,8 @@ import com.kelvsyc.rifflet.core.ChunkId
  *
  * `GOVT` is deliberately excluded for a different reason than `TECH`/`UNIT`/`RULE`: unlike every
  * section listed below, a single `GOVT` item embeds a dynamic `relationships` array sized by an
- * in-item `numberOfGovernments` field (`length == 396 + 12×numberOfGovernments + 68-or-76`,
- * confirmed via byte-count algebra with zero anomalies across all 120 real files in the mounted
- * install). Because `numberOfGovernments` is scenario-defined, not version-defined, no fixed
+ * in-item `numberOfGovernments` field (`length == 396 + 12×numberOfGovernments + 68-or-76`).
+ * Because `numberOfGovernments` is scenario-defined, not version-defined, no fixed
  * ceiling for any `(magic, major)` pair can ever be valid — a modded government roster can
  * legitimately exceed whatever ceiling a finite sample set would suggest. An earlier version of
  * this table incorrectly included a fixed 536/568-byte `GOVT` ceiling derived from only 4 samples

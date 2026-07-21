@@ -13,7 +13,7 @@ import okio.ByteString
  * @param toggle2 `???` — observed: -1 = Despotism/Communism, 0 = Anarchy/Monarchy,
  *   1 = Republic/Democracy.
  * @param toggle3 `???` — observed: 1 = Republic/Democracy, 0 = other.
- * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
  */
 data class GovtEntry(

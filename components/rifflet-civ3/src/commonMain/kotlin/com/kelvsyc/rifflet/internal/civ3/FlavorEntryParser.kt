@@ -5,7 +5,7 @@ import com.kelvsyc.rifflet.civ3.FlavorEntry
 import okio.BufferedSource
 
 /**
- * Parses one flavor within a `FLAV` group, per the Apolyton BIX/BIQ format documentation.
+ * Parses one flavor within a `FLAV` group, per existing reverse-engineering documentation of the BIX/BIQ format.
  * Unlike every other `EntryParser` in this codebase, this reads directly off a live
  * [BufferedSource] rather than a pre-sliced [okio.Buffer] — `FLAV` items have no length prefix
  * of their own in the file format, so [com.kelvsyc.rifflet.internal.civ3.Civ3RootParserImpl]
@@ -16,8 +16,7 @@ import okio.BufferedSource
  * `numberOfRelations` is validated via [requireSaneCount] before sizing [FlavorEntry.relations]
  * — see that function's KDoc for why.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object FlavorEntryParser {
     fun parse(source: BufferedSource): FlavorEntry {

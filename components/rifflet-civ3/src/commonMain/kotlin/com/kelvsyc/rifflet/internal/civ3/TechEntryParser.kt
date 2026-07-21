@@ -6,25 +6,23 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `TECH` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `TECH` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * Like `UnitEntryParser`, this checks [item]'s remaining size before reading its trailing
- * `unknown` field: `QueryCiv3`'s struct includes this field but Apolyton's documentation
- * omits it entirely, a discrepancy deferred to the project's real-world validation plan.
- * Because the generic section loop in `Civ3RootParserImpl` already slices [item] to the
- * file's own declared length, `item.size` reliably reflects how many bytes actually remain
+ * `unknown` field: a separate reverse-engineered reference implementation's struct includes this
+ * field but existing reverse-engineering documentation omits it entirely. Because the generic
+ * section loop in `Civ3RootParserImpl` already slices [item] to
+ * the file's own declared length, `item.size` reliably reflects how many bytes actually remain
  * for this specific file.
  *
- * [TechEntry.flavors] and [TechEntry.unknown] form a single combined cutoff, confirmed via
- * byte-count algebra across all real `TECH` items in a mounted install: [Civ3FormatEra.VANILLA]
- * and [Civ3FormatEra.PTW] items end right after [TechEntry.flags] (neither field present, zero
- * anomalies across all sampled [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] items — only
- * `minor=18` [Civ3FormatEra.PTW] files happened to include a `TECH` section in the sampled
- * install, so other PTW minors' shape here is unconfirmed); [Civ3FormatEra.CONQUESTS] items
- * include both (zero anomalies across all sampled [Civ3FormatEra.CONQUESTS] items — `flavors`
- * may support Conquests' per-civilization tech trees). Each field is guarded independently.
+ * [TechEntry.flavors] and [TechEntry.unknown] form a single combined cutoff:
+ * [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] items end right after [TechEntry.flags]
+ * (neither field present — only `minor=18` [Civ3FormatEra.PTW] files are confirmed to include a
+ * `TECH` section, so other PTW minors' shape here is unconfirmed); [Civ3FormatEra.CONQUESTS]
+ * items include both (`flavors` may support Conquests' per-civilization tech trees). Each field
+ * is guarded independently.
  */
 internal object TechEntryParser {
     fun parse(item: Buffer): TechEntry {

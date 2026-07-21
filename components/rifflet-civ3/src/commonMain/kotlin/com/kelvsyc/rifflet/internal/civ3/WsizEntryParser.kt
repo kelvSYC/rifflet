@@ -5,13 +5,12 @@ import com.kelvsyc.rifflet.civ3.WsizEntry
 import okio.Buffer
 
 /**
- * Parses one `WSIZ` item, per the Apolyton BIX/BIQ format documentation. Reads directly off
+ * Parses one `WSIZ` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop (`Civ3RootParserImpl.parseSection`) — no [okio.ByteString] materialization
  * needed for a modeled section.
  *
- * Every field in this section is confirmed present in every real sample regardless of
- * [Civ3FormatEra].
+ * Every field in this section is present regardless of [Civ3FormatEra].
  */
 internal object WsizEntryParser {
     fun parse(item: Buffer): WsizEntry {

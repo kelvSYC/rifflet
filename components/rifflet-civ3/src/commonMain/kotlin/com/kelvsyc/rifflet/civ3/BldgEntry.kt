@@ -5,24 +5,28 @@ import okio.ByteString
 /**
  * One entry of the `BLDG` section: a building or wonder definition.
  *
- * @param requiredBuilding Likely a `BLDG` section self-reference (naming convention only); not
- *   confirmed by either cross-referenced source.
- * @param requiredGovernment Likely a `GOVT` section index (naming convention only); not
- *   confirmed by either cross-referenced source.
- * @param requiredAdvance Likely a `TECH` section index (naming convention only); not confirmed
- *   by either cross-referenced source. Same treatment applies to [renderedObsoleteBy].
- * @param requiredResource1 Likely a `GOOD` section index (naming convention only); not
- *   confirmed by either cross-referenced source. Same treatment applies to [requiredResource2].
- * @param flags 16 bytes, four packed 4-byte named sub-fields per Apolyton's "Civilization III
- *   BIX/BIQ file format" thread: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
+ * @param requiredBuilding A `BLDG` section self-reference, per the Conquests Rules Editor (not
+ *   merely a naming-based inference).
+ * @param requiredGovernment A `GOVT` section index, per the Conquests Rules Editor (not merely
+ *   a naming-based inference).
+ * @param requiredAdvance A `TECH` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference). Same treatment applies to [renderedObsoleteBy].
+ * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
+ *   naming-based inference). Same treatment applies to [requiredResource2].
+ * @param flags 16 bytes, four packed 4-byte named sub-fields per existing reverse-engineering
+ *   documentation of the BIX/BIQ format: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
  *   (bytes 4-7), [BldgEntry.smallWonders] (bytes 8-11), [BldgEntry.wonders] (bytes 12-15) — see
  *   each sub-field property and its sibling named-bit accessors in `BldgEntryFlags.kt`.
- * @param flavors Opaque; Apolyton documents this as a binary flags field, but it is preserved
- *   raw and not decomposed, matching this codebase's established flags treatment.
- * @param unknown 4 bytes with zero documented behavior from either cross-referenced source;
+ * @param flavors Likely bitmask membership in the `FLAV` section's 7 flavor slots, not opaque:
+ *   the Conquests Rules Editor's flavor-relationship editor treats buildings, advances (see
+ *   `TechEntry.flavors`), and civilizations (see `RaceEntry.bonuses`'s Flavor1..7 bits) as
+ *   sharing the same Flavor1..7 concept. Existing reverse-engineering documentation describes
+ *   this as a binary flags field but names no bits; preserved raw and not decomposed, pending
+ *   byte-level validation of the bit-to-slot mapping.
+ * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
- * @param unitProduced A `PRTO` section index — explicitly documented by Apolyton's BIX/BIQ
- *   format reference ("Unit produced (PRTO ref)"), not merely a naming-based inference.
+ * @param unitProduced A `PRTO` section index — explicitly documented by existing
+ *   reverse-engineering work ("Unit produced (PRTO ref)"), not merely a naming-based inference.
  */
 data class BldgEntry(
     val description: String,
