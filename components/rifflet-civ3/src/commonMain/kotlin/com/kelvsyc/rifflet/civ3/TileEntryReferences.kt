@@ -1,14 +1,12 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * Resolves [TileEntry.resource] against [goods]. Likely a `GOOD` section index (naming
- * convention only); not confirmed by either reverse-engineering source.
+ * Resolves [TileEntry.resource] against [goods].
  */
 fun TileEntry.resourceGood(goods: List<GoodEntry>): GoodEntry? = goods.getOrNull(resource)
 
 /**
- * Resolves [TileEntry.colony] against [colonies]. Confirmed a genuine `CLNY` section index by
- * real map-editor data — see [TileEntry.colony]'s own KDoc.
+ * Resolves [TileEntry.colony] against [colonies].
  */
 fun TileEntry.colonyClny(colonies: List<ClnyEntry>): ClnyEntry? = colonies.getOrNull(colony.toInt())
 
@@ -19,7 +17,6 @@ fun TileEntry.colonyClny(colonies: List<ClnyEntry>): ClnyEntry? = colonies.getOr
 fun TileEntry.continentCont(continents: List<ContEntry>): ContEntry? = continents.getOrNull(continent.toInt())
 
 /**
- * Resolves [TileEntry.city] against [cities]. Confirmed a genuine `CITY` section index by real
- * map-editor data — see [TileEntry.city]'s own KDoc.
+ * Resolves [TileEntry.city] against [cities].
  */
 fun TileEntry.cityCity(cities: List<CityEntry>): CityEntry? = cities.getOrNull(city.toInt())

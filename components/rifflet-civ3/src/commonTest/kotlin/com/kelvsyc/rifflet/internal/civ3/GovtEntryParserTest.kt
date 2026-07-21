@@ -39,9 +39,9 @@ private fun govtItemBinary(
     writeIntLe(0) // diplomatsAre
     writeIntLe(0) // spiesAre
     writeIntLe(relationships.size) // numberOfGovernments
-    relationships.forEach { (canBribe, briberyModifier, resistanceModifier) ->
+    relationships.forEach { (canBribe, propagandaModifier, resistanceModifier) ->
         writeIntLe(canBribe)
-        writeIntLe(briberyModifier)
+        writeIntLe(propagandaModifier)
         writeIntLe(resistanceModifier)
     }
     writeIntLe(0) // hurrying

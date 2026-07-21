@@ -8,18 +8,12 @@ import okio.ByteString
  * @param prerequisite1 A self-referential `TECH` section index, per the Conquests Rules Editor
  *   (not merely a naming-based inference). Same treatment applies to [prerequisite2],
  *   [prerequisite3], [prerequisite4].
- * @param flags 4 bytes of packed boolean flags. The fuller, later-era existing
- *   reverse-engineering documentation of the BIX/BIQ format lists exactly 19 named bits across
- *   the first 3 of the 4 bytes; a separate reverse-engineered reference implementation claims
- *   23. The Conquests Rules Editor corroborates that count of 23 and names the 4 bits beyond the
- *   19 documented ones — "Permits Sacrifices", "Cannot be Traded", "Bonus Tech", and "Reveal
- *   Map" — but not their bit positions within the 4-byte field, so only the 19 documented bits
- *   are exposed as named accessors in `TechEntryFlags.kt` pending byte-level validation of the
- *   remaining 4.
- * @param flavors Likely bitmask membership in the `FLAV` section's 7 flavor slots, not opaque:
- *   the Conquests Rules Editor's flavor-relationship editor treats advances, buildings (see
- *   `BldgEntry.flavors`), and civilizations (see `RaceEntry.bonuses`'s Flavor1..7 bits) as
- *   sharing the same Flavor1..7 concept. Exact bit-to-slot mapping unconfirmed.
+ * @param flags 4 bytes of packed boolean flags, all 23 bits named — see [TechEntry.enablesDiplomats]
+ *   and its sibling accessors in `TechEntryFlags.kt` for the full breakdown and sourcing.
+ * @param flavors Bitmask membership in the `FLAV` section's 7 flavor slots: bit *n* means this
+ *   advance belongs to Flavor(*n*+1). The same scheme applies to `BldgEntry.flavors` and
+ *   `RaceEntry.flavors` (not `RaceEntry.bonuses`, despite that field's adjacent "Flavor1"
+ *   through "Flavor7" checkboxes in the Rules Editor).
  * @param unknown 4 bytes with disputed presence: a separate reverse-engineered reference
  *   implementation includes this trailing field but existing reverse-engineering documentation
  *   omits it entirely — possibly a BIC/BIX/BIQ format-variant difference, deferred to the

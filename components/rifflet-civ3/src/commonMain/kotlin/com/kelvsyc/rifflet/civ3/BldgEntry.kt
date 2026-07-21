@@ -17,12 +17,9 @@ import okio.ByteString
  *   documentation of the BIX/BIQ format: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
  *   (bytes 4-7), [BldgEntry.smallWonders] (bytes 8-11), [BldgEntry.wonders] (bytes 12-15) — see
  *   each sub-field property and its sibling named-bit accessors in `BldgEntryFlags.kt`.
- * @param flavors Likely bitmask membership in the `FLAV` section's 7 flavor slots, not opaque:
- *   the Conquests Rules Editor's flavor-relationship editor treats buildings, advances (see
- *   `TechEntry.flavors`), and civilizations (see `RaceEntry.bonuses`'s Flavor1..7 bits) as
- *   sharing the same Flavor1..7 concept. Existing reverse-engineering documentation describes
- *   this as a binary flags field but names no bits; preserved raw and not decomposed, pending
- *   byte-level validation of the bit-to-slot mapping.
+ * @param flavors Bitmask membership in the `FLAV` section's 7 flavor slots: bit *n* means this
+ *   building belongs to Flavor(*n*+1). See `TechEntry.flavors`'s own KDoc for the identical
+ *   scheme on advances and civilizations.
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
  * @param unitProduced A `PRTO` section index — explicitly documented by existing

@@ -3,6 +3,14 @@ package com.kelvsyc.rifflet.civ3
 import com.kelvsyc.kotlin.core.traits.integral.BitCollection
 import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
 import com.kelvsyc.kotlin.core.traits.integral.byte
+import com.kelvsyc.kotlin.core.traits.integral.int
+import okio.ByteString
+
+private fun ByteString.toIntLe(): Int =
+    (this[0].toInt() and 0xFF) or
+        ((this[1].toInt() and 0xFF) shl 8) or
+        ((this[2].toInt() and 0xFF) shl 16) or
+        ((this[3].toInt() and 0xFF) shl 24)
 
 /**
  * Named accessors for [TileEntry.overlayFlags]'s 8 documented bits, per existing
@@ -37,9 +45,9 @@ val TileEntry.riverInSouth: Boolean by BitCollection.byte.extensionBitFlag({ riv
 
 /**
  * Named accessors for [TileEntry.riverCrossingFlags]'s 8 documented bits (compass directions).
- * A 2004 forum correction confirmed by the original thread author swapped this field's meaning
- * with what was originally posted as "river source info" — these names reflect the corrected
- * (final) understanding.
+ * A forum correction confirmed by the original documentation's author swapped this field's
+ * meaning with what was originally posted as "river source info" — these names reflect the
+ * corrected (final) understanding.
  */
 val TileEntry.crossingN: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 0)
 val TileEntry.crossingNe: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 1)
@@ -49,3 +57,13 @@ val TileEntry.crossingS: Boolean by BitCollection.byte.extensionBitFlag({ riverC
 val TileEntry.crossingSw: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 5)
 val TileEntry.crossingW: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 6)
 val TileEntry.crossingNw: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 7)
+
+/**
+ * Named accessors for 5 of [TileEntry.c3cOverlays]'s 32 bits (see [TileEntry.c3cOverlays]'s own
+ * KDoc). The remaining bits are unexplained.
+ */
+val TileEntry.craters: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 16)
+val TileEntry.barricade: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 28)
+val TileEntry.airfield: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 29)
+val TileEntry.radarTower: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 30)
+val TileEntry.outpost: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 31)

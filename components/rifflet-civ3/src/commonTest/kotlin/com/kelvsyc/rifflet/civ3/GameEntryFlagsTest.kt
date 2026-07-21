@@ -89,9 +89,10 @@ class GameEntryFlagsTest : FunSpec({
         10 to GameEntry::eliminationEnabled,
         11 to GameEntry::regicideEnabled,
         12 to GameEntry::massRegicideEnabled,
-        13 to GameEntry::victoryLocationsEnabled,
+        13 to GameEntry::victoryPointScoringEnabled,
         14 to GameEntry::captureTheFlagEnabled,
         15 to GameEntry::allowCulturalConversions,
+        16 to GameEntry::wonderVictoryEnabled,
     )
 
     test("each bit maps to exactly its own named property") {

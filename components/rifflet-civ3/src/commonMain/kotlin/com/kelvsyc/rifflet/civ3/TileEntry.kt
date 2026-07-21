@@ -15,8 +15,7 @@ import okio.ByteString
  * [unknown5]). Each trailing field is read defensively and independently — see
  * `TileEntryParser` — so the guards are never coupled into a single all-or-nothing tier.
  *
- * @param resource Likely a `GOOD` section index (naming convention only); not confirmed by
- *   either reverse-engineering source.
+ * @param resource A `GOOD` section index, per the Tile Properties editor's "Resource" dropdown.
  * @param overlayFlags 1 byte with 8 named booleans; see [TileEntry.road] and its sibling
  *   accessors in `TileEntryFlags.kt`.
  * @param terrain A packed nibble pair — low nibble is the base terrain (`TERR` index), high
@@ -47,15 +46,12 @@ import okio.ByteString
  *   separate reverse-engineered reference implementation; present only from [Civ3FormatEra.PTW]
  *   (`major=11`) onward, read defensively.
  * @param ruin Present only from [Civ3FormatEra.PTW] (`major=11`) onward, read defensively.
- * @param c3cOverlays 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively;
- *   preserved raw, not decomposed. Opaque — neither reverse-engineering source names any bits for this field
- *   (see [TerrEntry.terrainFlags]'s KDoc for which sources were checked). Open question: the
- *   Conquests Rules Editor shows 4 per-tile checkboxes with no home anywhere in this type's
- *   already-named bit fields — Airfield, Outpost, Radar Tower, and Barricade (as distinct from
- *   `TerrEntry`'s allow-airfields/allow-outposts/allow-radar-towers terrain-type *permissions* —
- *   these are per-tile *built* state). All 4 are Conquests-only concepts, making this field (or
- *   [c3cBonuses]/[unknown3]/[unknown4], also [Civ3FormatEra.CONQUESTS]-only and opaque) the most
- *   likely home; unconfirmed pending byte-level validation.
+ * @param c3cOverlays 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
+ *   5 of its 32 bits are named — Airfield, Radar Tower, Outpost, Barricade, and Craters —
+ *   representing per-tile *built* state, as distinct from `TerrEntry`'s
+ *   allow-airfields/allow-outposts/allow-radar-towers terrain-type *permissions* — see
+ *   [TileEntry.craters] and its sibling accessors in `TileEntryFlags.kt`. The remaining bits are
+ *   preserved raw, not decomposed.
  * @param unknown3 1 byte with zero documented behavior from either reverse-engineering source;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
