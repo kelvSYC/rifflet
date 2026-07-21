@@ -146,7 +146,7 @@ private fun govtItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // spiesAre
     writeIntLe(1) // numberOfGovernments
     writeIntLe(1) // canBribe
-    writeIntLe(20) // briberyModifier
+    writeIntLe(20) // propagandaModifier
     writeIntLe(30) // resistanceModifier
     writeIntLe(0) // hurrying
     writeIntLe(0) // assimilationChance
@@ -907,7 +907,7 @@ class Civ3RootParserTest : FunSpec({
             writeIntLe(relationshipCount) // numberOfGovernments
             repeat(relationshipCount) {
                 writeIntLe(1) // canBribe
-                writeIntLe(20) // briberyModifier
+                writeIntLe(20) // propagandaModifier
                 writeIntLe(30) // resistanceModifier
             }
             writeIntLe(0) // hurrying

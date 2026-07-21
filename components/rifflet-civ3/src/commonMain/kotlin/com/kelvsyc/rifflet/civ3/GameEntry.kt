@@ -37,8 +37,9 @@ import okio.ByteString
  * @param numberOfPlayableCivs The number of civs enumerated in [playableCivIds] and
  *   [civAllianceStatuses] (0 means "all civs playable"); stored explicitly because its value
  *   0 carries distinct semantic meaning beyond mere list-size recoverability.
- * @param playableCivIds Likely `RACE` section indices (naming convention only); not confirmed
- *   by either reverse-engineering source. Sized by [numberOfPlayableCivs]. Stays unconditional even after
+ * @param playableCivIds `RACE` section indices, per the Scenario Properties editor's "Playable
+ *   Civilizations" listbox, which shows real civ names. Sized by [numberOfPlayableCivs]. Stays
+ *   unconditional even after
  *   this class's other defensive-parsing extensions — every known cutoff tier includes it, though
  *   [Civ3FormatEra.VANILLA]'s behavior when `numberOfPlayableCivs > 0` is unconfirmed.
  * @param flags 4 bytes with 16 named booleans (victory condition toggles, game rule toggles);

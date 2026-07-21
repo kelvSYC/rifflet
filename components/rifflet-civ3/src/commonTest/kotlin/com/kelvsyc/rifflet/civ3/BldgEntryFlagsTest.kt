@@ -84,6 +84,11 @@ class BldgEntryImprovementsFlagsTest : FunSpec({
         22 to BldgEntry::reducesWarWeariness,
         23 to BldgEntry::increasesShieldsInWater,
         24 to BldgEntry::increasesFoodInWater,
+        25 to BldgEntry::increasesTradeInWater,
+        27 to BldgEntry::stealthAttackBarrier,
+        29 to BldgEntry::doublesSacrifice,
+        30 to BldgEntry::producesUnits,
+        31 to BldgEntry::requiredGoodsMustBeInCityRadius,
     )
 
     test("improvements extracts the first 4-byte window as a little-endian Int") {
@@ -165,8 +170,8 @@ class BldgEntrySmallWondersFlagsTest : FunSpec({
         6 to BldgEntry::decreasesSuccessOfMissileAttacks,
         7 to BldgEntry::allowsSpyMissions,
         8 to BldgEntry::allowsHealingInEnemyTerritory,
-        9 to BldgEntry::requiredGoodsMustBeInCityRadius,
         10 to BldgEntry::requiresVictoriousArmy,
+        11 to BldgEntry::requiresEliteNavalUnits,
     )
 
     test("smallWonders extracts the third 4-byte window as a little-endian Int") {
@@ -211,6 +216,9 @@ class BldgEntryWondersFlagsTest : FunSpec({
         11 to BldgEntry::reducesWarWearinessInAllCities,
         12 to BldgEntry::doublesCityDefenses,
         13 to BldgEntry::allowsDiplomaticVictory,
+        16 to BldgEntry::increasedArmyValue,
+        14 to BldgEntry::plus2ShipMovement,
+        17 to BldgEntry::touristAttraction,
     )
 
     test("wonders extracts the fourth 4-byte window as a little-endian Int") {

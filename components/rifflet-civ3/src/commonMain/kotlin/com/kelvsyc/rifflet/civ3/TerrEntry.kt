@@ -18,26 +18,22 @@ import okio.ByteString
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
- * @param terrainFlags Opaque — neither the earlier, BIC-format reverse-engineering documentation
- *   nor the later, fuller BIX/BIQ-format documentation names a single bit for this field, unlike
- *   every other opaque flags field in this codebase, and a separate reverse-engineered reference
- *   implementation likewise exposes no named booleans for it. Real terrain-default data from the
- *   Conquests map editor is dominated by a repeating
- *   `0xCC` bit pattern across roughly the top 26 of 32 bits — the classic MSVC debug-CRT poison
- *   pattern for uninitialized *stack* memory (distinct from the `0xCD` heap-poison pattern found
- *   in `GameEntry.unknown2`) — suggesting most of this field is unpopulated engine memory,
- *   consistent with neither source documenting it. The low ~4 bits fall outside that pattern and
- *   vary meaningfully by terrain (e.g. Mountains/Volcano share one bit, Jungle another, Marsh
- *   both, Sea/Ocean are entirely zero) — real signal, not yet reducible to individually-named
- *   flags. Not checked against a PTW or vanilla map editor, only Conquests — the pattern could
- *   differ by era.
+ * @param terrainFlags Mostly opaque — neither the earlier, BIC-format reverse-engineering
+ *   documentation nor the later, fuller BIX/BIQ-format documentation names a single bit for this
+ *   field, unlike every other opaque flags field in this codebase, and a separate
+ *   reverse-engineered reference implementation likewise exposes no named booleans for it. Real
+ *   terrain-default data from the Conquests map editor is dominated by a repeating `0xCC` bit
+ *   pattern across roughly the top 26 of 32 bits — the classic MSVC debug-CRT poison pattern for
+ *   uninitialized *stack* memory (distinct from the `0xCD` heap-poison pattern found in
+ *   `GameEntry.unknown2`) — suggesting most of this field is unpopulated engine memory,
+ *   consistent with neither source documenting it. Not checked against a PTW or vanilla map
+ *   editor, only Conquests — the pattern could differ by era.
  *
- *   Candidate hypothesis for (at least) 2 of those low bits: the Conquests Rules Editor shows a
- *   per-terrain "Causes Disease" checkbox and a "Cured by Sanitation" checkbox alongside
- *   [diseaseStrength] — two named booleans with nowhere else to live but these low,
- *   terrain-varying bits (Jungle and Marsh, Civ3's classic disease-prone terrain types, both
- *   showing signal here, is suggestive). Unconfirmed: the editor doesn't expose which specific
- *   bit is which, so no accessors are exposed for them yet.
+ *   Two of the low bits falling outside that poison pattern are named: [causesDisease] (bit 2)
+ *   and [curedBySanitation] (bit 3), matching the Conquests Rules Editor's per-terrain "Causes
+ *   Disease"/"Cured by Sanitation" checkboxes. See `TerrEntryFlags.kt` for these and the
+ *   remaining unexplained low bits (e.g. Mountains/Volcano share one bit, Marsh has that same
+ *   bit plus [causesDisease] — real signal, still unnamed).
  */
 data class TerrEntry(
     val numberOfPossibleResources: Int,

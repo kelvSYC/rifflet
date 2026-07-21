@@ -19,7 +19,10 @@ private fun ByteString.toIntLe(offset: Int): Int =
 val BldgEntry.improvements: Int get() = flags.toIntLe(0)
 
 /**
- * Named accessors for [BldgEntry.improvements]'s 25 documented bits.
+ * Named accessors for [BldgEntry.improvements]'s 30 documented bits. Bit 7 ([resistantToBribery])
+ * is labeled "Resistant to Propaganda" in the Conquests Rules Editor, not "Resistant to
+ * Bribery" — a naming mismatch, not a missing bit. [requiredGoodsMustBeInCityRadius] (bit 31)
+ * lives here rather than on [smallWonders], despite the naming convention it otherwise follows.
  */
 val BldgEntry.centerOfEmpire: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 0)
 val BldgEntry.veteranGroundUnits: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 1)
@@ -46,6 +49,11 @@ val BldgEntry.allowsAirTrade: Boolean by BitCollection.int.extensionBitFlag({ im
 val BldgEntry.reducesWarWeariness: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 22)
 val BldgEntry.increasesShieldsInWater: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 23)
 val BldgEntry.increasesFoodInWater: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 24)
+val BldgEntry.increasesTradeInWater: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 25)
+val BldgEntry.stealthAttackBarrier: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 27)
+val BldgEntry.doublesSacrifice: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 29)
+val BldgEntry.producesUnits: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 30)
+val BldgEntry.requiredGoodsMustBeInCityRadius: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 31)
 
 /**
  * The second named 4-byte sub-field of [BldgEntry.flags]. Existing reverse-engineering
@@ -73,7 +81,10 @@ val BldgEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ otherCh
 /**
  * The third named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
  * documentation's "small wonders (binary)" field. See [BldgEntry.increasesChanceOfLeaderAppearance]
- * and its sibling accessors for the 11 named bits.
+ * and its sibling accessors for the 11 named bits. [requiresEliteNavalUnits] (bit 11) lives in
+ * this sub-field's byte range even though the Rules Editor presents it (and every bit here) in
+ * the same combined "Wonders and Small Wonders" grid regardless of whether the building's own
+ * category is Wonder or Small Wonder.
  */
 val BldgEntry.smallWonders: Int get() = flags.toIntLe(8)
 
@@ -86,13 +97,18 @@ val BldgEntry.smallWondersReducesCorruption: Boolean by BitCollection.int.extens
 val BldgEntry.decreasesSuccessOfMissileAttacks: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 6)
 val BldgEntry.allowsSpyMissions: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 7)
 val BldgEntry.allowsHealingInEnemyTerritory: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 8)
-val BldgEntry.requiredGoodsMustBeInCityRadius: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 9)
 val BldgEntry.requiresVictoriousArmy: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 10)
+val BldgEntry.requiresEliteNavalUnits: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 11)
 
 /**
  * The fourth named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
  * documentation's "wonders (binary)" field. See [BldgEntry.safeSeaTravel] and its sibling
- * accessors for the 14 named bits.
+ * accessors for the 17 named bits. [plus2ShipMovement] (bit 14) is distinct from the
+ * already-named [plus1ShipMovement].
+ *
+ * Bit 15 has no corresponding checkbox in the Rules Editor UI — distinct from
+ * [BldgEntry.requiresEliteNavalUnits] — the same way `GovtRelationship.canBribe` isn't exposed
+ * by the Governments tab; no accessor is added for it.
  */
 val BldgEntry.wonders: Int get() = flags.toIntLe(12)
 
@@ -100,6 +116,7 @@ val BldgEntry.safeSeaTravel: Boolean by BitCollection.int.extensionBitFlag({ won
 val BldgEntry.gainAnyAdvancesOwnedBy2Civs: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 1)
 val BldgEntry.doubleCombatStrengthVsBarbarians: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 2)
 val BldgEntry.plus1ShipMovement: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 3)
+val BldgEntry.plus2ShipMovement: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 14)
 val BldgEntry.doublesResearchOutput: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 4)
 val BldgEntry.plus1TradeInEachTradeProducingTile: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 5)
 val BldgEntry.halvesUnitUpgradeCost: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 6)
@@ -110,3 +127,17 @@ val BldgEntry.plus2FreeAdvances: Boolean by BitCollection.int.extensionBitFlag({
 val BldgEntry.reducesWarWearinessInAllCities: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 11)
 val BldgEntry.doublesCityDefenses: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 12)
 val BldgEntry.allowsDiplomaticVictory: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 13)
+val BldgEntry.increasedArmyValue: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 16)
+val BldgEntry.touristAttraction: Boolean by BitCollection.int.extensionBitFlag({ wonders }, 17)
+
+/**
+ * Named accessors for [BldgEntry.flavors]'s 7 documented bits (see that field's own KDoc for
+ * how they were confirmed).
+ */
+val BldgEntry.flavor1: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 0)
+val BldgEntry.flavor2: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 1)
+val BldgEntry.flavor3: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 2)
+val BldgEntry.flavor4: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 3)
+val BldgEntry.flavor5: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 4)
+val BldgEntry.flavor6: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 5)
+val BldgEntry.flavor7: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 6)

@@ -2,44 +2,38 @@ package com.kelvsyc.rifflet.civ3
 
 /**
  * Resolves [BldgEntry.requiredBuilding] against [buildings] (the same `BLDG` section this entry
- * came from). Likely a `BLDG` section self-reference (naming convention only); not confirmed by
- * either reverse-engineering source.
+ * came from).
  */
 fun BldgEntry.requiredBuildingBldg(buildings: List<BldgEntry>): BldgEntry? =
     buildings.getOrNull(requiredBuilding)
 
 /**
- * Resolves [BldgEntry.requiredGovernment] against [governments]. Likely a `GOVT` section index
- * (naming convention only); not confirmed by either reverse-engineering source.
+ * Resolves [BldgEntry.requiredGovernment] against [governments].
  */
 fun BldgEntry.requiredGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
     governments.getOrNull(requiredGovernment)
 
 /**
- * Resolves [BldgEntry.requiredAdvance] against [techs]. Likely a `TECH` section index (naming
- * convention only); not confirmed by either reverse-engineering source.
+ * Resolves [BldgEntry.requiredAdvance] against [techs]. Same treatment applies to
+ * [BldgEntry.renderedObsoleteBy].
  */
 fun BldgEntry.requiredAdvanceTech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(requiredAdvance)
 
 /**
- * Resolves [BldgEntry.renderedObsoleteBy] against [techs]. Same treatment as
- * [BldgEntry.requiredAdvance] — likely a `TECH` section index (naming convention only); not
- * confirmed by either reverse-engineering source.
+ * Resolves [BldgEntry.renderedObsoleteBy] against [techs].
  */
 fun BldgEntry.renderedObsoleteByTech(techs: List<TechEntry>): TechEntry? =
     techs.getOrNull(renderedObsoleteBy)
 
 /**
- * Resolves [BldgEntry.requiredResource1] against [goods]. Likely a `GOOD` section index (naming
- * convention only); not confirmed by either reverse-engineering source.
+ * Resolves [BldgEntry.requiredResource1] against [goods]. Same treatment applies to
+ * [BldgEntry.requiredResource2].
  */
 fun BldgEntry.requiredResource1Good(goods: List<GoodEntry>): GoodEntry? =
     goods.getOrNull(requiredResource1)
 
 /**
- * Resolves [BldgEntry.requiredResource2] against [goods]. Same treatment as
- * [BldgEntry.requiredResource1] — likely a `GOOD` section index (naming convention only); not
- * confirmed by either reverse-engineering source.
+ * Resolves [BldgEntry.requiredResource2] against [goods].
  */
 fun BldgEntry.requiredResource2Good(goods: List<GoodEntry>): GoodEntry? =
     goods.getOrNull(requiredResource2)

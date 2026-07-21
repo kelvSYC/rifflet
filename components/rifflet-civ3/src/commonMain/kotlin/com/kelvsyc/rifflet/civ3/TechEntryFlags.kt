@@ -5,9 +5,11 @@ import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
 import com.kelvsyc.kotlin.core.traits.integral.int
 
 /**
- * Named accessors for [TechEntry.flags]'s 19 documented bits, per the fuller, later-era existing
- * reverse-engineering documentation of the BIX/BIQ format — as opposed to the 23 a separate
- * reverse-engineered reference implementation claims — see [TechEntry.flags]'s own KDoc.
+ * Named accessors for [TechEntry.flags]'s 23 documented bits: bits 0-18 per the fuller,
+ * later-era existing reverse-engineering documentation of the BIX/BIQ format, and bits 19-22
+ * ([cannotBeTraded], [permitsSacrifices], [isBonusTech], [revealsMap]), matching a separate
+ * reverse-engineered reference implementation's claimed count of 23. See [TechEntry.flags]'s
+ * own KDoc.
  */
 val TechEntry.enablesDiplomats: Boolean by BitCollection.int.extensionBitFlag({ flags }, 0)
 val TechEntry.enablesIrrigationWithoutFreshWater: Boolean by BitCollection.int.extensionBitFlag({ flags }, 1)
@@ -28,3 +30,19 @@ val TechEntry.enablesMapTrading: Boolean by BitCollection.int.extensionBitFlag({
 val TechEntry.enablesCommunicationTrading: Boolean by BitCollection.int.extensionBitFlag({ flags }, 16)
 val TechEntry.notRequiredForEraAdvancement: Boolean by BitCollection.int.extensionBitFlag({ flags }, 17)
 val TechEntry.doublesWorkRateOfWorkers: Boolean by BitCollection.int.extensionBitFlag({ flags }, 18)
+val TechEntry.cannotBeTraded: Boolean by BitCollection.int.extensionBitFlag({ flags }, 19)
+val TechEntry.permitsSacrifices: Boolean by BitCollection.int.extensionBitFlag({ flags }, 20)
+val TechEntry.isBonusTech: Boolean by BitCollection.int.extensionBitFlag({ flags }, 21)
+val TechEntry.revealsMap: Boolean by BitCollection.int.extensionBitFlag({ flags }, 22)
+
+/**
+ * Named accessors for [TechEntry.flavors]'s 7 documented bits (see that field's own KDoc for
+ * how they were confirmed).
+ */
+val TechEntry.flavor1: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 0)
+val TechEntry.flavor2: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 1)
+val TechEntry.flavor3: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 2)
+val TechEntry.flavor4: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 3)
+val TechEntry.flavor5: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 4)
+val TechEntry.flavor6: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 5)
+val TechEntry.flavor7: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 6)

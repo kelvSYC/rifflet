@@ -19,6 +19,20 @@ val RaceEntry.agricultural: Boolean by BitCollection.int.extensionBitFlag({ bonu
 val RaceEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 7)
 
 /**
+ * Named accessors for [RaceEntry.flavors]'s 7 documented bits (see that field's own KDoc for
+ * how they were confirmed) — not to be confused with [RaceEntry.bonuses]'s similarly-labeled
+ * "Flavor1".."Flavor7" checkboxes in the Conquests Rules Editor, which turned out to be a
+ * red herring (see [bonuses]'s own KDoc).
+ */
+val RaceEntry.flavor1: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 0)
+val RaceEntry.flavor2: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 1)
+val RaceEntry.flavor3: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 2)
+val RaceEntry.flavor4: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 3)
+val RaceEntry.flavor5: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 4)
+val RaceEntry.flavor6: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 5)
+val RaceEntry.flavor7: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 6)
+
+/**
  * Named accessors for [RaceEntry.governorSettings]'s 7 documented bits, per earlier
  * reverse-engineering documentation of the BIC format.
  */

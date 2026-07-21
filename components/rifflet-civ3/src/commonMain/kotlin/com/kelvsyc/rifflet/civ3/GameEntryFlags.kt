@@ -12,18 +12,16 @@ private fun ByteString.toIntLe(): Int =
         ((this[3].toInt() and 0xFF) shl 24)
 
 /**
- * Named accessors for [GameEntry.flags]'s 16 documented bits, per existing reverse-engineering
- * documentation of the BIX/BIQ format.
- *
- * The Conquests Rules Editor corroborates this bit order via two adjacent checkbox lists:
- * "Default Victory Conditions" (Domination, Space Race, Diplomatic, Conquest, Cultural —
- * matching bits 0-4) and "Default Game Rules" (Accelerated Production, City Elimination,
- * Regicide, Regicide (all Kings), Victory Point Scoring, Capture the Unit, Allow Cultural
- * Conversions — matching bits 9-15). Two of those UI labels don't match the accessor names
- * below: bit 13 ([victoryLocationsEnabled]) is labeled "Victory Point Scoring", and bit 14
- * ([captureTheFlagEnabled]) is labeled "Capture the Unit". The victory-conditions list also
- * shows a 6th, unselected item — "Wonder" — with no corresponding bit anywhere in this 16-bit
- * field; its storage location (if any) is unknown.
+ * Named accessors for [GameEntry.flags]'s 17 documented bits, per existing reverse-engineering
+ * documentation of the BIX/BIQ format for bits 0-15. The Conquests Rules Editor's "Default
+ * Victory Conditions" checkbox list (Domination, Space Race, Diplomatic, Conquest, Cultural,
+ * Wonder) covers bits 0-4 plus bit 16 ([wonderVictoryEnabled], with no home in the
+ * originally-documented 16 bits), and its "Default Game Rules" list (Accelerated Production,
+ * City Elimination, Regicide, Regicide (all Kings), Victory Point Scoring, Capture the Unit,
+ * Allow Cultural Conversions) covers bits 9-15. Bit 13, [victoryPointScoringEnabled], is named
+ * for the editor's label rather than the field's original name (`victoryLocationsEnabled`). Bit
+ * 14's UI label ("Capture the Unit") is unconfirmed by real bytes, so [captureTheFlagEnabled]
+ * keeps its original name pending confirmation.
  */
 val GameEntry.dominationVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 0)
 val GameEntry.spaceRaceVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 1)
@@ -38,9 +36,10 @@ val GameEntry.acceleratedProduction: Boolean by BitCollection.int.extensionBitFl
 val GameEntry.eliminationEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 10)
 val GameEntry.regicideEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 11)
 val GameEntry.massRegicideEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 12)
-val GameEntry.victoryLocationsEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 13)
+val GameEntry.victoryPointScoringEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 13)
 val GameEntry.captureTheFlagEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 14)
 val GameEntry.allowCulturalConversions: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 15)
+val GameEntry.wonderVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 16)
 
 /**
  * [GameEntry.allianceWars] restructured from its flat, row-major 5x5 storage into a genuine

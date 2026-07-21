@@ -8,15 +8,22 @@ import okio.ByteString
  *
  * @param eras Sized from the already-parsed `ERAS` section's entry count, not from any field
  *   within this record.
+ * @param shunnedGovernment A `GOVT` section index, per the Civilizations editor tab's
+ *   "Shunned Government" dropdown. Same treatment applies to [favoriteGovernment].
+ * @param freeTech1 A `TECH` section index, per the Civilizations editor tab's "Free Techs"
+ *   dropdowns. Same treatment applies to [freeTech2], [freeTech3], and [freeTech4].
  * @param bonuses 4 bytes of packed boolean flags. [RaceEntry.militaristic] and its 7 sibling
  *   trait accessors in `RaceEntryFlags.kt` cover bits 0-7, documented by existing
- *   reverse-engineering work. The Conquests Rules Editor shows this same field also backing 7
- *   more named booleans — "Flavor1" through
- *   "Flavor7" — matching the `FLAV` section's 7 flavor slots (see `FlavorEntry`/
- *   `TechEntry.flavors`/`BldgEntry.flavors`). Their bit positions within [bonuses] are
- *   unconfirmed (presumably 8-14, but not byte-level validated), so no accessors are exposed for
- *   them yet. Likewise for [governorSettings], [buildNever], and [buildOften] — see their own
- *   accessor files.
+ *   reverse-engineering work. The Conquests Rules Editor's "Civilizations" tab shows this same
+ *   "Bonuses" group box also containing 7 more checkboxes labeled "Flavor1" through "Flavor7",
+ *   but [bonuses] itself holds only each civilization's traits, with no extra bits — the real
+ *   Flavor1..7 storage is [flavors] (see that field's own KDoc), a wholly separate field from
+ *   this one, not extra bits within it. Likewise for [governorSettings], [buildNever], and
+ *   [buildOften] — see their own accessor files.
+ * @param flavors Bitmask membership in the `FLAV` section's 7 flavor slots: bit *n* means this
+ *   civilization belongs to Flavor(*n*+1). The identical scheme as
+ *   `TechEntry.flavors`/`BldgEntry.flavors` (see `TechEntry.flavors`'s own KDoc), matching the
+ *   `FLAV` section's 7 flavor slots (see `FlavorEntry`).
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
  */
