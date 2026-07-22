@@ -19,9 +19,13 @@ private fun ByteString.toIntLe(): Int =
  * originally-documented 16 bits), and its "Default Game Rules" list (Accelerated Production,
  * City Elimination, Regicide, Regicide (all Kings), Victory Point Scoring, Capture the Unit,
  * Allow Cultural Conversions) covers bits 9-15. Bit 13, [victoryPointScoringEnabled], is named
- * for the editor's label rather than the field's original name (`victoryLocationsEnabled`). Bit
- * 14's UI label ("Capture the Unit") is unconfirmed by real bytes, so [captureTheFlagEnabled]
- * keeps its original name pending confirmation.
+ * for the Conquests editor's label rather than the field's original name
+ * (`victoryLocationsEnabled`) — the PTW editor's equivalent checkbox is actually labeled "Victory
+ * Point Locations", matching that original name; the bit itself is unchanged, only the UI label
+ * was renamed between eras. Bit 14's UI label ("Capture the Unit") is unconfirmed by real bytes,
+ * so [captureTheFlagEnabled] keeps its original name pending confirmation. Bit 16
+ * ([wonderVictoryEnabled]) has no PTW equivalent — the PTW editor's "Default Victory Conditions"
+ * list has only 5 items, with no "Wonder" entry.
  */
 val GameEntry.dominationVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 0)
 val GameEntry.spaceRaceVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 1)

@@ -21,8 +21,10 @@ val BldgEntry.improvements: Int get() = flags.toIntLe(0)
 /**
  * Named accessors for [BldgEntry.improvements]'s 30 documented bits. Bit 7 ([resistantToBribery])
  * is labeled "Resistant to Propaganda" in the Conquests Rules Editor, not "Resistant to
- * Bribery" — a naming mismatch, not a missing bit. [requiredGoodsMustBeInCityRadius] (bit 31)
- * lives here rather than on [smallWonders], despite the naming convention it otherwise follows.
+ * Bribery" — a naming mismatch, not a missing bit. [requiredGoodsMustBeInCityRadius] (bit 31) is
+ * the [Civ3FormatEra.CONQUESTS]-tier location of this flag; [Civ3FormatEra.PTW] (and, unconfirmed,
+ * [Civ3FormatEra.VANILLA]) instead use [ptwRequiredGoodsMustBeInCityRadius] (`smallWonders` bit
+ * 9) — see `BldgEntryReferences.kt`'s era-aware `requiredGoodsMustBeInCityRadius(era)` resolver.
  */
 val BldgEntry.centerOfEmpire: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 0)
 val BldgEntry.veteranGroundUnits: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 1)
@@ -81,10 +83,12 @@ val BldgEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ otherCh
 /**
  * The third named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
  * documentation's "small wonders (binary)" field. See [BldgEntry.increasesChanceOfLeaderAppearance]
- * and its sibling accessors for the 11 named bits. [requiresEliteNavalUnits] (bit 11) lives in
+ * and its sibling accessors for the 12 named bits. [requiresEliteNavalUnits] (bit 11) lives in
  * this sub-field's byte range even though the Rules Editor presents it (and every bit here) in
  * the same combined "Wonders and Small Wonders" grid regardless of whether the building's own
- * category is Wonder or Small Wonder.
+ * category is Wonder or Small Wonder. Bit 9, [ptwRequiredGoodsMustBeInCityRadius], is the
+ * [Civ3FormatEra.PTW]-tier location of [BldgEntry.requiredGoodsMustBeInCityRadius] — confirmed
+ * via a real PTW file's Iron Works entry, which sets this bit and not `improvements` bit 31.
  */
 val BldgEntry.smallWonders: Int get() = flags.toIntLe(8)
 
@@ -97,6 +101,7 @@ val BldgEntry.smallWondersReducesCorruption: Boolean by BitCollection.int.extens
 val BldgEntry.decreasesSuccessOfMissileAttacks: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 6)
 val BldgEntry.allowsSpyMissions: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 7)
 val BldgEntry.allowsHealingInEnemyTerritory: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 8)
+val BldgEntry.ptwRequiredGoodsMustBeInCityRadius: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 9)
 val BldgEntry.requiresVictoriousArmy: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 10)
 val BldgEntry.requiresEliteNavalUnits: Boolean by BitCollection.int.extensionBitFlag({ smallWonders }, 11)
 

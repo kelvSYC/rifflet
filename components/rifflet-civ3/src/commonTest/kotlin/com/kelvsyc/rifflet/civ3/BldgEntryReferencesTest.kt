@@ -12,6 +12,7 @@ private fun validBldgEntry(
     requiredResource1: Int = 0,
     requiredResource2: Int = 0,
     unitProduced: Int = 0,
+    flags: ByteString = ByteString.of(*ByteArray(16)),
 ): BldgEntry = BldgEntry(
     description = "",
     name = "",
@@ -42,7 +43,7 @@ private fun validBldgEntry(
     renderedObsoleteBy = renderedObsoleteBy,
     requiredResource1 = requiredResource1,
     requiredResource2 = requiredResource2,
-    flags = ByteString.of(*ByteArray(16)),
+    flags = flags,
     numberOfArmiesRequired = 0,
     flavors = 0,
     unknown = ByteString.of(*ByteArray(4)),
@@ -206,5 +207,20 @@ class BldgEntryReferencesTest : FunSpec({
         val prto = validPrtoEntry()
         validBldgEntry(unitProduced = 0).unitProducedPrto(listOf(prto)) shouldBe prto
         validBldgEntry(unitProduced = 5).unitProducedPrto(emptyList()) shouldBe null
+    }
+
+    test("requiredGoodsMustBeInCityRadius(era) reads smallWonders bit 9 for VANILLA/PTW and improvements bit 31 for CONQUESTS") {
+        // smallWonders bit 9 -> byte offset 9 (byte 1 of the 4-byte smallWonders window), bit 1
+        val ptwFlags = ByteString.of(*(ByteArray(9) + byteArrayOf(0b00000010) + ByteArray(6)))
+        val entry = validBldgEntry(flags = ptwFlags)
+        entry.requiredGoodsMustBeInCityRadius(Civ3FormatEra.VANILLA) shouldBe true
+        entry.requiredGoodsMustBeInCityRadius(Civ3FormatEra.PTW) shouldBe true
+        entry.requiredGoodsMustBeInCityRadius(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        // improvements bit 31 -> byte offset 3 (byte 3 of the 4-byte improvements window), bit 7
+        val conquestsFlags = ByteString.of(*(ByteArray(3) + byteArrayOf(0b10000000.toByte()) + ByteArray(12)))
+        val c3cEntry = validBldgEntry(flags = conquestsFlags)
+        c3cEntry.requiredGoodsMustBeInCityRadius(Civ3FormatEra.CONQUESTS) shouldBe true
+        c3cEntry.requiredGoodsMustBeInCityRadius(Civ3FormatEra.PTW) shouldBe false
     }
 })
