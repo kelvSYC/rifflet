@@ -11,9 +11,17 @@ import okio.ByteString
  * @param possibleResources A bit array, one bit per `GOOD` section entry (packed 8 per byte,
  *   rounded up to `⌈numberOfPossibleResources / 8⌉` bytes), indicating which resources can
  *   appear on this terrain type; preserved raw, not decomposed into individual bit accessors.
- * @param workerJobAllowed A single enum-like value (not a bitmask, confirmed by both
- *   reverse-engineering sources) identifying which `TFRM` worker job can be performed on this
- *   terrain type; preserved raw, not decomposed.
+ * @param workerJobAllowed A `TFRM` section index identifying the worker job that transforms this
+ *   terrain type, or `-1` for none. See [workerJobAllowedTfrm]. The Terrain editor tab's own
+ *   "Worker Job" dropdown only ever offers a handful of terrain-transform jobs (e.g. Plant
+ *   Forest, Clear Forest, Clear Wetlands) rather than the full `TFRM` list — the other jobs
+ *   (Mine, Irrigate, Road, ...) are governed by this entry's own [miningBonus]/[irrigationBonus]/
+ *   [roadBonus] fields instead.
+ * @param pollutionEffect Decodes to [TerrPollutionEffect] via [pollutionEffectResolved]: `-1` for
+ *   no pollution effect, this section's own entry count for reverting to this tile's own base
+ *   terrain (the Terrain editor tab's "Base Terrain Type" option, used by overlay terrain types
+ *   like Forest/Jungle rather than a fixed other terrain), otherwise a `TERR` section index for
+ *   the terrain this becomes when polluted.
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;

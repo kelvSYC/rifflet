@@ -19,15 +19,20 @@ import okio.ByteString
  * @param overlayFlags 1 byte with 8 named booleans; see [TileEntry.road] and its sibling
  *   accessors in `TileEntryFlags.kt`.
  * @param terrain A packed nibble pair — low nibble is the base terrain (`TERR` index), high
- *   nibble is the overlay terrain (`TERR` index) — confirmed by cross-referencing real tile data
- *   against [c3cTerrain] (a near-duplicate [Civ3FormatEra.CONQUESTS]-only field with the same
- *   packing, per a separate reverse-engineered reference implementation's explicit
- *   `BaseTerrain`/`OverlayTerrain` nibble-mask accessors).
- *   Most tiles have identical base and overlay terrain; they differ only where an overlay
- *   terrain (e.g. forest) sits atop a different base terrain. Preserved raw, not decomposed into
- *   separate properties.
+ *   nibble is the overlay terrain (`TERR` index), per a separate reverse-engineered reference
+ *   implementation's explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors. Real
+ *   [Civ3FormatEra.CONQUESTS] tile data across multiple independent files shows this field
+ *   uniformly zero, with [c3cTerrain] carrying the actual per-tile terrain instead — see that
+ *   field's own KDoc. Whether [terrain] carries real data in
+ *   [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] files (where [c3cTerrain] doesn't exist) is
+ *   assumed, not yet confirmed against real non-Conquests data. Preserved raw, not decomposed
+ *   into separate properties.
  * @param bonusFlags 1 byte with 4 named booleans at non-contiguous bit positions; see
- *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`.
+ *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`. Real
+ *   [Civ3FormatEra.CONQUESTS] tile data shows this field uniformly zero as well, with the same 4
+ *   bit positions instead populated in [c3cBonuses] — see that field's own KDoc. Use
+ *   `TileEntryReferences.kt`'s era-aware resolver functions (e.g. `bonusGrassland(era)`) to read
+ *   the right field regardless of which era a file is in.
  * @param riverConnections 1 byte with 4 named booleans; see [TileEntry.riverInNorth] and its
  *   sibling accessors in `TileEntryFlags.kt`.
  * @param riverCrossingFlags 1 byte with 8 named booleans (compass directions); see
@@ -56,15 +61,18 @@ import okio.ByteString
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
  * @param c3cTerrain A near-duplicate of [terrain]'s packed nibble pair, present only in
- *   [Civ3FormatEra.CONQUESTS] files (read defensively) — numerically identical to [terrain] in
- *   the vast majority of real samples, differing only where the tile's base and overlay terrain
- *   genuinely differ.
+ *   [Civ3FormatEra.CONQUESTS] files (read defensively) — this is where real per-tile terrain data
+ *   actually lives in [Civ3FormatEra.CONQUESTS] files (see [terrain]'s own KDoc).
  * @param unknown4 2 bytes with zero documented behavior from either reverse-engineering source;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
  * @param fogOfWar Present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
- * @param c3cBonuses 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively;
- *   preserved raw, not decomposed. Opaque, same treatment as [c3cOverlays].
+ * @param c3cBonuses 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively. 4
+ *   of its 32 bits are named: bits 0/4/5 match the legacy [bonusFlags] scheme exactly
+ *   ([TileEntry.c3cBonusGrassland]/[TileEntry.c3cSnowCappedMountains]/[TileEntry.c3cPineForest]),
+ *   and bit 13 is new — [TileEntry.isLandmarkTile], marking this tile as its terrain type's
+ *   landmark instance (matching `TerrEntry.landmarkEnabled` for the corresponding `TERR` entry).
+ *   The remaining bits are preserved raw, not decomposed.
  * @param unknown5 2 bytes with zero documented behavior from either reverse-engineering source;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.

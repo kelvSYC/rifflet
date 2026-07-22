@@ -7,12 +7,18 @@ import okio.ByteString
  *
  * @param unknown 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param startingTechnologyIds Likely `TECH` section indices (naming convention only); not
- *   confirmed by either reverse-engineering source.
- * @param government Likely a `GOVT` section index (naming convention only); not confirmed by
- *   either reverse-engineering source.
- * @param civ -2 = random, -3 = any; otherwise likely a `RACE` section index (naming convention
- *   only); not confirmed by either reverse-engineering source.
+ * @param customCivData Int-shaped boolean, likely corresponding to the Players tab's
+ *   "Civilization Defaults" checkbox.
+ * @param startingTechnologyIds `TECH` section indices, per the Players tab's "Free Techs"
+ *   listbox.
+ * @param difficulty A `DIFF` section index; `-2` is the "Any" sentinel, meaning this starting
+ *   position isn't restricted to a particular difficulty level.
+ * @param initialEra An `ERAS` section index, per the Players tab's "Initial" era dropdown.
+ * @param government A `GOVT` section index, per the Players tab's own "Government" dropdown.
+ * @param civ `-2` = random, `-3` = any; otherwise a `RACE` section index, per the Players tab's
+ *   "Civilization" dropdown.
+ * @param genderOfLeaderName Int-shaped boolean matching the Players tab's Gender radio buttons:
+ *   0 = Male, 1 = Female.
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  */
