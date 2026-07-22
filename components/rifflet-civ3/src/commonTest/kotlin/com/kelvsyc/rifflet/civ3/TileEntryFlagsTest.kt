@@ -4,11 +4,19 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
+private fun bytesFor(value: Int): List<Byte> = listOf(
+    (value and 0xFF).toByte(),
+    ((value shr 8) and 0xFF).toByte(),
+    ((value shr 16) and 0xFF).toByte(),
+    ((value shr 24) and 0xFF).toByte(),
+)
+
 private fun validTileEntry(
     overlayFlags: Byte = 0,
     bonusFlags: Byte = 0,
     riverConnections: Byte = 0,
     riverCrossingFlags: Byte = 0,
+    c3cBonuses: ByteString = ByteString.of(0, 0, 0, 0),
 ): TileEntry = TileEntry(
     riverConnections = riverConnections,
     border = 0.toByte(),
@@ -32,7 +40,7 @@ private fun validTileEntry(
     c3cTerrain = 0.toByte(),
     unknown4 = ByteString.of(0, 0),
     fogOfWar = 0.toShort(),
-    c3cBonuses = ByteString.of(0, 0, 0, 0),
+    c3cBonuses = c3cBonuses,
     unknown5 = ByteString.of(0, 0),
     unknown6 = ByteString.of(0, 0, 0, 0),
 )
@@ -97,6 +105,36 @@ class TileEntryBonusFlagsTest : FunSpec({
 
     test("all named bits clear") {
         val entry = validTileEntry(bonusFlags = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class TileEntryC3cBonusesFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (TileEntry) -> Boolean>> = listOf(
+        0 to TileEntry::c3cBonusGrassland,
+        4 to TileEntry::c3cSnowCappedMountains,
+        5 to TileEntry::c3cPineForest,
+        13 to TileEntry::isLandmarkTile,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validTileEntry(c3cBonuses = ByteString.of(*bytesFor(1 shl bit).toByteArray()))
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validTileEntry(c3cBonuses = ByteString.of(*bytesFor(allBits).toByteArray()))
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validTileEntry(c3cBonuses = ByteString.of(0, 0, 0, 0))
         properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })

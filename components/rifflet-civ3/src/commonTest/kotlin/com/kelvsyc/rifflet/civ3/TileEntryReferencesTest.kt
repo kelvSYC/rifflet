@@ -9,6 +9,8 @@ private fun validTileEntry(
     colony: Short = 0,
     continent: Short = 0,
     city: Short = 0,
+    bonusFlags: Byte = 0,
+    c3cBonuses: ByteString = ByteString.of(0, 0, 0, 0),
 ): TileEntry = TileEntry(
     riverConnections = 0.toByte(),
     border = 0.toByte(),
@@ -18,7 +20,7 @@ private fun validTileEntry(
     unknown = ByteString.of(0, 0),
     overlayFlags = 0.toByte(),
     terrain = 0.toByte(),
-    bonusFlags = 0.toByte(),
+    bonusFlags = bonusFlags,
     riverCrossingFlags = 0.toByte(),
     barbarianTribe = 0.toShort(),
     colony = colony,
@@ -32,7 +34,7 @@ private fun validTileEntry(
     c3cTerrain = 0.toByte(),
     unknown4 = ByteString.of(0, 0),
     fogOfWar = 0.toShort(),
-    c3cBonuses = ByteString.of(0, 0, 0, 0),
+    c3cBonuses = c3cBonuses,
     unknown5 = ByteString.of(0, 0),
     unknown6 = ByteString.of(0, 0, 0, 0),
 )
@@ -94,5 +96,34 @@ class TileEntryReferencesTest : FunSpec({
         val city = validCityEntry()
         validTileEntry(city = 0).cityCity(listOf(city)) shouldBe city
         validTileEntry(city = 5).cityCity(emptyList()) shouldBe null
+    }
+
+    test("bonusGrassland(era) reads the legacy field for VANILLA/PTW and c3cBonuses for CONQUESTS") {
+        val entry = validTileEntry(bonusFlags = 1, c3cBonuses = ByteString.of(0, 0, 0, 0))
+        entry.bonusGrassland(Civ3FormatEra.VANILLA) shouldBe true
+        entry.bonusGrassland(Civ3FormatEra.PTW) shouldBe true
+        entry.bonusGrassland(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        val c3cEntry = validTileEntry(bonusFlags = 0, c3cBonuses = ByteString.of(1, 0, 0, 0))
+        c3cEntry.bonusGrassland(Civ3FormatEra.CONQUESTS) shouldBe true
+        c3cEntry.bonusGrassland(Civ3FormatEra.VANILLA) shouldBe false
+    }
+
+    test("snowCappedMountains(era) reads the legacy field for VANILLA/PTW and c3cBonuses for CONQUESTS") {
+        val entry = validTileEntry(bonusFlags = (1 shl 4).toByte())
+        entry.snowCappedMountains(Civ3FormatEra.PTW) shouldBe true
+        entry.snowCappedMountains(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        val c3cEntry = validTileEntry(c3cBonuses = ByteString.of((1 shl 4).toByte(), 0, 0, 0))
+        c3cEntry.snowCappedMountains(Civ3FormatEra.CONQUESTS) shouldBe true
+    }
+
+    test("pineForest(era) reads the legacy field for VANILLA/PTW and c3cBonuses for CONQUESTS") {
+        val entry = validTileEntry(bonusFlags = (1 shl 5).toByte())
+        entry.pineForest(Civ3FormatEra.VANILLA) shouldBe true
+        entry.pineForest(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        val c3cEntry = validTileEntry(c3cBonuses = ByteString.of((1 shl 5).toByte(), 0, 0, 0))
+        c3cEntry.pineForest(Civ3FormatEra.CONQUESTS) shouldBe true
     }
 })
