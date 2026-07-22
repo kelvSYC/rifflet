@@ -170,6 +170,7 @@ class BldgEntrySmallWondersFlagsTest : FunSpec({
         6 to BldgEntry::decreasesSuccessOfMissileAttacks,
         7 to BldgEntry::allowsSpyMissions,
         8 to BldgEntry::allowsHealingInEnemyTerritory,
+        9 to BldgEntry::ptwRequiredGoodsMustBeInCityRadius,
         10 to BldgEntry::requiresVictoriousArmy,
         11 to BldgEntry::requiresEliteNavalUnits,
     )
