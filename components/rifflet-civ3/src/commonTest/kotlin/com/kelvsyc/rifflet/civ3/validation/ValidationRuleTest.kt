@@ -1,4 +1,3 @@
-// components/rifflet-civ3/src/commonTest/kotlin/com/kelvsyc/rifflet/civ3/validation/ValidationRuleTest.kt
 package com.kelvsyc.rifflet.civ3.validation
 
 import com.kelvsyc.rifflet.civ3.Civ3File

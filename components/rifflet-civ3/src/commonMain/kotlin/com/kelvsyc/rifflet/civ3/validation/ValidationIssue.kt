@@ -1,4 +1,3 @@
-// components/rifflet-civ3/src/commonMain/kotlin/com/kelvsyc/rifflet/civ3/validation/ValidationIssue.kt
 package com.kelvsyc.rifflet.civ3.validation
 
 import com.kelvsyc.rifflet.core.ChunkId
