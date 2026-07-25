@@ -30,3 +30,35 @@ fun validatePollutionEffect(file: Civ3File): List<ValidationIssue> {
         }
     }
 }
+
+private const val FOREST_TERR_INDEX = 7
+private const val CLEAR_FOREST_TFRM_INDEX = 6
+
+/**
+ * Flags a `TERR` entry other than the Forest terrain type whose [TerrEntry.workerJobAllowed]
+ * points at the Clear Forest worker job. Returns no issues if the `TERR` section is absent from
+ * [file].
+ *
+ * "Clear Forest" only functions correctly on the Forest terrain type; every real vanilla, PTW,
+ * and Conquests ruleset assigns it exclusively there. Both terrain type and worker job are
+ * Rename-only, fixed-position slots in the Rules Editor — Forest is always `TERR` index 7 and
+ * Clear Forest is always `TFRM` index 6, regardless of era or in-file renaming (e.g. Mesoamerica's
+ * "Rain Forest").
+ */
+fun validateClearForestExclusiveToForest(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (index == FOREST_TERR_INDEX || entry.workerJobAllowed != CLEAR_FOREST_TFRM_INDEX) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                index,
+                "workerJobAllowed",
+                "TERR[$index] (${entry.name}) has workerJobAllowed=$CLEAR_FOREST_TFRM_INDEX (Clear Forest), " +
+                    "which only functions on the Forest terrain type (TERR[$FOREST_TERR_INDEX])",
+            )
+        }
+    }
+}

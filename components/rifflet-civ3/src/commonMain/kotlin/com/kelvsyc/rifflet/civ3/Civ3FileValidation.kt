@@ -11,6 +11,7 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
  */
 private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validatePollutionEffect(file) },
+    ValidationRule { file -> validateClearForestExclusiveToForest(file) },
     ValidationRule { file -> validateWsizCardinality(file) },
     ValidationRule { file -> validateExprCardinality(file) },
     ValidationRule { file -> validateErasCardinality(file) },
@@ -22,6 +23,10 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateUnitCoordinateParity(file) },
     ValidationRule { file -> validateCityTileBackReference(file) },
     ValidationRule { file -> validateClnyTileBackReference(file) },
+    ValidationRule { file -> validateCtznDefaultCount(file) },
+    ValidationRule { file -> validateCtznDefaultPrerequisite(file) },
+    ValidationRule { file -> validateTerrCardinality(file) },
+    ValidationRule { file -> validateTfrmCardinality(file) },
 )
 
 /**
@@ -206,6 +211,109 @@ fun validateClnyTileBackReference(file: Civ3File): List<ValidationIssue> {
             )
         }
     }
+}
+
+/**
+ * Flags a `CTZN` section that doesn't have exactly one entry with `defaultCitizen` set. Returns
+ * no issues if the `CTZN` section is absent from [file].
+ *
+ * Every real official file has exactly one default citizen type, matching the Rules Editor's
+ * Citizens tab, which designates exactly one citizen type as default.
+ */
+fun validateCtznDefaultCount(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<CtznSection>().singleOrNull() ?: return emptyList()
+    val count = section.entries.count { it.defaultCitizen != 0 }
+    if (count == 1) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CTZN,
+            null,
+            "defaultCitizen",
+            "CTZN has $count entries with defaultCitizen set; exactly 1 is expected",
+        ),
+    )
+}
+
+/**
+ * Flags the default `CtznEntry` (the one with `defaultCitizen` set) if it has a `prerequisite`.
+ * Returns no issues if the `CTZN` section is absent from [file], or if [file] doesn't have
+ * exactly one default entry (see [validateCtznDefaultCount] for that case).
+ *
+ * The default citizen type needs no prerequisite technology, matching the Rules Editor's
+ * Citizens tab, where the Prerequisite dropdown is disabled for the default citizen type.
+ */
+fun validateCtznDefaultPrerequisite(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<CtznSection>().singleOrNull() ?: return emptyList()
+    val (index, entry) = section.entries.withIndex().singleOrNull { (_, e) -> e.defaultCitizen != 0 }
+        ?: return emptyList()
+    if (entry.prerequisite == -1) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CTZN,
+            index,
+            "prerequisite",
+            "the default citizen type has prerequisite=${entry.prerequisite}; it should need no prerequisite (-1)",
+        ),
+    )
+}
+
+/**
+ * Flags a `TERR` section whose entry count doesn't match its format era's fixed count. Returns no
+ * issues if the `TERR` section is absent from [file].
+ *
+ * The Rules Editor's Terrain tab offers only a Rename control in every era — no Add, no Delete —
+ * so the count is exactly 12 for [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW], or exactly 14 for
+ * [Civ3FormatEra.CONQUESTS], with no room to grow past the baseline the way `DIFF` can.
+ */
+fun validateTerrCardinality(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val count = section.entries.size
+    val era = file.header.formatEra
+    val expected = when (era) {
+        Civ3FormatEra.VANILLA, Civ3FormatEra.PTW -> 12
+        Civ3FormatEra.CONQUESTS -> 14
+    }
+    if (count == expected) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.TERR,
+            null,
+            "entries",
+            "TERR has $count entries; $era requires exactly $expected",
+        ),
+    )
+}
+
+/**
+ * Flags a `TFRM` section whose entry count doesn't match its format era's fixed count. Returns no
+ * issues if the `TFRM` section is absent from [file].
+ *
+ * The Rules Editor's Worker Jobs tab offers only a Rename control in every era — no Add, no
+ * Delete — so the count is exactly 9 for [Civ3FormatEra.VANILLA], exactly 12 for
+ * [Civ3FormatEra.PTW], or exactly 13 for [Civ3FormatEra.CONQUESTS].
+ */
+fun validateTfrmCardinality(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<TfrmSection>().singleOrNull() ?: return emptyList()
+    val count = section.entries.size
+    val era = file.header.formatEra
+    val expected = when (era) {
+        Civ3FormatEra.VANILLA -> 9
+        Civ3FormatEra.PTW -> 12
+        Civ3FormatEra.CONQUESTS -> 13
+    }
+    if (count == expected) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.TFRM,
+            null,
+            "entries",
+            "TFRM has $count entries; $era requires exactly $expected",
+        ),
+    )
 }
 
 /**
