@@ -6,6 +6,52 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
+private fun wsizEntry(): WsizEntry = WsizEntry(
+    optimalNumberOfCities = 0,
+    techRate = 0,
+    reserved = ByteString.of(*ByteArray(24)),
+    name = "",
+    height = 0,
+    distanceBetweenCivs = 0,
+    numberOfCivs = 0,
+    width = 0,
+)
+
+private fun exprEntry(): ExprEntry = ExprEntry(name = "", baseHitPoints = 0, retreatBonus = 0)
+
+private fun erasEntry(): ErasEntry = ErasEntry(
+    name = "",
+    civilopediaEntry = "",
+    researcher1 = "",
+    researcher2 = "",
+    researcher3 = "",
+    researcher4 = "",
+    researcher5 = "",
+    numberOfUsedResearcherNames = 0,
+    unknown = ByteString.of(*ByteArray(4)),
+)
+
+private fun diffEntry(): DiffEntry = DiffEntry(
+    name = "",
+    numberOfCitizensBornContent = 0,
+    maxGovernmentTransitionTime = 0,
+    numberOfAiDefensiveStartingUnits = 0,
+    numberOfAiOffensiveStartingUnits = 0,
+    extraStartUnit1 = 0,
+    extraStartUnit2 = 0,
+    additionalFreeSupport = 0,
+    unitSupportBonusForEachSettlement = 0,
+    attackBonusAgainstBarbarians = 0,
+    costFactor = 0,
+    percentageOfOptimalCities = 0,
+    aiToAiTradeRate = 0,
+    corruptionPercentage = 0,
+    militaryLaw = 0,
+)
+
+private fun fileWithSections(major: Int, sections: List<Civ3Section>): Civ3File =
+    Civ3File(Civ3Header(major = major, minor = 0, description = "", title = ""), sections)
+
 private fun terrEntryWithPollutionEffect(pollutionEffect: Int): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
@@ -69,5 +115,158 @@ class Civ3FileValidationTest : FunSpec({
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         file.validate() shouldBe emptyList()
+    }
+
+    test("validateWsizCardinality returns no issues for exactly 5 entries") {
+        val file = fileWithSections(major = 12, listOf(WsizSection(List(5) { wsizEntry() })))
+
+        validateWsizCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateWsizCardinality flags a count other than 5") {
+        val file = fileWithSections(major = 12, listOf(WsizSection(List(4) { wsizEntry() })))
+
+        validateWsizCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.WSIZ,
+                null,
+                "entries",
+                "WSIZ has 4 entries; the Rules Editor always produces exactly 5",
+            ),
+        )
+    }
+
+    test("validateWsizCardinality returns no issues when WSIZ is absent") {
+        validateWsizCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateExprCardinality returns no issues for exactly 4 entries") {
+        val file = fileWithSections(major = 12, listOf(ExprSection(List(4) { exprEntry() })))
+
+        validateExprCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateExprCardinality flags a count other than 4") {
+        val file = fileWithSections(major = 12, listOf(ExprSection(List(3) { exprEntry() })))
+
+        validateExprCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.EXPR,
+                null,
+                "entries",
+                "EXPR has 3 entries; the Rules Editor always produces exactly 4",
+            ),
+        )
+    }
+
+    test("validateExprCardinality returns no issues when EXPR is absent") {
+        validateExprCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateErasCardinality returns no issues for exactly 4 entries") {
+        val file = fileWithSections(major = 12, listOf(ErasSection(List(4) { erasEntry() })))
+
+        validateErasCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateErasCardinality flags a count other than 4") {
+        val file = fileWithSections(major = 12, listOf(ErasSection(List(5) { erasEntry() })))
+
+        validateErasCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.ERAS,
+                null,
+                "entries",
+                "ERAS has 5 entries; the Rules Editor always produces exactly 4",
+            ),
+        )
+    }
+
+    test("validateErasCardinality returns no issues when ERAS is absent") {
+        validateErasCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateDiffCardinality returns no issues for exactly 8 entries in Conquests") {
+        val file = fileWithSections(major = 12, listOf(DiffSection(List(8) { diffEntry() })))
+
+        validateDiffCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateDiffCardinality returns no issues for more than 8 entries in Conquests") {
+        val file = fileWithSections(major = 12, listOf(DiffSection(List(9) { diffEntry() })))
+
+        validateDiffCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateDiffCardinality flags fewer than 8 entries in Conquests") {
+        val file = fileWithSections(major = 12, listOf(DiffSection(List(7) { diffEntry() })))
+
+        validateDiffCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.DIFF,
+                null,
+                "entries",
+                "DIFF has 7 entries; CONQUESTS requires at least 8",
+            ),
+        )
+    }
+
+    test("validateDiffCardinality returns no issues for exactly 6 entries in PTW") {
+        val file = fileWithSections(major = 11, listOf(DiffSection(List(6) { diffEntry() })))
+
+        validateDiffCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateDiffCardinality flags a count other than 6 in PTW") {
+        val file = fileWithSections(major = 11, listOf(DiffSection(List(8) { diffEntry() })))
+
+        validateDiffCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.DIFF,
+                null,
+                "entries",
+                "DIFF has 8 entries; PTW requires exactly 6",
+            ),
+        )
+    }
+
+    test("validateDiffCardinality flags a count other than 6 in vanilla") {
+        val file = fileWithSections(major = 3, listOf(DiffSection(List(5) { diffEntry() })))
+
+        validateDiffCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.DIFF,
+                null,
+                "entries",
+                "DIFF has 5 entries; VANILLA requires exactly 6",
+            ),
+        )
+    }
+
+    test("validateDiffCardinality returns no issues when DIFF is absent") {
+        validateDiffCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validate() surfaces a cardinality rule's issue alongside the seed rule's") {
+        val file = Civ3File(
+            Civ3Header(major = 12, minor = 0, description = "", title = ""),
+            listOf(WsizSection(List(4) { wsizEntry() })),
+        )
+
+        file.validate() shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.WSIZ,
+                null,
+                "entries",
+                "WSIZ has 4 entries; the Rules Editor always produces exactly 5",
+            ),
+        )
     }
 })
