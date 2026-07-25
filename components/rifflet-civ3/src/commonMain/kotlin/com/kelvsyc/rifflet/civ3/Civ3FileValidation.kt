@@ -15,14 +15,21 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateExprCardinality(file) },
     ValidationRule { file -> validateErasCardinality(file) },
     ValidationRule { file -> validateDiffCardinality(file) },
+    ValidationRule { file -> validateTileCardinality(file) },
+    ValidationRule { file -> validateCityCoordinateParity(file) },
+    ValidationRule { file -> validateClnyCoordinateParity(file) },
+    ValidationRule { file -> validateSlocCoordinateParity(file) },
+    ValidationRule { file -> validateUnitCoordinateParity(file) },
+    ValidationRule { file -> validateCityTileBackReference(file) },
+    ValidationRule { file -> validateClnyTileBackReference(file) },
 )
 
 /**
- * Flags a `WSIZ` section whose entry count isn't exactly 5. Confirmed against every real
- * official sample available (all 21 shipped Conquests scenarios, both the Conquests and PTW
- * base rulesets, and the vanilla-era root scenarios): every one has exactly 5 world sizes, and
- * the Rules Editor's World Sizes tab offers only a Rename control, no Add or Delete. Returns no
- * issues if the `WSIZ` section is absent from [file].
+ * Flags a `WSIZ` section whose entry count isn't exactly 5. Returns no issues if the `WSIZ`
+ * section is absent from [file].
+ *
+ * Every real official Conquests and PTW file has exactly 5 world sizes, matching the Rules
+ * Editor's World Sizes tab, which offers only a Rename control — no Add or Delete.
  */
 fun validateWsizCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<WsizSection>().singleOrNull() ?: return emptyList()
@@ -39,10 +46,11 @@ fun validateWsizCardinality(file: Civ3File): List<ValidationIssue> {
 }
 
 /**
- * Flags an `EXPR` section whose entry count isn't exactly 4. Confirmed against the same real
- * official sample set as [validateWsizCardinality]: every file has exactly 4 combat experience
- * levels, and the Rules Editor's Combat Experience tab offers only a Rename control. Returns no
- * issues if the `EXPR` section is absent from [file].
+ * Flags an `EXPR` section whose entry count isn't exactly 4. Returns no issues if the `EXPR`
+ * section is absent from [file].
+ *
+ * Every real official file has exactly 4 combat experience levels, matching the Rules Editor's
+ * Combat Experience tab, which offers only a Rename control.
  */
 fun validateExprCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<ExprSection>().singleOrNull() ?: return emptyList()
@@ -59,10 +67,11 @@ fun validateExprCardinality(file: Civ3File): List<ValidationIssue> {
 }
 
 /**
- * Flags an `ERAS` section whose entry count isn't exactly 4. Confirmed against the same real
- * official sample set as [validateWsizCardinality]: every file has exactly 4 eras, and the Rules
- * Editor's Eras tab offers only a Rename control. Returns no issues if the `ERAS` section is
- * absent from [file].
+ * Flags an `ERAS` section whose entry count isn't exactly 4. Returns no issues if the `ERAS`
+ * section is absent from [file].
+ *
+ * Every real official file has exactly 4 eras, matching the Rules Editor's Eras tab, which offers
+ * only a Rename control.
  */
 fun validateErasCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<ErasSection>().singleOrNull() ?: return emptyList()
@@ -79,14 +88,15 @@ fun validateErasCardinality(file: Civ3File): List<ValidationIssue> {
 }
 
 /**
- * Flags a `DIFF` section whose entry count doesn't match its format era's baseline. Confirmed
- * against every real official sample available: exactly 6 for [Civ3FormatEra.PTW] (Chieftain
- * through Deity; PTW's Difficulty Levels tab offers only Rename, no Add) or at least 8 for
- * [Civ3FormatEra.CONQUESTS] (Conquests additionally shipped Demigod and Sid; its Difficulty
- * Levels tab offers Rename and Add but no Delete, so a scenario may only grow past the baseline,
- * never shrink below it). [Civ3FormatEra.VANILLA] is assumed to match PTW here — no real
- * vanilla-era sample with a `DIFF` section was available to confirm this directly. Returns no
- * issues if the `DIFF` section is absent from [file].
+ * Flags a `DIFF` section whose entry count doesn't match its format era's baseline: exactly 6 for
+ * [Civ3FormatEra.PTW]/[Civ3FormatEra.VANILLA], or at least 8 for [Civ3FormatEra.CONQUESTS].
+ * Returns no issues if the `DIFF` section is absent from [file].
+ *
+ * PTW's Difficulty Levels tab has only a Rename control, and its 6 difficulty levels run
+ * Chieftain through Deity. Conquests additionally shipped Demigod and Sid, and its tab adds Add
+ * but not Delete, so a scenario may only grow past the baseline, never shrink below it.
+ * [Civ3FormatEra.VANILLA] is assumed to match PTW — no real vanilla-era `DIFF` sample was
+ * available to check directly.
  */
 fun validateDiffCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<DiffSection>().singleOrNull() ?: return emptyList()
@@ -107,6 +117,95 @@ fun validateDiffCardinality(file: Civ3File): List<ValidationIssue> {
             "DIFF has $count entries; $era requires $requirement",
         ),
     )
+}
+
+/**
+ * Flags a `TILE` section whose entry count doesn't match `width × height / 2` implied by the
+ * file's `WMAP` entry — Civ3's isometric internal map storage, per [TileSection]'s own KDoc.
+ * Returns no issues if either `WMAP` or `TILE` is absent from [file] (a rules-only or
+ * player-data-only export has neither).
+ *
+ * Every real official Conquests campaign scenario (varied non-square dimensions, e.g. 90×84,
+ * 78×140, 62×88) and both vanilla-era root scenarios match this exactly.
+ */
+fun validateTileCardinality(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val expected = wmap.width * wmap.height / 2
+    if (tile.entries.size == expected) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.TILE,
+            null,
+            "entries",
+            "TILE has ${tile.entries.size} entries; WMAP width=${wmap.width}, height=${wmap.height} " +
+                "implies exactly $expected",
+        ),
+    )
+}
+
+/**
+ * Flags a [CityEntry] whose `(x, y)` doesn't resolve, via [WmapEntry.tileIndex], to a `TILE`
+ * entry whose own [TileEntry.city] back-reference points to that [CityEntry]'s own index. Returns
+ * no issues if `WMAP`, `TILE`, or `CITY` is absent from [file].
+ *
+ * Holds without exception across every placed city in every real official Conquests campaign
+ * scenario.
+ */
+fun validateCityTileBackReference(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val city = file.sections.filterIsInstance<CitySection>().singleOrNull() ?: return emptyList()
+    return city.entries.mapIndexedNotNull { index, entry ->
+        val expectedIndex = wmap.tileIndex(entry.x, entry.y)
+        val actual = tile.entries.getOrNull(expectedIndex)?.city?.toInt()
+        if (actual == index) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CITY,
+                index,
+                "x/y",
+                "CityEntry at (${entry.x}, ${entry.y}) resolves to TILE[$expectedIndex], whose city " +
+                    "back-reference is $actual, not $index",
+            )
+        }
+    }
+}
+
+/**
+ * Flags a [ClnyEntry] whose `(x, y)` doesn't resolve, via [WmapEntry.tileIndex], to a `TILE`
+ * entry whose own [TileEntry.colony] back-reference points to that [ClnyEntry]'s own index.
+ * Returns no issues if `WMAP`, `TILE`, or `CLNY` is absent from [file].
+ *
+ * Holds without exception across every placed colony in every real official Conquests campaign
+ * scenario.
+ */
+fun validateClnyTileBackReference(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val clny = file.sections.filterIsInstance<ClnySection>().singleOrNull() ?: return emptyList()
+    return clny.entries.mapIndexedNotNull { index, entry ->
+        val expectedIndex = wmap.tileIndex(entry.x, entry.y)
+        val actual = tile.entries.getOrNull(expectedIndex)?.colony?.toInt()
+        if (actual == index) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CLNY,
+                index,
+                "x/y",
+                "ClnyEntry at (${entry.x}, ${entry.y}) resolves to TILE[$expectedIndex], whose colony " +
+                    "back-reference is $actual, not $index",
+            )
+        }
+    }
 }
 
 /**

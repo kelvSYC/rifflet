@@ -52,6 +52,71 @@ private fun diffEntry(): DiffEntry = DiffEntry(
 private fun fileWithSections(major: Int, sections: List<Civ3Section>): Civ3File =
     Civ3File(Civ3Header(major = major, minor = 0, description = "", title = ""), sections)
 
+private fun wmapEntry(width: Int, height: Int): WmapEntry = WmapEntry(
+    resourceIds = emptyList(),
+    numberOfContinents = 0,
+    height = height,
+    distanceBetweenCivs = 0,
+    numberOfCivs = 0,
+    unknown1 = ByteString.of(*ByteArray(8)),
+    width = width,
+    unknown2 = ByteString.of(*ByteArray(128)),
+    mapSeed = 0,
+    flags = 0,
+)
+
+private fun tileEntry(city: Short = 0, colony: Short = 0): TileEntry = TileEntry(
+    riverConnections = 0,
+    border = 0,
+    resource = -1,
+    textureLocation = 0,
+    textureFile = 0,
+    unknown = ByteString.of(*ByteArray(2)),
+    overlayFlags = 0,
+    terrain = 0,
+    bonusFlags = 0,
+    riverCrossingFlags = 0,
+    barbarianTribe = 0,
+    colony = colony,
+    city = city,
+    continent = 0,
+    unknown2 = ByteString.of(*ByteArray(1)),
+    victoryPointLocation = 0,
+    ruin = 0,
+    c3cOverlays = ByteString.of(*ByteArray(4)),
+    unknown3 = ByteString.of(*ByteArray(1)),
+    c3cTerrain = 0,
+    unknown4 = ByteString.of(*ByteArray(2)),
+    fogOfWar = 0,
+    c3cBonuses = ByteString.of(*ByteArray(4)),
+    unknown5 = ByteString.of(*ByteArray(2)),
+    unknown6 = ByteString.of(*ByteArray(4)),
+)
+
+private fun cityEntry(x: Int, y: Int): CityEntry = CityEntry(
+    hasWalls = 0,
+    hasPalace = 0,
+    name = "",
+    ownerType = 2,
+    buildingIds = emptyList(),
+    culture = 0,
+    owner = 0,
+    size = 0,
+    x = x,
+    y = y,
+    cityLevel = 0,
+    borderLevel = 0,
+    useAutoName = 0,
+)
+
+private fun clnyEntry(x: Int, y: Int): ClnyEntry = ClnyEntry(
+    ownerType = 2,
+    owner = 0,
+    x = x,
+    y = y,
+    improvementType = 0,
+)
+
 private fun terrEntryWithPollutionEffect(pollutionEffect: Int): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
@@ -251,6 +316,170 @@ class Civ3FileValidationTest : FunSpec({
 
     test("validateDiffCardinality returns no issues when DIFF is absent") {
         validateDiffCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateTileCardinality returns no issues when TILE matches width * height / 2") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 90, height = 84))), TileSection(List(3780) { tileEntry() })),
+        )
+
+        validateTileCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTileCardinality flags a TILE count that doesn't match width * height / 2") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 100, height = 100))), TileSection(List(4999) { tileEntry() })),
+        )
+
+        validateTileCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                null,
+                "entries",
+                "TILE has 4999 entries; WMAP width=100, height=100 implies exactly 5000",
+            ),
+        )
+    }
+
+    test("validateTileCardinality returns no issues when WMAP is absent") {
+        val file = fileWithSections(major = 12, listOf(TileSection(List(5000) { tileEntry() })))
+
+        validateTileCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTileCardinality returns no issues when TILE is absent") {
+        val file = fileWithSections(major = 12, listOf(WmapSection(listOf(wmapEntry(width = 100, height = 100)))))
+
+        validateTileCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateCityTileBackReference returns no issues when the TILE back-reference matches") {
+        val tiles = List(10) { i -> if (i == 1) tileEntry(city = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(tiles),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateCityTileBackReference flags a mismatched TILE back-reference") {
+        val tiles = List(10) { tileEntry(city = -1) }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(tiles),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTileBackReference(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CITY,
+                0,
+                "x/y",
+                "CityEntry at (2, 0) resolves to TILE[1], whose city back-reference is -1, not 0",
+            ),
+        )
+    }
+
+    test("validateCityTileBackReference returns no issues when WMAP is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(TileSection(List(10) { tileEntry() }), CitySection(listOf(cityEntry(x = 2, y = 0)))),
+        )
+
+        validateCityTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateCityTileBackReference returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 10, height = 2))), CitySection(listOf(cityEntry(x = 2, y = 0)))),
+        )
+
+        validateCityTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateCityTileBackReference returns no issues when CITY is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 10, height = 2))), TileSection(List(10) { tileEntry() })),
+        )
+
+        validateCityTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateClnyTileBackReference returns no issues when the TILE back-reference matches") {
+        val tiles = List(10) { i -> if (i == 1) tileEntry(colony = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(tiles),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateClnyTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateClnyTileBackReference flags a mismatched TILE back-reference") {
+        val tiles = List(10) { tileEntry(colony = -1) }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(tiles),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateClnyTileBackReference(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CLNY,
+                0,
+                "x/y",
+                "ClnyEntry at (2, 0) resolves to TILE[1], whose colony back-reference is -1, not 0",
+            ),
+        )
+    }
+
+    test("validateClnyTileBackReference returns no issues when WMAP is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(TileSection(List(10) { tileEntry() }), ClnySection(listOf(clnyEntry(x = 2, y = 0)))),
+        )
+
+        validateClnyTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateClnyTileBackReference returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 10, height = 2))), ClnySection(listOf(clnyEntry(x = 2, y = 0)))),
+        )
+
+        validateClnyTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateClnyTileBackReference returns no issues when CLNY is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 10, height = 2))), TileSection(List(10) { tileEntry() })),
+        )
+
+        validateClnyTileBackReference(file) shouldBe emptyList()
     }
 
     test("validate() surfaces a cardinality rule's issue alongside the seed rule's") {
