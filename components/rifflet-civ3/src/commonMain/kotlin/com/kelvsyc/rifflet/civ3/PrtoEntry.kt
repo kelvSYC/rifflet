@@ -17,6 +17,8 @@ import okio.ByteString
  *   preserved raw, not decomposed.
  * @param flags2 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated or decomposed.
+ * @param type This unit's domain — see [PrtoDomain] for what each value means, per the Conquests
+ *   Rules Editor's "Class" control (Land/Sea/Air).
  * @param flags3 20 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated or decomposed. Absent from [Civ3FormatEra.VANILLA]
  *   files (the item ends immediately after [hpBonus]), read defensively.

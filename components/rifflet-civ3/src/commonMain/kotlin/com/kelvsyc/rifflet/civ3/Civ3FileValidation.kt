@@ -27,6 +27,8 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateCtznDefaultPrerequisite(file) },
     ValidationRule { file -> validateTerrCardinality(file) },
     ValidationRule { file -> validateTfrmCardinality(file) },
+    ValidationRule { file -> validateCitySizeLevelThresholds(file) },
+    ValidationRule { file -> validateBarbarianUnitDomains(file) },
 )
 
 /**
