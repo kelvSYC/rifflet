@@ -180,6 +180,99 @@ private fun tfrmEntry(): TfrmEntry = TfrmEntry(
     order = "",
 )
 
+private fun ruleEntryWithSpaceshipPartCount(count: Int): RuleEntry = RuleEntry(
+    citySizeLevel1Name = "",
+    citySizeLevel2Name = "",
+    citySizeLevel3Name = "",
+    spaceshipPartQuantities = List(count) { 1 },
+    advancedBarbarianUnitType = -1,
+    basicBarbarianUnitType = -1,
+    barbarianSeaUnitType = -1,
+    citiesNeededToSupportAnArmy = 0,
+    chanceOfRioting = 0,
+    turnPenaltyForEachDraftedCitizen = 0,
+    shieldCostPerGold = 0,
+    fortressDefensiveBonus = 0,
+    citizensAffectedByEachHappyFace = 0,
+    unknown = ByteString.of(*ByteArray(8)),
+    forestValueInShields = 0,
+    shieldValueInGold = 0,
+    citizenValueInShields = 0,
+    defaultDifficultyLevel = -1,
+    battleCreatedUnit = -1,
+    buildArmyUnit = -1,
+    buildingDefensiveBonus = 0,
+    citizenDefensiveBonus = 0,
+    defaultMoneyResource = -1,
+    chanceToInterceptEnemyAirMissions = 0,
+    chanceToInterceptEnemyStealthMissions = 0,
+    startingTreasury = 0,
+    unknown2 = ByteString.of(*ByteArray(4)),
+    foodConsumptionPerCitizen = 0,
+    riverDefensiveBonus = 0,
+    turnPenaltyForEachHurrySacrifice = 0,
+    scout = -1,
+    slave = -1,
+    movementAlongRoads = 0,
+    startUnit1 = -1,
+    startUnit2 = -1,
+    minimumPopulationForWeLoveTheKing = 0,
+    townDefenseBonus = 0,
+    cityDefenseBonus = 0,
+    metropolisDefenseBonus = 0,
+    maximumLevel1CitySize = 6,
+    maximumLevel2CitySize = 12,
+    unknown3 = ByteString.of(*ByteArray(4)),
+    fortificationsDefensiveBonus = 0,
+    cultureLevelNames = emptyList(),
+    borderExpansionMultiplier = 0,
+    borderFactor = 0,
+    futureTechCost = 0,
+    goldenAgeDuration = 0,
+    maximumResearchTime = 0,
+    minimumResearchTime = 0,
+    flagUnitType = -1,
+    upgradeCost = 0,
+)
+
+private fun bldgEntry(spaceshipPart: Int): BldgEntry = BldgEntry(
+    description = "",
+    name = "",
+    civilopediaEntry = "",
+    doublesHappiness = 0,
+    gainInEveryCity = 0,
+    gainInEveryCityOnContinent = 0,
+    requiredBuilding = -1,
+    cost = 0,
+    culture = 0,
+    bombardDefense = 0,
+    navalBombardDefense = 0,
+    defenseBonus = 0,
+    navalDefenseBonus = 0,
+    maintenanceCost = 0,
+    contentFacesAllCities = 0,
+    contentFaces = 0,
+    unhappyFacesAllCities = 0,
+    unhappyFaces = 0,
+    numberOfRequiredBuildings = 0,
+    airPower = 0,
+    navalPower = 0,
+    pollution = 0,
+    production = 0,
+    requiredGovernment = -1,
+    spaceshipPart = spaceshipPart,
+    requiredAdvance = -1,
+    renderedObsoleteBy = -1,
+    requiredResource1 = -1,
+    requiredResource2 = -1,
+    flags = ByteString.of(*ByteArray(16)),
+    numberOfArmiesRequired = 0,
+    flavors = 0,
+    unknown = ByteString.of(*ByteArray(4)),
+    unitProduced = -1,
+    unitFrequency = 0,
+)
+
 private fun terrEntryWithPollutionEffect(pollutionEffect: Int): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
@@ -742,6 +835,70 @@ class Civ3FileValidationTest : FunSpec({
 
     test("validateTfrmCardinality returns no issues when TFRM is absent") {
         validateTfrmCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateBldgSpaceshipPartBounds returns no issues for distinct in-bounds parts") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                RuleSection(listOf(ruleEntryWithSpaceshipPartCount(3))),
+                BldgSection(listOf(bldgEntry(spaceshipPart = -1), bldgEntry(spaceshipPart = 0), bldgEntry(spaceshipPart = 2))),
+            ),
+        )
+
+        validateBldgSpaceshipPartBounds(file) shouldBe emptyList()
+    }
+
+    test("validateBldgSpaceshipPartBounds flags an out-of-bounds spaceshipPart") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                RuleSection(listOf(ruleEntryWithSpaceshipPartCount(3))),
+                BldgSection(listOf(bldgEntry(spaceshipPart = 3))),
+            ),
+        )
+
+        validateBldgSpaceshipPartBounds(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                0,
+                "spaceshipPart",
+                "spaceshipPart=3 is not -1 and not a valid RULE spaceshipPartQuantities index (0..<3)",
+            ),
+        )
+    }
+
+    test("validateBldgSpaceshipPartBounds flags a duplicate spaceshipPart") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                RuleSection(listOf(ruleEntryWithSpaceshipPartCount(3))),
+                BldgSection(listOf(bldgEntry(spaceshipPart = 1), bldgEntry(spaceshipPart = 1))),
+            ),
+        )
+
+        validateBldgSpaceshipPartBounds(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                1,
+                "spaceshipPart",
+                "spaceshipPart=1 is already assigned to an earlier BLDG entry",
+            ),
+        )
+    }
+
+    test("validateBldgSpaceshipPartBounds returns no issues when BLDG is absent") {
+        val file = fileWithSections(major = 12, listOf(RuleSection(listOf(ruleEntryWithSpaceshipPartCount(3)))))
+
+        validateBldgSpaceshipPartBounds(file) shouldBe emptyList()
+    }
+
+    test("validateBldgSpaceshipPartBounds returns no issues when RULE is absent") {
+        val file = fileWithSections(major = 12, listOf(BldgSection(listOf(bldgEntry(spaceshipPart = 0)))))
+
+        validateBldgSpaceshipPartBounds(file) shouldBe emptyList()
     }
 
     test("validate() surfaces a cardinality rule's issue alongside the seed rule's") {

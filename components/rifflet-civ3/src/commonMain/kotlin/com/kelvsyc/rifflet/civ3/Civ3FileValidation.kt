@@ -25,6 +25,9 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateClnyTileBackReference(file) },
     ValidationRule { file -> validateCtznDefaultCount(file) },
     ValidationRule { file -> validateCtznDefaultPrerequisite(file) },
+    ValidationRule { file -> validateBldgSpaceshipPartBounds(file) },
+    ValidationRule { file -> validateGovtCorruption(file) },
+    ValidationRule { file -> validatePrtoDomain(file) },
     ValidationRule { file -> validateTerrCardinality(file) },
     ValidationRule { file -> validateTfrmCardinality(file) },
     ValidationRule { file -> validateCitySizeLevelThresholds(file) },
@@ -316,6 +319,43 @@ fun validateTfrmCardinality(file: Civ3File): List<ValidationIssue> {
             "TFRM has $count entries; $era requires exactly $expected",
         ),
     )
+}
+
+/**
+ * Flags a [BldgEntry] whose [BldgEntry.spaceshipPart] isn't `-1`, isn't a valid index into
+ * [RuleEntry.spaceshipPartQuantities], or duplicates another [BldgEntry]'s [BldgEntry.spaceshipPart].
+ * Returns no issues if `BLDG` or `RULE` is absent from [file].
+ *
+ * Every real official file with spaceship-part-producing buildings assigns each of its declared
+ * parts to exactly one distinct building, never out of bounds.
+ */
+fun validateBldgSpaceshipPartBounds(file: Civ3File): List<ValidationIssue> {
+    val bldg = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    val rule = file.sections.filterIsInstance<RuleSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val count = rule.spaceshipPartQuantities.size
+    val seen = mutableSetOf<Int>()
+    return bldg.entries.mapIndexedNotNull { index, entry ->
+        val part = entry.spaceshipPart
+        when {
+            part == -1 -> null
+            part !in 0 until count -> ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                index,
+                "spaceshipPart",
+                "spaceshipPart=$part is not -1 and not a valid RULE spaceshipPartQuantities index (0..<$count)",
+            )
+            !seen.add(part) -> ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                index,
+                "spaceshipPart",
+                "spaceshipPart=$part is already assigned to an earlier BLDG entry",
+            )
+            else -> null
+        }
+    }
 }
 
 /**

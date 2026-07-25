@@ -13,6 +13,10 @@ import okio.ByteString
  *   naming-based inference). Same treatment applies to [renderedObsoleteBy].
  * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
  *   naming-based inference). Same treatment applies to [requiredResource2].
+ * @param spaceshipPart `-1` if this building doesn't produce a spaceship part, or an index into
+ *   `RuleEntry.spaceshipPartQuantities` identifying which part it produces — confirmed by real
+ *   data (the Conquests base ruleset's 10 "SS ..." buildings each carry a distinct index 0-9,
+ *   matching the General Settings tab's "Spaceship Parts" group's part dropdown/count).
  * @param flags 16 bytes, four packed 4-byte named sub-fields per existing reverse-engineering
  *   documentation of the BIX/BIQ format: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
  *   (bytes 4-7), [BldgEntry.smallWonders] (bytes 8-11), [BldgEntry.wonders] (bytes 12-15) — see

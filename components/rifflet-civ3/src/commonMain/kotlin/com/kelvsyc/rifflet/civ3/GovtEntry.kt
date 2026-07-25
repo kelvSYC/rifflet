@@ -13,6 +13,8 @@ import okio.ByteString
  * @param toggle2 `???` — observed: -1 = Despotism/Communism, 0 = Anarchy/Monarchy,
  *   1 = Republic/Democracy.
  * @param toggle3 `???` — observed: 1 = Republic/Democracy, 0 = other.
+ * @param corruption This government's Corruption and Waste severity — see [GovtCorruption] for
+ *   what each value means, per the Governments editor's own radio group.
  * @param prerequisiteTechnology A `TECH` section index, per the Governments editor's own
  *   "Prerequisite" dropdown.
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
