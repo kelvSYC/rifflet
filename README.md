@@ -16,6 +16,7 @@ Kotlin Multiplatform library for parsing and writing IFF (Interchange File Forma
 | Module | Coordinates | Description |
 |---|---|---|
 | `rifflet-core` | `com.kelvsyc.rifflet:rifflet-core` | Core IFF/RIFF/RIFX parsing and writing primitives; T3 VM image file parsing |
+| `rifflet-civ3` | `com.kelvsyc.rifflet:rifflet-civ3` | Civilization III scenario/save file (`.BIC`/`.BIX`/`.BIQ`) parsing, plus editor-behavior validation |
 
 ## Platform Support
 
@@ -114,6 +115,7 @@ rifflet/
     plugins/          # Convention plugins (Kotlin, Dokka, publishing)
   components/         # Published libraries
     rifflet-core/     # Core IFF/RIFF/RIFX primitives
+    rifflet-civ3/     # Civilization III scenario/save file parsing and validation
 ```
 
 ### Testing

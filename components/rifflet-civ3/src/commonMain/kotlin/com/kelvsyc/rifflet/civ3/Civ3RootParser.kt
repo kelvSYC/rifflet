@@ -19,6 +19,11 @@ internal val BICX_MAGIC = ChunkId("BICX")
  * [Civ3File]. Compression is auto-detected: if the leading 4 bytes are not a recognized file
  * magic, the whole source is treated as a PKWare Implode stream and decompressed before parsing.
  *
+ * This only checks whether the bytes obey the wire format's own shape — never whether the
+ * resulting [Civ3File]'s contents make sense as a Civ3 scenario (a building whose required
+ * government points nowhere still parses cleanly). For that,
+ * see [com.kelvsyc.rifflet.civ3.validation.ValidationRule].
+ *
  * @throws RiffletParseException if the source is not a well-formed Civ3 file, compressed or not.
  */
 object Civ3RootParser {
