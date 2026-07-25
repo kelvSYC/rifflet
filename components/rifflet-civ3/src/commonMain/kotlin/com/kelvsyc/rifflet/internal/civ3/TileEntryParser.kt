@@ -35,12 +35,12 @@ import okio.ByteString
  * `city`). Verified
  * against two real map-editor exports (one PTW, one Conquests), each with one placed colony and
  * one placed city at known coordinates: computing each object's expected `TILE` array index from
- * its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` and this codebase's isometric tile-index
- * formula (`(y/2)*width + (y%2==1 ? width/2 : 0) + x/2`), the *first* `Short` at that tile
- * identifies the placed `CITY` entry and the *second* identifies the placed `CLNY` entry, in both
- * files. `TileEntry`'s own field names (`colony`, `city`) match their documented meaning; only
- * the read order here is corrected, so downstream code (`TileEntry.colony`/`.city`,
- * `TileEntryReferences.kt`'s `colonyClny`/`cityCity`) needed no changes.
+ * its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` via [com.kelvsyc.rifflet.civ3.WmapEntry.tileIndex],
+ * the *first* `Short` at that tile identifies the placed `CITY` entry and the *second* identifies
+ * the placed `CLNY` entry, in both files. `TileEntry`'s own field names (`colony`, `city`) match
+ * their documented meaning; only the read order here is corrected, so downstream code
+ * (`TileEntry.colony`/`.city`, `TileEntryReferences.kt`'s `colonyClny`/`cityCity`) needed no
+ * changes.
  */
 internal object TileEntryParser {
     fun parse(item: Buffer): TileEntry {
