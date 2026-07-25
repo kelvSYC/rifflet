@@ -117,6 +117,69 @@ private fun clnyEntry(x: Int, y: Int): ClnyEntry = ClnyEntry(
     improvementType = 0,
 )
 
+private fun ctznEntry(defaultCitizen: Int = 0, prerequisite: Int = -1): CtznEntry = CtznEntry(
+    defaultCitizen = defaultCitizen,
+    singularName = "",
+    civilopediaEntry = "",
+    pluralName = "",
+    prerequisite = prerequisite,
+    luxuries = 0,
+    research = 0,
+    taxes = 0,
+    corruption = 0,
+    construction = 0,
+)
+
+private fun terrEntry(): TerrEntry = TerrEntry(
+    numberOfPossibleResources = 0,
+    possibleResources = ByteString.of(),
+    name = "",
+    civilopediaEntry = "",
+    irrigationBonus = 0,
+    miningBonus = 0,
+    roadBonus = 0,
+    defenseBonus = 0,
+    movementCost = 0,
+    food = 0,
+    shields = 0,
+    commerce = 0,
+    workerJobAllowed = -1,
+    pollutionEffect = -1,
+    allowCities = 0,
+    allowColonies = 0,
+    impassable = 0,
+    impassableByWheeled = 0,
+    allowAirfields = 0,
+    allowForts = 0,
+    allowOutposts = 0,
+    allowRadarTowers = 0,
+    unknown = ByteString.of(*ByteArray(4)),
+    landmarkEnabled = 0,
+    landmarkFood = 0,
+    landmarkShields = 0,
+    landmarkCommerce = 0,
+    landmarkIrrigationBonus = 0,
+    landmarkMiningBonus = 0,
+    landmarkRoadBonus = 0,
+    landmarkMovementBonus = 0,
+    landmarkDefensiveBonus = 0,
+    landmarkName = "",
+    landmarkCivilopediaEntry = "",
+    unknown2 = ByteString.of(*ByteArray(4)),
+    terrainFlags = 0,
+    diseaseStrength = 0,
+)
+
+private fun tfrmEntry(): TfrmEntry = TfrmEntry(
+    name = "",
+    civilopediaEntry = "",
+    turnsToComplete = 0,
+    required = -1,
+    requiredResource1 = -1,
+    requiredResource2 = -1,
+    order = "",
+)
+
 private fun terrEntryWithPollutionEffect(pollutionEffect: Int): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
@@ -160,10 +223,10 @@ private fun terrEntryWithPollutionEffect(pollutionEffect: Int): TerrEntry = Terr
 class Civ3FileValidationTest : FunSpec({
 
     test("validate() surfaces the seed rule's issue for a file with an invalid pollutionEffect") {
-        val file = Civ3File(
-            Civ3Header(major = 12, minor = 0, description = "", title = ""),
-            listOf(TerrSection(listOf(terrEntryWithPollutionEffect(pollutionEffect = 99)))),
-        )
+        // 14 entries so this doesn't also trip validateTerrCardinality (Conquests requires exactly 14).
+        val terrains = listOf(terrEntryWithPollutionEffect(pollutionEffect = 99)) +
+            List(13) { terrEntryWithPollutionEffect(pollutionEffect = -1) }
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), listOf(TerrSection(terrains)))
 
         file.validate() shouldBe listOf(
             ValidationIssue(
@@ -171,7 +234,7 @@ class Civ3FileValidationTest : FunSpec({
                 Civ3SectionIds.TERR,
                 0,
                 "pollutionEffect",
-                "pollutionEffect=99 is not -1, not the base-terrain sentinel (1), and not a valid TERR index (0..<1)",
+                "pollutionEffect=99 is not -1, not the base-terrain sentinel (14), and not a valid TERR index (0..<14)",
             ),
         )
     }
@@ -480,6 +543,205 @@ class Civ3FileValidationTest : FunSpec({
         )
 
         validateClnyTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateCtznDefaultCount returns no issues when exactly one entry is the default") {
+        val file = fileWithSections(major = 12, listOf(CtznSection(listOf(ctznEntry(defaultCitizen = 1), ctznEntry()))))
+
+        validateCtznDefaultCount(file) shouldBe emptyList()
+    }
+
+    test("validateCtznDefaultCount flags zero default entries") {
+        val file = fileWithSections(major = 12, listOf(CtznSection(listOf(ctznEntry(), ctznEntry()))))
+
+        validateCtznDefaultCount(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CTZN,
+                null,
+                "defaultCitizen",
+                "CTZN has 0 entries with defaultCitizen set; exactly 1 is expected",
+            ),
+        )
+    }
+
+    test("validateCtznDefaultCount flags more than one default entry") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(CtznSection(listOf(ctznEntry(defaultCitizen = 1), ctznEntry(defaultCitizen = 1)))),
+        )
+
+        validateCtznDefaultCount(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CTZN,
+                null,
+                "defaultCitizen",
+                "CTZN has 2 entries with defaultCitizen set; exactly 1 is expected",
+            ),
+        )
+    }
+
+    test("validateCtznDefaultCount returns no issues when CTZN is absent") {
+        validateCtznDefaultCount(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateCtznDefaultPrerequisite returns no issues when the default has no prerequisite") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(CtznSection(listOf(ctznEntry(defaultCitizen = 1, prerequisite = -1)))),
+        )
+
+        validateCtznDefaultPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("validateCtznDefaultPrerequisite flags a default entry with a prerequisite") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(CtznSection(listOf(ctznEntry(defaultCitizen = 1, prerequisite = 3)))),
+        )
+
+        validateCtznDefaultPrerequisite(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CTZN,
+                0,
+                "prerequisite",
+                "the default citizen type has prerequisite=3; it should need no prerequisite (-1)",
+            ),
+        )
+    }
+
+    test("validateCtznDefaultPrerequisite returns no issues when there isn't exactly one default") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                CtznSection(
+                    listOf(ctznEntry(defaultCitizen = 1, prerequisite = 3), ctznEntry(defaultCitizen = 1)),
+                ),
+            ),
+        )
+
+        // Wrong default count is validateCtznDefaultCount's concern, not this rule's.
+        validateCtznDefaultPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("validateCtznDefaultPrerequisite returns no issues when CTZN is absent") {
+        validateCtznDefaultPrerequisite(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateTerrCardinality returns no issues for exactly 12 entries in PTW") {
+        val file = fileWithSections(major = 11, listOf(TerrSection(List(12) { terrEntry() })))
+
+        validateTerrCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTerrCardinality returns no issues for exactly 12 entries in vanilla") {
+        val file = fileWithSections(major = 3, listOf(TerrSection(List(12) { terrEntry() })))
+
+        validateTerrCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTerrCardinality flags a count other than 12 in PTW") {
+        val file = fileWithSections(major = 11, listOf(TerrSection(List(11) { terrEntry() })))
+
+        validateTerrCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                null,
+                "entries",
+                "TERR has 11 entries; PTW requires exactly 12",
+            ),
+        )
+    }
+
+    test("validateTerrCardinality returns no issues for exactly 14 entries in Conquests") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(List(14) { terrEntry() })))
+
+        validateTerrCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTerrCardinality flags a count other than 14 in Conquests") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(List(15) { terrEntry() })))
+
+        validateTerrCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                null,
+                "entries",
+                "TERR has 15 entries; CONQUESTS requires exactly 14",
+            ),
+        )
+    }
+
+    test("validateTerrCardinality returns no issues when TERR is absent") {
+        validateTerrCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateTfrmCardinality returns no issues for exactly 9 entries in vanilla") {
+        val file = fileWithSections(major = 3, listOf(TfrmSection(List(9) { tfrmEntry() })))
+
+        validateTfrmCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTfrmCardinality flags a count other than 9 in vanilla") {
+        val file = fileWithSections(major = 3, listOf(TfrmSection(List(8) { tfrmEntry() })))
+
+        validateTfrmCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TFRM,
+                null,
+                "entries",
+                "TFRM has 8 entries; VANILLA requires exactly 9",
+            ),
+        )
+    }
+
+    test("validateTfrmCardinality returns no issues for exactly 12 entries in PTW") {
+        val file = fileWithSections(major = 11, listOf(TfrmSection(List(12) { tfrmEntry() })))
+
+        validateTfrmCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTfrmCardinality flags a count other than 12 in PTW") {
+        val file = fileWithSections(major = 11, listOf(TfrmSection(List(13) { tfrmEntry() })))
+
+        validateTfrmCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TFRM,
+                null,
+                "entries",
+                "TFRM has 13 entries; PTW requires exactly 12",
+            ),
+        )
+    }
+
+    test("validateTfrmCardinality returns no issues for exactly 13 entries in Conquests") {
+        val file = fileWithSections(major = 12, listOf(TfrmSection(List(13) { tfrmEntry() })))
+
+        validateTfrmCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateTfrmCardinality flags a count other than 13 in Conquests") {
+        val file = fileWithSections(major = 12, listOf(TfrmSection(List(12) { tfrmEntry() })))
+
+        validateTfrmCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TFRM,
+                null,
+                "entries",
+                "TFRM has 12 entries; CONQUESTS requires exactly 13",
+            ),
+        )
+    }
+
+    test("validateTfrmCardinality returns no issues when TFRM is absent") {
+        validateTfrmCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
     }
 
     test("validate() surfaces a cardinality rule's issue alongside the seed rule's") {

@@ -9,6 +9,7 @@ import okio.ByteString
 private fun validTerrEntry(
     name: String = "",
     pollutionEffect: Int = -1,
+    workerJobAllowed: Int = -1,
 ): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
@@ -22,7 +23,7 @@ private fun validTerrEntry(
     food = 0,
     shields = 0,
     commerce = 0,
-    workerJobAllowed = -1,
+    workerJobAllowed = workerJobAllowed,
     pollutionEffect = pollutionEffect,
     allowCities = 0,
     allowColonies = 0,
@@ -53,6 +54,9 @@ private fun fileWithTerrains(terrains: List<TerrEntry>): Civ3File = Civ3File(
     Civ3Header(major = 12, minor = 0, description = "", title = ""),
     listOf(TerrSection(terrains)),
 )
+
+// Index 7 is Forest (the fixed slot); indices 0-6 are filler terrain.
+private fun fillerTerrains(count: Int = 7): List<TerrEntry> = List(count) { validTerrEntry(name = "Filler$it") }
 
 class TerrEntryValidationTest : FunSpec({
 
@@ -97,5 +101,41 @@ class TerrEntryValidationTest : FunSpec({
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         validatePollutionEffect(file) shouldBe emptyList()
+    }
+
+    test("validateClearForestExclusiveToForest returns no issues when only Forest allows it") {
+        val terrains = fillerTerrains() + validTerrEntry(name = "Forest", workerJobAllowed = 6)
+        val file = fileWithTerrains(terrains)
+
+        validateClearForestExclusiveToForest(file) shouldBe emptyList()
+    }
+
+    test("validateClearForestExclusiveToForest returns no issues when no terrain allows it") {
+        val file = fileWithTerrains(fillerTerrains() + validTerrEntry(name = "Forest"))
+
+        validateClearForestExclusiveToForest(file) shouldBe emptyList()
+    }
+
+    test("validateClearForestExclusiveToForest flags a non-Forest terrain that allows it") {
+        val terrains = fillerTerrains(3) + validTerrEntry(name = "Jungle", workerJobAllowed = 6) +
+            fillerTerrains(3) + validTerrEntry(name = "Forest", workerJobAllowed = 6)
+        val file = fileWithTerrains(terrains)
+
+        validateClearForestExclusiveToForest(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                3,
+                "workerJobAllowed",
+                "TERR[3] (Jungle) has workerJobAllowed=6 (Clear Forest), which only functions on " +
+                    "the Forest terrain type (TERR[7])",
+            ),
+        )
+    }
+
+    test("validateClearForestExclusiveToForest returns no issues when TERR is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateClearForestExclusiveToForest(file) shouldBe emptyList()
     }
 })
