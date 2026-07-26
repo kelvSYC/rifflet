@@ -702,7 +702,7 @@ val PrtoEntry.precisionBombing: Boolean by BitCollection.int.extensionBitFlag({ 
 // Tower Builder" units revealed [buildOutpost] and [buildRadarTower] had been swapped (an
 // unverified guess from before either had a real single-unit anchor) — now corrected.
 //
-// ## flags2 — macro-layout confirmed, bit-for-bit packing within each range still open
+// ## flags2 — full bit layout penciled in per Apolyton; most positions not independently provable
 // Confirmed via real vanilla files (civ3mod.bic and both real "Earth" scenario files, all
 // major=4/minor=1) cross-checked against a real PTW file (civ3X.bix, major=11/minor=18): in
 // [Civ3FormatEra.VANILLA], flags2 is where Standard Orders, Special Actions, Worker/Engineer
@@ -715,36 +715,55 @@ val PrtoEntry.precisionBombing: Boolean by BitCollection.int.extensionBitFlag({ 
 // matches [buildCity]+[joinCity], etc.) — confirming PTW is already on the modern separate-fields
 // layout, so the schema break is at the vanilla→PTW boundary, not PTW→Conquests.
 //
-// A source Apolyton reverse-engineering thread's claimed exact vanilla bit layout — bits 0-4
-// Standard Orders (Skip Turn, Wait, Fortify, Disband, Go To), 5-13 Special Actions (Load, Unload,
-// Airlift, Pillage, Bombard, Airdrop, Build Army, Finish Improvements, Upgrade Unit), 14-26
-// Worker/Engineer Actions (Build Colony, Build City, Build Road, Build Railroad, Build Fort, Build
-// Mine, Irrigate, Clear Forest, Clear Jungle, Plant Forest, Clear Pollution, Automate, Join City),
-// 27-31 unused, 32-36 Air Missions (Bombing, Recon, Interception, Re-base, Precision Bombing), 37
-// unused, 38-50 a flags4-style synthetic-commands mix, 51-63 unused — is confirmed against the
-// real vanilla base ruleset (civ3mod.bic, 77 entries):
-// - Zero bits ever appear in any of the 3 claimed-unused ranges (27-31, 37, 51-63).
-// - Settler's real bits 14-26 are exactly {15 (Build City), 26 (Join City)} — matching
-//   [workerActions]'s own confirmed Settler population exactly.
-// - Worker's real bits 14-26 are every one of them except 15 (Build City) — matching
-//   [workerActions]'s own confirmed Worker population exactly (everything except [buildCity]).
-// - Fighter's real bits 32-35 (Bombing, Recon, Interception, Re-base, missing Precision Bombing)
-//   and Bomber's real bits 32 and 35 (Bombing, Re-base only) exactly match their known real
-//   [airMissions] populations.
-// - The 38-50 range decomposes exactly like [flags4]'s own structure: bit 38 is an exact
-//   bit-for-bit match for bit 9 (Bombard) across all 77 entries; bits 39-48 (10 bits) are all
-//   mutually identical to each other and confined to the sole real Worker entry — the same shape
-//   as [flags4]'s own Worker-exclusive cluster; bit 49 is an exact match for bit 32 (Bombing); and
-//   bit 50 is an exact match for bit 36 (Precision Bombing) — directly mirroring [flags4]'s own
-//   [bombard]/[bombing]/[precisionBombing] echoes and Worker-exclusive cluster, bit-for-bit in
-//   structure if not in absolute position.
+// A per-bit correlation sweep matched all 77 real vanilla civ3mod.bic entries by name against
+// their real Conquests base-ruleset counterparts (conquests.biq, 77 of 77 matched), then checked
+// every one of flags2's 64 bits against every known Standard Orders/Special Actions/Worker
+// Actions/Air Missions boolean for an exact match across the whole matched set, against a source
+// Apolyton reverse-engineering thread's claimed bit layout: bits 0-4 Standard Orders (Skip Turn,
+// Wait, Fortify, Disband, Go To), 5-13 Special Actions (Load, Unload, Airlift, Pillage, Bombard,
+// Airdrop, Build Army, Finish Improvements, Upgrade Unit), 14-26 Worker/Engineer Actions (Build
+// Colony, Build City, Build Road, Build Railroad, Build Fort, Build Mine, Irrigate, Clear Forest,
+// Clear Jungle, Plant Forest, Clear Pollution, Automate, Join City), 27-31 unused, 32-36 Air
+// Missions (Bombing, Recon, Interception, Re-base, Precision Bombing), 37 unused, 38-50 a
+// flags4-style synthetic-commands mix, 51-63 unused.
 //
-// This confirms the exact macro-layout, but NOT which specific action within each multi-item range
-// is which specific bit (e.g. which of bits 14-26 is Build Road vs. Build Railroad) — vanilla
-// lacks the scenario-file richness Conquests has (no known real vanilla scenario carries its own
-// PRTO section; only the base ruleset does), so there's no equivalent of the purpose-built test
-// scenario that resolved [flags4]'s per-bit ambiguities. Decoding the exact intra-range order
-// remains a distinct, still out-of-scope reverse-engineering effort.
+// Individually confirmed by the sweep (exact, unique match across all 77 real entries):
+// - Bit 4: [goTo].
+// - Bit 6: [unload].
+// - Bit 9: [bombard].
+// - Bit 10: [airdrop].
+// - Bit 15: [buildCity].
+// - Bit 26: [joinCity].
+// - Bits 32-36: [bombing], [recon], [interception], [rebase], [precisionBombing] — Air Missions
+//   is the one sub-range fully closed bit-by-bit.
+//
+// Not distinguishable from real data, but penciled in at their Apolyton-claimed position (credible
+// given how the confirmed bits above land exactly where that same ordering predicts, but not
+// independently provable the same way):
+// - Bits 0-3: Skip Turn, Wait, Fortify, Disband — all 77 real entries have all four set, a
+//   tautology no correlation can break.
+// - Bits 5, 7, 8, 13: Load, Airlift, Pillage, Upgrade Unit — each sits at its expected sequential
+//   slot, but its value doesn't exactly match the same-named Conquests unit's boolean (plausibly a
+//   genuine ruleset-to-ruleset difference in availability for these context-dependent actions, not
+//   evidence against the position itself).
+// - Bits 11-12: Build Army, Finish Improvements — tied to each other; only the Leader entry has
+//   either bit set, and it has both, so which specific bit is which action can't be told apart.
+// - Bits 14, 16-25: Build Colony, Build Road, Build Railroad, Build Fort, Build Mine, Irrigate,
+//   Clear Forest, Clear Jungle, Plant Forest, Clear Pollution, Automate — the sole real vanilla
+//   Worker entry has all 11 of these bits set simultaneously and no other entry has any of them
+//   set, so they're completely indistinguishable from real data alone. The same cluster problem
+//   [flags4] hit before a purpose-built test scenario existed to split it apart; no vanilla
+//   equivalent of that scenario is known to exist.
+//
+// Bits 27-31, 37, and 51-63 are confirmed unused (zero across the entire matched corpus). The
+// 38-50 range decomposes exactly like [flags4]'s own structure: bit 38 is an exact match for bit 9
+// (Bombard); bits 39-48 (10 bits) are all mutually identical to each other and confined to the
+// sole real Worker entry — the same cluster problem as bits 14/16-25 above; bit 49 is an exact
+// match for bit 32 (Bombing); bit 50 is an exact match for bit 36 (Precision Bombing).
+//
+// No accessor exists for any part of flags2: it only carries real data on
+// [Civ3FormatEra.VANILLA] files, and most of the bit assignments above are penciled in rather than
+// independently confirmed.
 //
 // Separately, on real Conquests-era files specifically: flags2 is zero on every entry carried over
 // unmodified from the original ruleset (e.g. this corpus's Settler and Worker), but a real
