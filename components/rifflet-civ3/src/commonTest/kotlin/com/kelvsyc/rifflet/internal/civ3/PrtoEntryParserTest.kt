@@ -49,13 +49,18 @@ private fun prtoItemBinary(
     requiredResource1: Int = -1,
     requiredResource2: Int = -1,
     requiredResource3: Int = -1,
-    flags1: ByteString = ByteString.of(*ByteArray(8)),
+    abilities: Int = 0,
+    aiStrategies: Int = 0,
     availableTo: Int = -1,
     flags2: ByteString = ByteString.of(*ByteArray(8)),
     type: Int = 0,
     otherStrategy: Int = -1,
     hpBonus: Int = 0,
-    flags3: ByteString = ByteString.of(*ByteArray(20)),
+    standardOrders: Int = 0,
+    specialActions: Int = 0,
+    workerActions: Int = 0,
+    airMissions: Int = 0,
+    flags4: ByteString = ByteString.of(*ByteArray(4)),
     bombardEffects: Int = 0,
     ignoreMovementCost: ByteString = ByteString.of(*ByteArray(14)),
     requireSupport: Int = 0,
@@ -90,14 +95,19 @@ private fun prtoItemBinary(
     writeIntLe(requiredResource1)
     writeIntLe(requiredResource2)
     writeIntLe(requiredResource3)
-    write(flags1)
+    writeIntLe(abilities)
+    writeIntLe(aiStrategies)
     writeIntLe(availableTo)
     write(flags2)
     writeIntLe(type)
     writeIntLe(otherStrategy)
     writeIntLe(hpBonus)
     if (includeFlags3Onward) {
-        write(flags3)
+        writeIntLe(standardOrders)
+        writeIntLe(specialActions)
+        writeIntLe(workerActions)
+        writeIntLe(airMissions)
+        write(flags4)
         writeIntLe(bombardEffects)
         write(ignoreMovementCost)
         writeIntLe(requireSupport)
@@ -140,13 +150,18 @@ class PrtoEntryParserTest : FunSpec({
             requiredResource1 = -1,
             requiredResource2 = -1,
             requiredResource3 = -1,
-            flags1 = ByteString.of(*ByteArray(8)),
+            abilities = 0,
+            aiStrategies = 0,
             availableTo = -1,
             flags2 = ByteString.of(*ByteArray(8)),
             type = 0,
             otherStrategy = -1,
             hpBonus = 0,
-            flags3 = ByteString.of(*ByteArray(20)),
+            standardOrders = 0,
+            specialActions = 0,
+            workerActions = 0,
+            airMissions = 0,
+            flags4 = ByteString.of(*ByteArray(4)),
             bombardEffects = 0,
             ignoreMovementCost = ByteString.of(*ByteArray(14)),
             requireSupport = 0,
@@ -175,7 +190,11 @@ class PrtoEntryParserTest : FunSpec({
             prtoItemBinary(includeFlags3Onward = false),
             terrCount = 12,
         )
-        entry.flags3 shouldBe ByteString.of(*ByteArray(20))
+        entry.standardOrders shouldBe 0
+        entry.specialActions shouldBe 0
+        entry.workerActions shouldBe 0
+        entry.airMissions shouldBe 0
+        entry.flags4 shouldBe ByteString.of(*ByteArray(4))
         entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
         entry.requireSupport shouldBe 0
         entry.unknown shouldBe ByteString.of(*ByteArray(16))
@@ -196,21 +215,15 @@ class PrtoEntryParserTest : FunSpec({
         entry.stealthTargetUnitTypes shouldBe emptyList()
     }
 
-    test("PrtoEntry rejects a flags1 field that is not exactly 8 bytes") {
-        shouldThrow<IllegalArgumentException> {
-            wellFormedPrtoEntry(flags1 = ByteString.of(0, 0, 0))
-        }
-    }
-
     test("PrtoEntry rejects a flags2 field that is not exactly 8 bytes") {
         shouldThrow<IllegalArgumentException> {
             wellFormedPrtoEntry(flags2 = ByteString.of(0, 0, 0))
         }
     }
 
-    test("PrtoEntry rejects a flags3 field that is not exactly 20 bytes") {
+    test("PrtoEntry rejects a flags4 field that is not exactly 4 bytes") {
         shouldThrow<IllegalArgumentException> {
-            wellFormedPrtoEntry(flags3 = ByteString.of(0, 0, 0))
+            wellFormedPrtoEntry(flags4 = ByteString.of(0, 0))
         }
     }
 
@@ -257,9 +270,8 @@ class PrtoEntryParserTest : FunSpec({
 /** Builds a well-formed [PrtoEntry] with all-zero/empty values, for domain-invariant tests that
  * only care about overriding one `ByteString` field. */
 private fun wellFormedPrtoEntry(
-    flags1: ByteString = ByteString.of(*ByteArray(8)),
     flags2: ByteString = ByteString.of(*ByteArray(8)),
-    flags3: ByteString = ByteString.of(*ByteArray(20)),
+    flags4: ByteString = ByteString.of(*ByteArray(4)),
     unknown: ByteString = ByteString.of(*ByteArray(16)),
     unknown2: ByteString = ByteString.of(*ByteArray(4)),
     unknown3: ByteString = ByteString.of(*ByteArray(8)),
@@ -270,11 +282,16 @@ private fun wellFormedPrtoEntry(
     iconIndex = 0, attack = 0, operationalRange = 0, populationCost = 0, rateOfFire = 0,
     movement = 0, required = 0, upgradeTo = 0, requiredResource1 = 0, requiredResource2 = 0,
     requiredResource3 = 0,
-    flags1 = flags1,
+    abilities = 0,
+    aiStrategies = 0,
     availableTo = 0,
     flags2 = flags2,
     type = 0, otherStrategy = 0, hpBonus = 0,
-    flags3 = flags3,
+    standardOrders = 0,
+    specialActions = 0,
+    workerActions = 0,
+    airMissions = 0,
+    flags4 = flags4,
     bombardEffects = 0,
     ignoreMovementCost = ByteString.of(*ByteArray(14)),
     requireSupport = 0,

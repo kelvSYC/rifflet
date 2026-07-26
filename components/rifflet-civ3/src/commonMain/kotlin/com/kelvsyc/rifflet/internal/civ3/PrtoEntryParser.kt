@@ -6,43 +6,29 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `PRTO` item, per existing reverse-engineering documentation of the BIX/BIQ format,
- * cross-validated against a separate reverse-engineered reference implementation's grouped flags
- * regions (the two sources' byte counts for the flags/orders region between `requiredResource3`
- * and `bombardEffects` reconcile exactly at 52 bytes, confirming that implementation's
- * consolidated `Flags1`/`AvailableTo`/`Flags2`/`Type`/`OtherStrategy`/`HPBonus`/`Flags3` grouping
- * matches the more granular older field list from existing reverse-engineering documentation for
- * the same region). Reads directly off [item], a zero-copy-transferred [Buffer] already stripped
- * of its own length prefix by the generic section loop.
- *
- * [PrtoEntry.workerStrength] is the first `Float` field in this codebase: read via
- * `Float.fromBits` bit-reinterpretation of an ordinary little-endian `Int` read, since neither
- * okio nor this codebase has a dedicated little-endian float reader.
+ * Parses one `PRTO` item. Reads directly off [item], a zero-copy-transferred [Buffer] already
+ * stripped of its own length prefix by the generic section loop.
  *
  * [terrCount] comes from the already-parsed `TERR` section (see `Civ3RootParserImpl`'s
  * cross-section threading, the same pattern `RaceEntryParser` uses for `erasCount`) and sizes
- * [PrtoEntry.ignoreMovementCost] — confirmed real-data-dependent, not a fixed constant: real
- * [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files always have 12 `TERR` entries, real
- * [Civ3FormatEra.CONQUESTS] files always have 14 (Conquests added 2 new terrain types, marshes
- * and volcanoes). This codebase originally modeled `ignoreMovementCost` as a hardcoded 14 bytes,
- * which happened to be correct only for [Civ3FormatEra.CONQUESTS]; cross-checking
- * [PrtoEntry.requireSupport]'s value at the terrCount-corrected offset against a real
- * [Civ3FormatEra.CONQUESTS] file's value for the same-named unit matched on 100 of 101 real
- * units, confirming the fix. [terrCount] is validated via [requireSaneCount] immediately upon
- * entry, before it sizes [PrtoEntry.ignoreMovementCost] — see that function's KDoc for why.
+ * [PrtoEntry.ignoreMovementCost]: real [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files
+ * always have 12 `TERR` entries, real [Civ3FormatEra.CONQUESTS] files always have 14 (Conquests
+ * added 2 new terrain types, marshes and volcanoes). [terrCount] is validated via
+ * [requireSaneCount] immediately upon entry, before it sizes [PrtoEntry.ignoreMovementCost] — see
+ * that function's KDoc for why.
  *
  * [PrtoEntry.numberOfStealthTargets] (not stored on [PrtoEntry] directly —
  * `stealthTargetUnitTypes.size` is already that count) is likewise validated via
  * [requireSaneCount] immediately after being read, before it sizes
  * [PrtoEntry.stealthTargetUnitTypes] in either of its two branches.
  *
- * Every field from [PrtoEntry.flags3] onward is read defensively: real [Civ3FormatEra.VANILLA]
- * files end immediately after [PrtoEntry.hpBonus]; real [Civ3FormatEra.PTW] files (confirmed
- * only at `VER#` header `minor=18` — the only PTW sub-tier with a real `PRTO` sample, so other
- * PTW minors' shape here is unconfirmed) include everything through [PrtoEntry.requireSupport]
- * but omit everything from [PrtoEntry.unknown] onward — evidently the entire unit-behavior tail
- * ([PrtoEntry.unknown] through [PrtoEntry.airDefense]) was introduced together as a
- * [Civ3FormatEra.CONQUESTS]-era `PRTO` expansion, mirroring `GAME`'s own Conquests-era expansion.
+ * Every field from [PrtoEntry.standardOrders] onward is read defensively: real
+ * [Civ3FormatEra.VANILLA] files end immediately after [PrtoEntry.hpBonus]; real
+ * [Civ3FormatEra.PTW] files (only confirmed for `VER#` header `minor=18`) include everything
+ * through [PrtoEntry.requireSupport] but omit everything from [PrtoEntry.unknown] onward — the
+ * entire unit-behavior tail ([PrtoEntry.unknown] through [PrtoEntry.airDefense]) was introduced
+ * together as a [Civ3FormatEra.CONQUESTS]-era `PRTO` expansion, mirroring `GAME`'s own
+ * Conquests-era expansion.
  */
 internal object PrtoEntryParser {
     fun parse(item: Buffer, terrCount: Int): PrtoEntry {
@@ -66,13 +52,19 @@ internal object PrtoEntryParser {
         val requiredResource1 = item.readIntLe()
         val requiredResource2 = item.readIntLe()
         val requiredResource3 = item.readIntLe()
-        val flags1 = item.readByteString(8L)
+        val abilities = item.readIntLe()
+        val aiStrategies = item.readIntLe()
         val availableTo = item.readIntLe()
         val flags2 = item.readByteString(8L)
         val type = item.readIntLe()
         val otherStrategy = item.readIntLe()
         val hpBonus = item.readIntLe()
-        val flags3 = if (item.size >= 20L) item.readByteString(20L) else ByteString.of(*ByteArray(20))
+        val hasFlags3 = item.size >= 20L
+        val standardOrders = if (hasFlags3) item.readIntLe() else 0
+        val specialActions = if (hasFlags3) item.readIntLe() else 0
+        val workerActions = if (hasFlags3) item.readIntLe() else 0
+        val airMissions = if (hasFlags3) item.readIntLe() else 0
+        val flags4 = if (hasFlags3) item.readByteString(4L) else ByteString.of(*ByteArray(4))
         val bombardEffects = if (item.size >= 4L) item.readIntLe() else 0
         val ignoreMovementCost = if (item.size >= terrCount.toLong()) {
             item.readByteString(terrCount.toLong())
@@ -118,13 +110,18 @@ internal object PrtoEntryParser {
             requiredResource1,
             requiredResource2,
             requiredResource3,
-            flags1,
+            abilities,
+            aiStrategies,
             availableTo,
             flags2,
             type,
             otherStrategy,
             hpBonus,
-            flags3,
+            standardOrders,
+            specialActions,
+            workerActions,
+            airMissions,
+            flags4,
             bombardEffects,
             ignoreMovementCost,
             requireSupport,
