@@ -11,6 +11,8 @@ private fun validPrtoEntry(
     requiredResource2: Int = 0,
     requiredResource3: Int = 0,
     stealthTargetUnitTypes: List<Int> = emptyList(),
+    otherStrategy: Int = 0,
+    aiStrategies: Int = 0,
 ): PrtoEntry = PrtoEntry(
     zoneOfControl = 0,
     name = "",
@@ -31,13 +33,18 @@ private fun validPrtoEntry(
     requiredResource1 = requiredResource1,
     requiredResource2 = requiredResource2,
     requiredResource3 = requiredResource3,
-    flags1 = ByteString.of(*ByteArray(8)),
+    abilities = 0,
+    aiStrategies = aiStrategies,
     availableTo = 0,
     flags2 = ByteString.of(*ByteArray(8)),
     type = 0,
-    otherStrategy = 0,
+    otherStrategy = otherStrategy,
     hpBonus = 0,
-    flags3 = ByteString.of(*ByteArray(20)),
+    standardOrders = 0,
+    specialActions = 0,
+    workerActions = 0,
+    airMissions = 0,
+    flags4 = ByteString.of(*ByteArray(4)),
     bombardEffects = 0,
     ignoreMovementCost = ByteString.of(),
     requireSupport = 0,
@@ -94,6 +101,25 @@ class PrtoEntryReferencesTest : FunSpec({
         val prto = validPrtoEntry()
         validPrtoEntry(upgradeTo = 0).upgradeToPrto(listOf(prto)) shouldBe prto
         validPrtoEntry(upgradeTo = 5).upgradeToPrto(emptyList()) shouldBe null
+    }
+
+    test("otherStrategyPrto resolves a self-reference, or null for the -1 sentinel") {
+        val prto = validPrtoEntry()
+        validPrtoEntry(otherStrategy = 0).otherStrategyPrto(listOf(prto)) shouldBe prto
+        validPrtoEntry(otherStrategy = -1).otherStrategyPrto(listOf(prto)) shouldBe null
+    }
+
+    test("effectiveAiStrategies merges this entry's bits with its duplicate's, matching the real Rifleman split") {
+        val canonical = validPrtoEntry(otherStrategy = -1, aiStrategies = 0b01)
+        val duplicate = validPrtoEntry(otherStrategy = 0, aiStrategies = 0b10)
+        val prtos = listOf(canonical, duplicate)
+        canonical.effectiveAiStrategies(prtos) shouldBe 0b11
+        duplicate.effectiveAiStrategies(prtos) shouldBe 0b11
+    }
+
+    test("effectiveAiStrategies is just this entry's own bits when there's no duplicate") {
+        val entry = validPrtoEntry(otherStrategy = -1, aiStrategies = 0b01)
+        entry.effectiveAiStrategies(listOf(entry)) shouldBe 0b01
     }
 
     test("requiredResource1Good resolves against the GOOD list") {
