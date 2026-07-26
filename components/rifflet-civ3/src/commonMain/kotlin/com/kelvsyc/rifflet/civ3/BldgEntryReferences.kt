@@ -1,6 +1,27 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
+ * Resolves [BldgEntry.doublesHappiness] against [buildings] (the same `BLDG` section this entry
+ * came from).
+ */
+fun BldgEntry.doublesHappinessBldg(buildings: List<BldgEntry>): BldgEntry? =
+    buildings.getOrNull(doublesHappiness)
+
+/**
+ * Resolves [BldgEntry.gainInEveryCity] against [buildings] (the same `BLDG` section this entry
+ * came from).
+ */
+fun BldgEntry.gainInEveryCityBldg(buildings: List<BldgEntry>): BldgEntry? =
+    buildings.getOrNull(gainInEveryCity)
+
+/**
+ * Resolves [BldgEntry.gainInEveryCityOnContinent] against [buildings] (the same `BLDG` section
+ * this entry came from).
+ */
+fun BldgEntry.gainInEveryCityOnContinentBldg(buildings: List<BldgEntry>): BldgEntry? =
+    buildings.getOrNull(gainInEveryCityOnContinent)
+
+/**
  * Resolves [BldgEntry.requiredBuilding] against [buildings] (the same `BLDG` section this entry
  * came from).
  */

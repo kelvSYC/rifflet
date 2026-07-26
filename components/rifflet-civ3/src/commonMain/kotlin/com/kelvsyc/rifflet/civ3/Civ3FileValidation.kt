@@ -38,6 +38,11 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateTfrmCardinality(file) },
     ValidationRule { file -> validateCitySizeLevelThresholds(file) },
     ValidationRule { file -> validateBarbarianUnitDomains(file) },
+    ValidationRule { file -> validateBldgSingleCenterOfEmpire(file) },
+    ValidationRule { file -> validateBldgImprovementHasNoWonderEffects(file) },
+    ValidationRule { file -> validateBldgSmallWonderHasNoHappinessReference(file) },
+    ValidationRule { file -> validateBldgSpaceshipPartInvariants(file) },
+    ValidationRule { file -> validateBldgSpaceshipPartConventionalStats(file) },
 )
 
 /**

@@ -5,6 +5,15 @@ import okio.ByteString
 /**
  * One entry of the `BLDG` section: a building or wonder definition.
  *
+ * @param doublesHappiness A `BLDG` section self-reference (`-1` for none) identifying the
+ *   building whose happiness effect this entry doubles — e.g. the Oracle doubles the effect of
+ *   Temple, and Sistine Chapel doubles the effect of Cathedral.
+ * @param gainInEveryCity A `BLDG` section self-reference (`-1` for none) identifying the building
+ *   this entry grants for free in every city in the civilization.
+ * @param gainInEveryCityOnContinent A `BLDG` section self-reference (`-1` for none) identifying
+ *   the building this entry grants for free in every city on the same continent — e.g. the
+ *   Pyramids grant a free Granary, the Great Wall grants free Walls, and Hoover Dam grants a free
+ *   Hydro Plant.
  * @param requiredBuilding A `BLDG` section self-reference, per the Conquests Rules Editor (not
  *   merely a naming-based inference).
  * @param requiredGovernment A `GOVT` section index, per the Conquests Rules Editor (not merely
