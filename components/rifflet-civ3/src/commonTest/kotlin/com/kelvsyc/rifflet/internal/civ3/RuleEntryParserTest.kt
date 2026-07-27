@@ -1,6 +1,11 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.RuleCitySizeLevels
+import com.kelvsyc.rifflet.civ3.RuleCulture
+import com.kelvsyc.rifflet.civ3.RuleDefaultUnits
+import com.kelvsyc.rifflet.civ3.RuleDefensiveBonuses
 import com.kelvsyc.rifflet.civ3.RuleEntry
+import com.kelvsyc.rifflet.civ3.RuleTechnology
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -91,57 +96,67 @@ class RuleEntryParserTest : FunSpec({
     test("well-formed item with upgradeCost present is parsed into all fields") {
         val entry = RuleEntryParser.parse(ruleItemBinary())
         entry shouldBe RuleEntry(
-            citySizeLevel1Name = "Town",
-            citySizeLevel2Name = "City",
-            citySizeLevel3Name = "Metropolis",
+            citySizeLevels = RuleCitySizeLevels(
+                citySizeLevel1Name = "Town",
+                citySizeLevel2Name = "City",
+                citySizeLevel3Name = "Metropolis",
+                maximumLevel1CitySize = 8,
+                maximumLevel2CitySize = 16,
+            ),
             spaceshipPartQuantities = listOf(4, 2),
-            advancedBarbarianUnitType = 10,
-            basicBarbarianUnitType = 9,
-            barbarianSeaUnitType = 11,
+            defaultUnits = RuleDefaultUnits(
+                advancedBarbarianUnitType = 10,
+                basicBarbarianUnitType = 9,
+                barbarianSeaUnitType = 11,
+                battleCreatedUnit = 15,
+                buildArmyUnit = 16,
+                scout = 17,
+                slave = 18,
+                startUnit1 = 1,
+                startUnit2 = 2,
+                flagUnitType = 20,
+            ),
             citiesNeededToSupportAnArmy = 2,
             chanceOfRioting = 5,
             turnPenaltyForEachDraftedCitizen = 1,
             shieldCostPerGold = 2,
-            fortressDefensiveBonus = 50,
+            defensiveBonuses = RuleDefensiveBonuses(
+                fortress = 50,
+                building = 50,
+                citizen = 25,
+                river = 25,
+                town = 25,
+                city = 50,
+                metropolis = 100,
+                fortifications = 25,
+            ),
             citizensAffectedByEachHappyFace = 1,
             unknown = ByteString.of(*ByteArray(8)),
             forestValueInShields = 1,
             shieldValueInGold = 2,
             citizenValueInShields = 1,
             defaultDifficultyLevel = 2,
-            battleCreatedUnit = 15,
-            buildArmyUnit = 16,
-            buildingDefensiveBonus = 50,
-            citizenDefensiveBonus = 25,
             defaultMoneyResource = 0,
             chanceToInterceptEnemyAirMissions = 25,
             chanceToInterceptEnemyStealthMissions = 25,
             startingTreasury = 50,
             unknown2 = ByteString.of(*ByteArray(4)),
             foodConsumptionPerCitizen = 2,
-            riverDefensiveBonus = 25,
             turnPenaltyForEachHurrySacrifice = 1,
-            scout = 17,
-            slave = 18,
             movementAlongRoads = 3,
-            startUnit1 = 1,
-            startUnit2 = 2,
             minimumPopulationForWeLoveTheKing = 6,
-            townDefenseBonus = 25,
-            cityDefenseBonus = 50,
-            metropolisDefenseBonus = 100,
-            maximumLevel1CitySize = 8,
-            maximumLevel2CitySize = 16,
             unknown3 = ByteString.of(*ByteArray(4)),
-            fortificationsDefensiveBonus = 25,
-            cultureLevelNames = listOf("Emerging", "Legendary"),
-            borderExpansionMultiplier = 2,
-            borderFactor = 3,
-            futureTechCost = 1000,
+            culture = RuleCulture(
+                cultureLevelNames = listOf("Emerging", "Legendary"),
+                borderExpansionMultiplier = 2,
+                borderFactor = 3,
+            ),
+            technology = RuleTechnology(
+                futureTechCost = 1000,
+                maximumResearchTime = 4,
+                minimumResearchTime = 1,
+            ),
             goldenAgeDuration = 16,
-            maximumResearchTime = 4,
-            minimumResearchTime = 1,
-            flagUnitType = 20,
             upgradeCost = 15,
         )
     }
@@ -149,12 +164,12 @@ class RuleEntryParserTest : FunSpec({
     test("well-formed item with upgradeCost absent defaults it to zero") {
         val entry = RuleEntryParser.parse(ruleItemBinary(upgradeCost = null))
         entry.upgradeCost shouldBe 0
-        entry.flagUnitType shouldBe 20
+        entry.defaultUnits.flagUnitType shouldBe 20
     }
 
-    test("vanilla-shape item (flagUnitType and upgradeCost both absent, confirmed real vanilla shape) defaults both to zero") {
+    test("vanilla-shape item (flagUnitType and upgradeCost both absent, confirmed real vanilla shape) defaults both to zero/null") {
         val entry = RuleEntryParser.parse(ruleItemBinary(includeFlagUnitType = false))
-        entry.flagUnitType shouldBe 0
+        entry.defaultUnits.flagUnitType shouldBe null
         entry.upgradeCost shouldBe 0
     }
 
@@ -197,31 +212,28 @@ class RuleEntryParserTest : FunSpec({
     }
 })
 
-/** Builds a well-formed [RuleEntry] with all-zero/empty values, for domain-invariant tests that
- * only care about overriding one `unknown*` field. */
 private fun wellFormedRuleEntry(
     unknown: ByteString = ByteString.of(*ByteArray(8)),
     unknown2: ByteString = ByteString.of(*ByteArray(4)),
     unknown3: ByteString = ByteString.of(*ByteArray(4)),
 ): RuleEntry = RuleEntry(
-    citySizeLevel1Name = "", citySizeLevel2Name = "", citySizeLevel3Name = "",
+    citySizeLevels = RuleCitySizeLevels("", "", "", 0, 0),
     spaceshipPartQuantities = emptyList(),
-    advancedBarbarianUnitType = 0, basicBarbarianUnitType = 0, barbarianSeaUnitType = 0,
+    defaultUnits = RuleDefaultUnits(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     citiesNeededToSupportAnArmy = 0, chanceOfRioting = 0, turnPenaltyForEachDraftedCitizen = 0,
-    shieldCostPerGold = 0, fortressDefensiveBonus = 0, citizensAffectedByEachHappyFace = 0,
+    shieldCostPerGold = 0,
+    defensiveBonuses = RuleDefensiveBonuses(0, 0, 0, 0, 0, 0, 0, 0),
+    citizensAffectedByEachHappyFace = 0,
     unknown = unknown,
     forestValueInShields = 0, shieldValueInGold = 0, citizenValueInShields = 0,
-    defaultDifficultyLevel = 0, battleCreatedUnit = 0, buildArmyUnit = 0,
-    buildingDefensiveBonus = 0, citizenDefensiveBonus = 0, defaultMoneyResource = 0,
+    defaultDifficultyLevel = 0, defaultMoneyResource = 0,
     chanceToInterceptEnemyAirMissions = 0, chanceToInterceptEnemyStealthMissions = 0,
     startingTreasury = 0,
     unknown2 = unknown2,
-    foodConsumptionPerCitizen = 0, riverDefensiveBonus = 0, turnPenaltyForEachHurrySacrifice = 0,
-    scout = 0, slave = 0, movementAlongRoads = 0, startUnit1 = 0, startUnit2 = 0,
-    minimumPopulationForWeLoveTheKing = 0, townDefenseBonus = 0, cityDefenseBonus = 0,
-    metropolisDefenseBonus = 0, maximumLevel1CitySize = 0, maximumLevel2CitySize = 0,
+    foodConsumptionPerCitizen = 0, turnPenaltyForEachHurrySacrifice = 0, movementAlongRoads = 0,
+    minimumPopulationForWeLoveTheKing = 0,
     unknown3 = unknown3,
-    fortificationsDefensiveBonus = 0, cultureLevelNames = emptyList(),
-    borderExpansionMultiplier = 0, borderFactor = 0, futureTechCost = 0, goldenAgeDuration = 0,
-    maximumResearchTime = 0, minimumResearchTime = 0, flagUnitType = 0, upgradeCost = 0,
+    culture = RuleCulture(emptyList(), 0, 0),
+    technology = RuleTechnology(0, 0, 0),
+    goldenAgeDuration = 0, upgradeCost = 0,
 )

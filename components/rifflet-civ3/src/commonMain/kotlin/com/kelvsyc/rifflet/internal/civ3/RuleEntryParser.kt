@@ -1,7 +1,12 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
+import com.kelvsyc.rifflet.civ3.RuleCitySizeLevels
+import com.kelvsyc.rifflet.civ3.RuleCulture
+import com.kelvsyc.rifflet.civ3.RuleDefaultUnits
+import com.kelvsyc.rifflet.civ3.RuleDefensiveBonuses
 import com.kelvsyc.rifflet.civ3.RuleEntry
+import com.kelvsyc.rifflet.civ3.RuleTechnology
 import okio.Buffer
 
 /**
@@ -10,10 +15,10 @@ import okio.Buffer
  * generic section loop.
  *
  * Both trailing fields are read defensively: [Civ3FormatEra.VANILLA] files have neither
- * [RuleEntry.flagUnitType] nor [RuleEntry.upgradeCost]; [Civ3FormatEra.PTW] files (`VER#` header
- * `minor=18` — the only PTW minor confirmed to have a `RULE` section, so other PTW minors' shape
- * here is unconfirmed) have [RuleEntry.flagUnitType] but not [RuleEntry.upgradeCost] (a separate
- * reverse-engineered reference implementation's struct comments the latter
+ * [RuleDefaultUnits.flagUnitType] nor [RuleEntry.upgradeCost]; [Civ3FormatEra.PTW] files (`VER#`
+ * header `minor=18` — the only PTW minor confirmed to have a `RULE` section, so other PTW minors'
+ * shape here is unconfirmed) have [RuleDefaultUnits.flagUnitType] but not [RuleEntry.upgradeCost]
+ * (a separate reverse-engineered reference implementation's struct comments the latter
  * `// Only in conquests`); [Civ3FormatEra.CONQUESTS]
  * files have both. Because the generic section loop in `Civ3RootParserImpl` already slices
  * [item] to the file's own declared length, `item.size` reliably reflects how many bytes
@@ -22,6 +27,11 @@ import okio.Buffer
  * Both dynamic-array counts (`numberOfSpaceshipParts`, `numberOfCultureLevels`) are validated
  * via [requireSaneCount] before sizing their respective lists — see that function's KDoc for
  * why.
+ *
+ * [RuleEntry.defaultUnits], [RuleEntry.defensiveBonuses], and [RuleEntry.citySizeLevels] are each
+ * assembled from fields that are not contiguous in the file — every member field is still read
+ * at its original position, exactly as before this codebase grouped these fields; only the final
+ * assembly into a group object happens out of read order.
  */
 internal object RuleEntryParser {
     fun parse(item: Buffer): RuleEntry {
@@ -79,24 +89,47 @@ internal object RuleEntryParser {
         val goldenAgeDuration = item.readIntLe()
         val maximumResearchTime = item.readIntLe()
         val minimumResearchTime = item.readIntLe()
-        val flagUnitType = if (item.size >= 4L) item.readIntLe() else 0
+        val flagUnitType = if (item.size >= 4L) item.readIntLe() else null
         val upgradeCost = if (item.size >= 4L) item.readIntLe() else 0
         return RuleEntry(
-            citySizeLevel1Name, citySizeLevel2Name, citySizeLevel3Name, spaceshipPartQuantities,
-            advancedBarbarianUnitType, basicBarbarianUnitType, barbarianSeaUnitType,
-            citiesNeededToSupportAnArmy, chanceOfRioting, turnPenaltyForEachDraftedCitizen,
-            shieldCostPerGold, fortressDefensiveBonus, citizensAffectedByEachHappyFace, unknown,
-            forestValueInShields, shieldValueInGold, citizenValueInShields, defaultDifficultyLevel,
-            battleCreatedUnit, buildArmyUnit, buildingDefensiveBonus, citizenDefensiveBonus,
-            defaultMoneyResource, chanceToInterceptEnemyAirMissions,
-            chanceToInterceptEnemyStealthMissions, startingTreasury, unknown2,
-            foodConsumptionPerCitizen, riverDefensiveBonus, turnPenaltyForEachHurrySacrifice,
-            scout, slave, movementAlongRoads, startUnit1, startUnit2,
-            minimumPopulationForWeLoveTheKing, townDefenseBonus, cityDefenseBonus,
-            metropolisDefenseBonus, maximumLevel1CitySize, maximumLevel2CitySize, unknown3,
-            fortificationsDefensiveBonus, cultureLevelNames, borderExpansionMultiplier,
-            borderFactor, futureTechCost, goldenAgeDuration, maximumResearchTime,
-            minimumResearchTime, flagUnitType, upgradeCost,
+            citySizeLevels = RuleCitySizeLevels(
+                citySizeLevel1Name, citySizeLevel2Name, citySizeLevel3Name,
+                maximumLevel1CitySize, maximumLevel2CitySize,
+            ),
+            spaceshipPartQuantities = spaceshipPartQuantities,
+            defaultUnits = RuleDefaultUnits(
+                advancedBarbarianUnitType, basicBarbarianUnitType, barbarianSeaUnitType,
+                battleCreatedUnit, buildArmyUnit, scout, slave, startUnit1, startUnit2, flagUnitType,
+            ),
+            citiesNeededToSupportAnArmy = citiesNeededToSupportAnArmy,
+            chanceOfRioting = chanceOfRioting,
+            turnPenaltyForEachDraftedCitizen = turnPenaltyForEachDraftedCitizen,
+            shieldCostPerGold = shieldCostPerGold,
+            defensiveBonuses = RuleDefensiveBonuses(
+                fortressDefensiveBonus, buildingDefensiveBonus, citizenDefensiveBonus,
+                riverDefensiveBonus, townDefenseBonus, cityDefenseBonus, metropolisDefenseBonus,
+                fortificationsDefensiveBonus,
+            ),
+            citizensAffectedByEachHappyFace = citizensAffectedByEachHappyFace,
+            unknown = unknown,
+            forestValueInShields = forestValueInShields,
+            shieldValueInGold = shieldValueInGold,
+            citizenValueInShields = citizenValueInShields,
+            defaultDifficultyLevel = defaultDifficultyLevel,
+            defaultMoneyResource = defaultMoneyResource,
+            chanceToInterceptEnemyAirMissions = chanceToInterceptEnemyAirMissions,
+            chanceToInterceptEnemyStealthMissions = chanceToInterceptEnemyStealthMissions,
+            startingTreasury = startingTreasury,
+            unknown2 = unknown2,
+            foodConsumptionPerCitizen = foodConsumptionPerCitizen,
+            turnPenaltyForEachHurrySacrifice = turnPenaltyForEachHurrySacrifice,
+            movementAlongRoads = movementAlongRoads,
+            minimumPopulationForWeLoveTheKing = minimumPopulationForWeLoveTheKing,
+            unknown3 = unknown3,
+            culture = RuleCulture(cultureLevelNames, borderExpansionMultiplier, borderFactor),
+            technology = RuleTechnology(futureTechCost, maximumResearchTime, minimumResearchTime),
+            goldenAgeDuration = goldenAgeDuration,
+            upgradeCost = upgradeCost,
         )
     }
 }

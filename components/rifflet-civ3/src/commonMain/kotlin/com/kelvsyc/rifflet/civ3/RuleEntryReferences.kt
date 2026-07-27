@@ -1,56 +1,56 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * Resolves [RuleEntry.advancedBarbarianUnitType] against [prtos]. Same treatment applies to
- * [RuleEntry.basicBarbarianUnitType], [RuleEntry.barbarianSeaUnitType],
- * [RuleEntry.battleCreatedUnit], [RuleEntry.buildArmyUnit], [RuleEntry.scout],
- * [RuleEntry.slave], [RuleEntry.startUnit1], and [RuleEntry.startUnit2].
+ * Resolves [RuleDefaultUnits.advancedBarbarianUnitType] against [prtos].
  */
 fun RuleEntry.advancedBarbarianUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? =
-    prtos.getOrNull(advancedBarbarianUnitType)
+    prtos.getOrNull(defaultUnits.advancedBarbarianUnitType)
 
 /**
- * Resolves [RuleEntry.basicBarbarianUnitType] against [prtos].
+ * Resolves [RuleDefaultUnits.basicBarbarianUnitType] against [prtos].
  */
 fun RuleEntry.basicBarbarianUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? =
-    prtos.getOrNull(basicBarbarianUnitType)
+    prtos.getOrNull(defaultUnits.basicBarbarianUnitType)
 
 /**
- * Resolves [RuleEntry.barbarianSeaUnitType] against [prtos].
+ * Resolves [RuleDefaultUnits.barbarianSeaUnitType] against [prtos].
  */
 fun RuleEntry.barbarianSeaUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? =
-    prtos.getOrNull(barbarianSeaUnitType)
+    prtos.getOrNull(defaultUnits.barbarianSeaUnitType)
 
 /**
- * Resolves [RuleEntry.battleCreatedUnit] against [prtos].
+ * Resolves [RuleDefaultUnits.battleCreatedUnit] against [prtos].
  */
 fun RuleEntry.battleCreatedUnitPrto(prtos: List<PrtoEntry>): PrtoEntry? =
-    prtos.getOrNull(battleCreatedUnit)
+    prtos.getOrNull(defaultUnits.battleCreatedUnit)
 
 /**
- * Resolves [RuleEntry.buildArmyUnit] against [prtos].
+ * Resolves [RuleDefaultUnits.buildArmyUnit] against [prtos].
  */
-fun RuleEntry.buildArmyUnitPrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(buildArmyUnit)
+fun RuleEntry.buildArmyUnitPrto(prtos: List<PrtoEntry>): PrtoEntry? =
+    prtos.getOrNull(defaultUnits.buildArmyUnit)
 
 /**
- * Resolves [RuleEntry.scout] against [prtos].
+ * Resolves [RuleDefaultUnits.scout] against [prtos].
  */
-fun RuleEntry.scoutPrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(scout)
+fun RuleEntry.scoutPrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(defaultUnits.scout)
 
 /**
- * Resolves [RuleEntry.slave] against [prtos].
+ * Resolves [RuleDefaultUnits.slave] against [prtos].
  */
-fun RuleEntry.slavePrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(slave)
+fun RuleEntry.slavePrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(defaultUnits.slave)
 
 /**
- * Resolves [RuleEntry.startUnit1] against [prtos].
+ * Resolves [RuleDefaultUnits.startUnit1] against [prtos].
  */
-fun RuleEntry.startUnit1Prto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(startUnit1)
+fun RuleEntry.startUnit1Prto(prtos: List<PrtoEntry>): PrtoEntry? =
+    prtos.getOrNull(defaultUnits.startUnit1)
 
 /**
- * Resolves [RuleEntry.startUnit2] against [prtos].
+ * Resolves [RuleDefaultUnits.startUnit2] against [prtos].
  */
-fun RuleEntry.startUnit2Prto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(startUnit2)
+fun RuleEntry.startUnit2Prto(prtos: List<PrtoEntry>): PrtoEntry? =
+    prtos.getOrNull(defaultUnits.startUnit2)
 
 /**
  * Resolves [RuleEntry.defaultMoneyResource] against [goods].
@@ -59,8 +59,9 @@ fun RuleEntry.defaultMoneyResourceGood(goods: List<GoodEntry>): GoodEntry? =
     goods.getOrNull(defaultMoneyResource)
 
 /**
- * Resolves [RuleEntry.flagUnitType] against [prtos]. A `PRTO` section index — explicitly
- * documented by existing reverse-engineering work ("flag unit (PRTO ref)"), not merely a
- * naming-based inference.
+ * Resolves [RuleDefaultUnits.flagUnitType] against [prtos]. Returns `null` outright if
+ * [RuleDefaultUnits.flagUnitType] itself is `null` (a VANILLA-era file was never capable of
+ * specifying a flag unit at all).
  */
-fun RuleEntry.flagUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(flagUnitType)
+fun RuleEntry.flagUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? =
+    defaultUnits.flagUnitType?.let { prtos.getOrNull(it) }
