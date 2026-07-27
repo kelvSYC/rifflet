@@ -1,9 +1,11 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * The Conquests Rules Editor's `Scenario Properties` → `Locked Alliance` tab, in its entirety —
- * present ([GameEntry.lockedAlliance] non-`null`) only in [Civ3FormatEra.CONQUESTS] files, which
- * are the only files with this tab at all.
+ * The scenario's Conquests-only locked-alliance settings.
+ *
+ * Corresponds to the Conquests Rules Editor's `Scenario Properties` → `Locked Alliance` tab, in
+ * its entirety — present ([GameEntry.lockedAlliance] non-`null`) only in [Civ3FormatEra.CONQUESTS]
+ * files, which are the only files with this tab at all.
  *
  * @param allianceNames 5 fixed alliance-name slots, index 0 conventionally "unallied"/blank.
  * @param allianceWars A flat, row-major 5×5 matrix of war-status values between alliances; index

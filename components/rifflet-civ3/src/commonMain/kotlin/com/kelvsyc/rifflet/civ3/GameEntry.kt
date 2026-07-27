@@ -3,9 +3,10 @@ package com.kelvsyc.rifflet.civ3
 import okio.ByteString
 
 /**
- * One entry of the `GAME` section: global scenario/ruleset settings (there is typically exactly
- * one `GAME` entry per file, per existing reverse-engineering documentation's own "(1)"
- * annotation on the section's item count).
+ * One entry of the `GAME` section: the scenario's global settings.
+ *
+ * There is typically exactly one `GAME` entry per file, per existing reverse-engineering
+ * documentation's own "(1)" annotation on the section's item count.
  *
  * A 4-byte `mapVisible (long)` field is documented by existing reverse-engineering work as
  * present only in BIX files (`major >= 11.19`, absent from BIQ/`major = 12`), positioned between

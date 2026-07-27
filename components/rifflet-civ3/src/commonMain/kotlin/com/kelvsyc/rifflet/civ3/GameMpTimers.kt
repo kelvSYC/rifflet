@@ -1,8 +1,10 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * The Conquests Rules Editor's `Scenario Properties` → `Scenario` tab → "Time Options" groupbox's
- * "MP Timers" sub-section — present ([GameEntry.mpTimers] non-`null`) only in
+ * The scenario's per-turn multiplayer time allowances.
+ *
+ * Corresponds to the Conquests Rules Editor's `Scenario Properties` → `Scenario` tab → "Time
+ * Options" groupbox's "MP Timers" sub-section — present ([GameEntry.mpTimers] non-`null`) only in
  * [Civ3FormatEra.CONQUESTS] files with `minor != 6` (absent on `minor=6`, present on
  * `minor=7`/`8`). Modeled separately from [GameTimeOptions] even though the editor nests both
  * inside the same visual groupbox: a real PTW-era editor build has no "MP Timers" sub-section in

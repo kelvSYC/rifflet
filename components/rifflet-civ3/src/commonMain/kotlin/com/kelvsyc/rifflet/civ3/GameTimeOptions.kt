@@ -1,8 +1,10 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * The Conquests Rules Editor's `Scenario Properties` → `Scenario` tab → "Time Options" groupbox:
- * the game's calendar and turn-timing configuration, read as one contiguous run of fields.
+ * The scenario's calendar and turn-timing configuration.
+ *
+ * Corresponds to the Conquests Rules Editor's `Scenario Properties` → `Scenario` tab → "Time
+ * Options" groupbox, read as one contiguous run of fields.
  *
  * Present ([GameEntry.timeOptions] non-`null`) only for [Civ3FormatEra.PTW] files with
  * `minor=18` (the dominant PTW tier) or any [Civ3FormatEra.CONQUESTS] file; absent on

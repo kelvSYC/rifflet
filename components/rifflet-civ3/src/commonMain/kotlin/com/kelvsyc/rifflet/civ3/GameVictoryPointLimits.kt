@@ -1,9 +1,11 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * The Conquests Rules Editor's `Scenario Properties` → `Victory Point Limits` tab, in its
- * entirety — present ([GameEntry.victoryPointLimits] non-`null`) only in [Civ3FormatEra.CONQUESTS]
- * files, which are the only files with this tab at all.
+ * The scenario's Conquests-only victory-point scoring settings.
+ *
+ * Corresponds to the Conquests Rules Editor's `Scenario Properties` → `Victory Point Limits` tab,
+ * in its entirety — present ([GameEntry.victoryPointLimits] non-`null`) only in
+ * [Civ3FormatEra.CONQUESTS] files, which are the only files with this tab at all.
  *
  * [victoryPointLimit] through [capturingSpecialUnit] and [respawnFlagUnits] through
  * [goldForCapture] are two separate, non-contiguous byte ranges in the file — `GameEntry.unknown`,
