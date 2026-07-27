@@ -1,24 +1,11 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * Resolves [RaceEntry.freeTech1] against [techs].
+ * Resolves each of [RaceEntry.freeTechs]' 4 slots against [techs], preserving position (a `null`
+ * at index *n* means slot *n*'s raw value doesn't resolve, typically because it's the "no free
+ * tech" sentinel `-1`).
  */
-fun RaceEntry.freeTech1Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(freeTech1)
-
-/**
- * Resolves [RaceEntry.freeTech2] against [techs]. Same treatment as [RaceEntry.freeTech1].
- */
-fun RaceEntry.freeTech2Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(freeTech2)
-
-/**
- * Resolves [RaceEntry.freeTech3] against [techs]. Same treatment as [RaceEntry.freeTech1].
- */
-fun RaceEntry.freeTech3Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(freeTech3)
-
-/**
- * Resolves [RaceEntry.freeTech4] against [techs]. Same treatment as [RaceEntry.freeTech1].
- */
-fun RaceEntry.freeTech4Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(freeTech4)
+fun RaceEntry.freeTechsTech(techs: List<TechEntry>): List<TechEntry?> = freeTechs.map { techs.getOrNull(it) }
 
 /**
  * Resolves [RaceEntry.unitTypeForKing] against [units]. A `PRTO` section index — explicitly
@@ -28,15 +15,17 @@ fun RaceEntry.freeTech4Tech(techs: List<TechEntry>): TechEntry? = techs.getOrNul
 fun RaceEntry.unitTypeForKingPrto(units: List<PrtoEntry>): PrtoEntry? = units.getOrNull(unitTypeForKing)
 
 /**
- * Resolves [RaceEntry.shunnedGovernment] against [governments].
+ * Resolves [RacePersonality.shunnedGovernment] against [governments].
  */
-fun RaceEntry.shunnedGovernmentGovt(governments: List<GovtEntry>): GovtEntry? = governments.getOrNull(shunnedGovernment)
+fun RaceEntry.shunnedGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
+    governments.getOrNull(personality.shunnedGovernment)
 
 /**
- * Resolves [RaceEntry.favoriteGovernment] against [governments]. Same treatment as
- * [RaceEntry.shunnedGovernment].
+ * Resolves [RacePersonality.favoriteGovernment] against [governments]. Same treatment as
+ * [RaceEntry.shunnedGovernmentGovt].
  */
-fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? = governments.getOrNull(favoriteGovernment)
+fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
+    governments.getOrNull(personality.favoriteGovernment)
 
 /**
  * The 6 values of [RaceEntry.cultureGroup], per the Civilizations editor tab's "Culture Group"

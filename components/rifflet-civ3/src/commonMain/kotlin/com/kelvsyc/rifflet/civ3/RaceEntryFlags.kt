@@ -33,55 +33,56 @@ val RaceEntry.flavor6: Boolean by BitCollection.int.extensionBitFlag({ flavors }
 val RaceEntry.flavor7: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 6)
 
 /**
- * Named accessors for [RaceEntry.governorSettings]'s 7 documented bits, per earlier
+ * Named accessors for [RaceGovernor.settings]'s 7 documented bits, per earlier
  * reverse-engineering documentation of the BIC format.
  */
-val RaceEntry.manageCitizens: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 0)
-val RaceEntry.emphasizeFood: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 1)
-val RaceEntry.emphasizeShields: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 2)
-val RaceEntry.emphasizeTrade: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 3)
-val RaceEntry.manageProduction: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 4)
-val RaceEntry.noWonders: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 5)
-val RaceEntry.noSmallWonders: Boolean by BitCollection.int.extensionBitFlag({ governorSettings }, 6)
+val RaceEntry.manageCitizens: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 0)
+val RaceEntry.emphasizeFood: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 1)
+val RaceEntry.emphasizeShields: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 2)
+val RaceEntry.emphasizeTrade: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 3)
+val RaceEntry.manageProduction: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 4)
+val RaceEntry.noWonders: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 5)
+val RaceEntry.noSmallWonders: Boolean by BitCollection.int.extensionBitFlag({ governor.settings }, 6)
 
 /**
- * Named accessors for [RaceEntry.buildNever]'s 15 documented bits, per earlier
+ * Named accessors for [RaceGovernor.buildNever]'s 15 documented bits, per earlier
  * reverse-engineering documentation of the BIC format. Prefixed with `buildNever` because
- * [RaceEntry.buildOften] documents an identical bit layout on the same receiver.
+ * [RaceGovernor.buildOften] documents an identical bit layout on the same receiver.
  */
-val RaceEntry.buildNeverOffensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 0)
-val RaceEntry.buildNeverDefensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 1)
-val RaceEntry.buildNeverArtilleryLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 2)
-val RaceEntry.buildNeverSettlers: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 3)
-val RaceEntry.buildNeverWorkers: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 4)
-val RaceEntry.buildNeverNavalUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 5)
-val RaceEntry.buildNeverAirUnits: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 6)
-val RaceEntry.buildNeverGrowth: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 7)
-val RaceEntry.buildNeverProduction: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 8)
-val RaceEntry.buildNeverHappiness: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 9)
-val RaceEntry.buildNeverScience: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 10)
-val RaceEntry.buildNeverWealth: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 11)
-val RaceEntry.buildNeverTrade: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 12)
-val RaceEntry.buildNeverExplore: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 13)
-val RaceEntry.buildNeverCulture: Boolean by BitCollection.int.extensionBitFlag({ buildNever }, 14)
+val RaceEntry.buildNeverOffensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 0)
+val RaceEntry.buildNeverDefensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 1)
+val RaceEntry.buildNeverArtilleryLandUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 2)
+val RaceEntry.buildNeverSettlers: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 3)
+val RaceEntry.buildNeverWorkers: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 4)
+val RaceEntry.buildNeverNavalUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 5)
+val RaceEntry.buildNeverAirUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 6)
+val RaceEntry.buildNeverGrowth: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 7)
+val RaceEntry.buildNeverProduction: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 8)
+val RaceEntry.buildNeverHappiness: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 9)
+val RaceEntry.buildNeverScience: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 10)
+val RaceEntry.buildNeverWealth: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 11)
+val RaceEntry.buildNeverTrade: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 12)
+val RaceEntry.buildNeverExplore: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 13)
+val RaceEntry.buildNeverCulture: Boolean by BitCollection.int.extensionBitFlag({ governor.buildNever }, 14)
 
 /**
- * Named accessors for [RaceEntry.buildOften]'s 15 documented bits — existing reverse-engineering
- * documentation describes this field as "same as [buildNever] above". Prefixed with `buildOften`
- * for the same collision reason as [RaceEntry.buildNeverOffensiveLandUnits] and its siblings.
+ * Named accessors for [RaceGovernor.buildOften]'s 15 documented bits — existing reverse-engineering
+ * documentation describes this field as "same as [RaceGovernor.buildNever] above". Prefixed with
+ * `buildOften` for the same collision reason as [RaceEntry.buildNeverOffensiveLandUnits] and its
+ * siblings.
  */
-val RaceEntry.buildOftenOffensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 0)
-val RaceEntry.buildOftenDefensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 1)
-val RaceEntry.buildOftenArtilleryLandUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 2)
-val RaceEntry.buildOftenSettlers: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 3)
-val RaceEntry.buildOftenWorkers: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 4)
-val RaceEntry.buildOftenNavalUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 5)
-val RaceEntry.buildOftenAirUnits: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 6)
-val RaceEntry.buildOftenGrowth: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 7)
-val RaceEntry.buildOftenProduction: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 8)
-val RaceEntry.buildOftenHappiness: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 9)
-val RaceEntry.buildOftenScience: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 10)
-val RaceEntry.buildOftenWealth: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 11)
-val RaceEntry.buildOftenTrade: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 12)
-val RaceEntry.buildOftenExplore: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 13)
-val RaceEntry.buildOftenCulture: Boolean by BitCollection.int.extensionBitFlag({ buildOften }, 14)
+val RaceEntry.buildOftenOffensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 0)
+val RaceEntry.buildOftenDefensiveLandUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 1)
+val RaceEntry.buildOftenArtilleryLandUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 2)
+val RaceEntry.buildOftenSettlers: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 3)
+val RaceEntry.buildOftenWorkers: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 4)
+val RaceEntry.buildOftenNavalUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 5)
+val RaceEntry.buildOftenAirUnits: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 6)
+val RaceEntry.buildOftenGrowth: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 7)
+val RaceEntry.buildOftenProduction: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 8)
+val RaceEntry.buildOftenHappiness: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 9)
+val RaceEntry.buildOftenScience: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 10)
+val RaceEntry.buildOftenWealth: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 11)
+val RaceEntry.buildOftenTrade: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 12)
+val RaceEntry.buildOftenExplore: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 13)
+val RaceEntry.buildOftenCulture: Boolean by BitCollection.int.extensionBitFlag({ governor.buildOften }, 14)
