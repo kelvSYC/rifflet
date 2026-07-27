@@ -6,6 +6,13 @@ import okio.ByteString
  * One entry of the `GOVT` section: a government type's rules, ruler titles, and relationships
  * to every other government type in the file.
  *
+ * @param defaultType Int-shaped boolean marking this entry as the Default government — the one a
+ *   civ starts with before researching any government tech (Despotism, in every real file). Every
+ *   real file has at most one such entry; a small number of real multiplayer scenarios have none
+ *   at all.
+ * @param transitionType Int-shaped boolean marking this entry as the Transition government — the
+ *   one a civ falls into after a revolution (Anarchy, in every real file). Every real file has
+ *   exactly one such entry. [defaultType] and [transitionType] can both be set on the same entry.
  * @param requiresMaintenance Int-shaped boolean.
  * @param toggle1 `???` — observed: 0 = Republic/Democracy, 1 = other.
  * @param relationships The embedded dynamic array; its on-disk count (`numberOfGovernments`) is

@@ -6,9 +6,14 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-private fun govtEntry(corruption: Int): GovtEntry = GovtEntry(
-    defaultType = 0,
-    transitionType = 0,
+private fun govtEntry(
+    corruption: Int = 0,
+    defaultType: Int = 0,
+    transitionType: Int = 0,
+    prerequisiteTechnology: Int = -1,
+): GovtEntry = GovtEntry(
+    defaultType = defaultType,
+    transitionType = transitionType,
     requiresMaintenance = 0,
     toggle1 = 0,
     tilePenalty = 0,
@@ -33,7 +38,7 @@ private fun govtEntry(corruption: Int): GovtEntry = GovtEntry(
     draftLimit = 0,
     militaryPoliceLimit = 0,
     rulerTitlePairsUsed = 0,
-    prerequisiteTechnology = -1,
+    prerequisiteTechnology = prerequisiteTechnology,
     scienceRateCap = 0,
     workerRate = 0,
     toggle2 = 0,
@@ -114,5 +119,158 @@ class GovtEntryValidationTest : FunSpec({
         val file = fileWithGovts(listOf(govtEntry(corruption = 6)), major = 12)
 
         validateGovtCorruption(file) shouldBe emptyList()
+    }
+
+    test("returns no issues when exactly one entry has defaultType set") {
+        val file = fileWithGovts(listOf(govtEntry(defaultType = 1), govtEntry()))
+
+        validateGovtDefaultCardinality(file) shouldBe emptyList()
+    }
+
+    test("warns when no entry has defaultType set") {
+        val file = fileWithGovts(listOf(govtEntry(), govtEntry()))
+
+        validateGovtDefaultCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.WARNING,
+                Civ3SectionIds.GOVT,
+                null,
+                "defaultType",
+                "no entry has defaultType set; a Default government is usually expected",
+            ),
+        )
+    }
+
+    test("flags more than one entry with defaultType set") {
+        val file = fileWithGovts(listOf(govtEntry(defaultType = 1), govtEntry(defaultType = 1)))
+
+        validateGovtDefaultCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.GOVT,
+                null,
+                "defaultType",
+                "2 entries have defaultType set; at most one is expected",
+            ),
+        )
+    }
+
+    test("returns no issues for defaultType cardinality when GOVT is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateGovtDefaultCardinality(file) shouldBe emptyList()
+    }
+
+    test("returns no issues when exactly one entry has transitionType set") {
+        val file = fileWithGovts(listOf(govtEntry(transitionType = 1), govtEntry()))
+
+        validateGovtTransitionCardinality(file) shouldBe emptyList()
+    }
+
+    test("flags no entry having transitionType set") {
+        val file = fileWithGovts(listOf(govtEntry(), govtEntry()))
+
+        validateGovtTransitionCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.GOVT,
+                null,
+                "transitionType",
+                "0 entries have transitionType set; exactly one is expected",
+            ),
+        )
+    }
+
+    test("flags more than one entry with transitionType set") {
+        val file = fileWithGovts(listOf(govtEntry(transitionType = 1), govtEntry(transitionType = 1)))
+
+        validateGovtTransitionCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.GOVT,
+                null,
+                "transitionType",
+                "2 entries have transitionType set; exactly one is expected",
+            ),
+        )
+    }
+
+    test("returns no issues for transitionType cardinality when GOVT is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateGovtTransitionCardinality(file) shouldBe emptyList()
+    }
+
+    test("returns no issues when the Default government has no prerequisite") {
+        val file = fileWithGovts(listOf(govtEntry(defaultType = 1, prerequisiteTechnology = -1)))
+
+        validateGovtDefaultHasNoPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("flags the Default government carrying a prerequisite") {
+        val file = fileWithGovts(listOf(govtEntry(defaultType = 1, prerequisiteTechnology = 5)))
+
+        validateGovtDefaultHasNoPrerequisite(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.GOVT,
+                0,
+                "prerequisiteTechnology",
+                "defaultType is set but prerequisiteTechnology=5; -1 is expected",
+            ),
+        )
+    }
+
+    test("ignores a non-default entry's prerequisite") {
+        val file = fileWithGovts(listOf(govtEntry(prerequisiteTechnology = 5)))
+
+        validateGovtDefaultHasNoPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("returns no issues for Default prerequisite check when GOVT is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateGovtDefaultHasNoPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("returns no issues when the Transition government has no prerequisite") {
+        val file = fileWithGovts(listOf(govtEntry(transitionType = 1, prerequisiteTechnology = -1)))
+
+        validateGovtTransitionHasNoPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("flags the Transition government carrying a prerequisite") {
+        val file = fileWithGovts(listOf(govtEntry(transitionType = 1, prerequisiteTechnology = 5)))
+
+        validateGovtTransitionHasNoPrerequisite(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.GOVT,
+                0,
+                "prerequisiteTechnology",
+                "transitionType is set but prerequisiteTechnology=5; -1 is expected",
+            ),
+        )
+    }
+
+    test("ignores a non-transition entry's prerequisite") {
+        val file = fileWithGovts(listOf(govtEntry(prerequisiteTechnology = 5)))
+
+        validateGovtTransitionHasNoPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("returns no issues for Transition prerequisite check when GOVT is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateGovtTransitionHasNoPrerequisite(file) shouldBe emptyList()
+    }
+
+    test("allows the same entry to be both Default and Transition") {
+        val file = fileWithGovts(listOf(govtEntry(defaultType = 1, transitionType = 1)))
+
+        validateGovtDefaultCardinality(file) shouldBe emptyList()
+        validateGovtTransitionCardinality(file) shouldBe emptyList()
+        validateGovtDefaultHasNoPrerequisite(file) shouldBe emptyList()
+        validateGovtTransitionHasNoPrerequisite(file) shouldBe emptyList()
     }
 })

@@ -43,6 +43,12 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateBldgSmallWonderHasNoHappinessReference(file) },
     ValidationRule { file -> validateBldgSpaceshipPartInvariants(file) },
     ValidationRule { file -> validateBldgSpaceshipPartConventionalStats(file) },
+    ValidationRule { file -> validateGovtDefaultCardinality(file) },
+    ValidationRule { file -> validateGovtTransitionCardinality(file) },
+    ValidationRule { file -> validateGovtDefaultHasNoPrerequisite(file) },
+    ValidationRule { file -> validateGovtTransitionHasNoPrerequisite(file) },
+    ValidationRule { file -> validateRaceBarbarianPlaceholder(file) },
+    ValidationRule { file -> validateRaceCultureGroup(file) },
 )
 
 /**
