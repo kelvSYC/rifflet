@@ -37,3 +37,23 @@ fun RaceEntry.shunnedGovernmentGovt(governments: List<GovtEntry>): GovtEntry? = 
  * [RaceEntry.shunnedGovernment].
  */
 fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? = governments.getOrNull(favoriteGovernment)
+
+/**
+ * The 6 values of [RaceEntry.cultureGroup], per the Civilizations editor tab's "Culture Group"
+ * dropdown. Ordinal position matches the raw file value offset by 1 (raw `-1` is [NONE], raw `0`
+ * is [AMERICAN], etc.) — do not reorder these constants. Confirmed by the Conquests base
+ * ruleset's civilizations, whose values group by real-world region exactly (e.g. America/Aztecs/
+ * Iroquois/Inca/Maya all [AMERICAN]; Germany/Russia/France/England/Spain all [EUROPEAN]).
+ *
+ * [NONE] is only ever used by the barbarian placeholder in every real file checked, but the
+ * Rules Editor doesn't enforce that restriction — nothing stops a real civilization from being
+ * assigned it too.
+ */
+enum class RaceCultureGroup { NONE, AMERICAN, EUROPEAN, MEDITERRANEAN, MID_EAST, ASIAN }
+
+/**
+ * Decodes [RaceEntry.cultureGroup] into [RaceCultureGroup], or `null` if the raw value is outside
+ * the documented -1..4 range.
+ */
+val RaceEntry.cultureGroupEnum: RaceCultureGroup?
+    get() = RaceCultureGroup.entries.getOrNull(cultureGroup + 1)
