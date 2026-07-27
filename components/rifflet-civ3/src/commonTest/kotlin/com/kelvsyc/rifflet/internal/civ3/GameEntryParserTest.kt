@@ -1,6 +1,8 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.GameEntry
+import com.kelvsyc.rifflet.civ3.GameLockedAlliance
+import com.kelvsyc.rifflet.civ3.GameTimeOptions
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -372,6 +374,40 @@ class GameEntryParserTest : FunSpec({
             writeIntLe(Int.MAX_VALUE) // numberOfPlayableCivs
         }
         shouldThrow<RiffletParseException> { GameEntryParser.parse(buffer) }
+    }
+
+    test("GameTimeOptions rejects a timescaleNumberOfTurns that does not have exactly 7 elements") {
+        shouldThrow<IllegalArgumentException> {
+            GameTimeOptions(
+                useTimeLimit = 0, baseTimeUnit = 0, startMonth = 0, startWeek = 0, startYear = 0,
+                minuteTimeLimit = 0, turnTimeLimit = 0,
+                timescaleNumberOfTurns = listOf(1, 2, 3),
+                turnNumberOfTimeUnits = List(7) { 0 },
+            )
+        }
+    }
+
+    test("GameTimeOptions rejects a turnNumberOfTimeUnits that does not have exactly 7 elements") {
+        shouldThrow<IllegalArgumentException> {
+            GameTimeOptions(
+                useTimeLimit = 0, baseTimeUnit = 0, startMonth = 0, startWeek = 0, startYear = 0,
+                minuteTimeLimit = 0, turnTimeLimit = 0,
+                timescaleNumberOfTurns = List(7) { 0 },
+                turnNumberOfTimeUnits = listOf(1, 2, 3),
+            )
+        }
+    }
+
+    test("GameLockedAlliance rejects an allianceNames that does not have exactly 5 elements") {
+        shouldThrow<IllegalArgumentException> {
+            GameLockedAlliance(allianceNames = listOf("a", "b"), allianceWars = List(25) { 0 }, allianceVictoryType = 0)
+        }
+    }
+
+    test("GameLockedAlliance rejects an allianceWars that does not have exactly 25 elements") {
+        shouldThrow<IllegalArgumentException> {
+            GameLockedAlliance(allianceNames = List(5) { "" }, allianceWars = listOf(1, 2, 3), allianceVictoryType = 0)
+        }
     }
 })
 
