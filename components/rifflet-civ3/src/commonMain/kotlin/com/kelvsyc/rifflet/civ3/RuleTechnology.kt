@@ -10,7 +10,8 @@ package com.kelvsyc.rifflet.civ3
  *
  * @param futureTechCost The beaker cost of each Future Technology research — the repeatable
  *   research a civilization can keep doing once it has learned every advance in the tech tree.
- * @param maximumResearchTime The "Maximum Research Time (turns)" field.
+ * @param maximumResearchTime The maximum number of turns any technology takes to research,
+ *   regardless of its beaker cost.
  * @param minimumResearchTime The minimum number of turns any technology takes to research,
  *   regardless of its beaker cost.
  */
