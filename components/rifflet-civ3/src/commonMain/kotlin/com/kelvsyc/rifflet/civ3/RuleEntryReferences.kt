@@ -1,11 +1,7 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * Resolves [RuleDefaultUnits.advancedBarbarianUnitType] against [prtos]. Same treatment applies
- * to [RuleDefaultUnits.basicBarbarianUnitType], [RuleDefaultUnits.barbarianSeaUnitType],
- * [RuleDefaultUnits.battleCreatedUnit], [RuleDefaultUnits.buildArmyUnit],
- * [RuleDefaultUnits.scout], [RuleDefaultUnits.slave], [RuleDefaultUnits.startUnit1], and
- * [RuleDefaultUnits.startUnit2].
+ * Resolves [RuleDefaultUnits.advancedBarbarianUnitType] against [prtos].
  */
 fun RuleEntry.advancedBarbarianUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? =
     prtos.getOrNull(defaultUnits.advancedBarbarianUnitType)
@@ -65,9 +61,7 @@ fun RuleEntry.defaultMoneyResourceGood(goods: List<GoodEntry>): GoodEntry? =
 /**
  * Resolves [RuleDefaultUnits.flagUnitType] against [prtos]. Returns `null` outright if
  * [RuleDefaultUnits.flagUnitType] itself is `null` (a VANILLA-era file was never capable of
- * specifying a flag unit at all) — distinct from
- * the previous flat-field behavior, which defaulted the absent field to `0` and could accidentally
- * resolve against real `PRTO` index 0.
+ * specifying a flag unit at all).
  */
 fun RuleEntry.flagUnitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? =
     defaultUnits.flagUnitType?.let { prtos.getOrNull(it) }

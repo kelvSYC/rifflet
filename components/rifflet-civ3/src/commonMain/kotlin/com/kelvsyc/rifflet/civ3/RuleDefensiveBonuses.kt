@@ -7,12 +7,12 @@ package com.kelvsyc.rifflet.civ3
  * groupbox, in its entirety.
  */
 data class RuleDefensiveBonuses(
-    val fortressDefensiveBonus: Int,
-    val buildingDefensiveBonus: Int,
-    val citizenDefensiveBonus: Int,
-    val riverDefensiveBonus: Int,
-    val townDefenseBonus: Int,
-    val cityDefenseBonus: Int,
-    val metropolisDefenseBonus: Int,
-    val fortificationsDefensiveBonus: Int,
+    val fortress: Int,
+    val building: Int,
+    val citizen: Int,
+    val river: Int,
+    val town: Int,
+    val city: Int,
+    val metropolis: Int,
+    val fortifications: Int,
 )
