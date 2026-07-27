@@ -17,15 +17,15 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
 fun validateCitySizeLevelThresholds(file: Civ3File): List<ValidationIssue> {
     val entry = file.sections.filterIsInstance<RuleSection>().singleOrNull()?.entries?.singleOrNull()
         ?: return emptyList()
-    if (entry.maximumLevel2CitySize > entry.maximumLevel1CitySize) return emptyList()
+    if (entry.citySizeLevels.maximumLevel2CitySize > entry.citySizeLevels.maximumLevel1CitySize) return emptyList()
     return listOf(
         ValidationIssue(
             ValidationSeverity.ERROR,
             Civ3SectionIds.RULE,
             0,
             "maximumLevel2CitySize",
-            "maximumLevel2CitySize=${entry.maximumLevel2CitySize} must be strictly greater than " +
-                "maximumLevel1CitySize=${entry.maximumLevel1CitySize}, or a city cannot grow past the " +
+            "maximumLevel2CitySize=${entry.citySizeLevels.maximumLevel2CitySize} must be strictly greater than " +
+                "maximumLevel1CitySize=${entry.citySizeLevels.maximumLevel1CitySize}, or a city cannot grow past the " +
                 "Level 2 threshold before reaching the Level 1 one, and Level-2-gated buildings " +
                 "(e.g. Hospital) may never become buildable",
         ),
@@ -64,8 +64,8 @@ fun validateBarbarianUnitDomains(file: Civ3File): List<ValidationIssue> {
     }
 
     return listOfNotNull(
-        check("basicBarbarianUnitType", entry.basicBarbarianUnitType, PrtoDomain.LAND),
-        check("advancedBarbarianUnitType", entry.advancedBarbarianUnitType, PrtoDomain.LAND),
-        check("barbarianSeaUnitType", entry.barbarianSeaUnitType, PrtoDomain.SEA),
+        check("basicBarbarianUnitType", entry.defaultUnits.basicBarbarianUnitType, PrtoDomain.LAND),
+        check("advancedBarbarianUnitType", entry.defaultUnits.advancedBarbarianUnitType, PrtoDomain.LAND),
+        check("barbarianSeaUnitType", entry.defaultUnits.barbarianSeaUnitType, PrtoDomain.SEA),
     )
 }
