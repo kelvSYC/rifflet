@@ -2,6 +2,9 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.RaceEntry
+import com.kelvsyc.rifflet.civ3.RaceGovernor
+import com.kelvsyc.rifflet.civ3.RaceLeader
+import com.kelvsyc.rifflet.civ3.RacePersonality
 import okio.Buffer
 import okio.ByteString
 
@@ -17,6 +20,10 @@ import okio.ByteString
  * All four counts are validated via [requireSaneCount] before sizing their respective lists —
  * see that function's KDoc for why. `520L` is [RaceEraFilenames]' fixed width (two 260-byte
  * fields).
+ *
+ * [RaceEntry.leader]'s 3 fields and [RaceEntry.personality]'s 3 fields are each read at their
+ * original, non-contiguous file positions and assembled into the group object only once all 3
+ * are available. [RaceEntry.governor]'s 3 fields and [RaceEntry.freeTechs] are each contiguous.
  *
  * [RaceEntry.unitTypeForKing] through [RaceEntry.scientificLeaderNames] form a staggered
  * two-tier cutoff: [Civ3FormatEra.VANILLA] items end right after [RaceEntry.plurality] (none of
@@ -73,30 +80,21 @@ internal object RaceEntryParser {
         return RaceEntry(
             cityNames,
             greatLeaderNames,
-            leaderName,
-            leaderTitle,
+            RaceLeader(leaderName, leaderTitle, leaderGender),
             civilopediaEntry,
             adjective,
             name,
             noun,
             eras,
             cultureGroup,
-            leaderGender,
             civilizationGender,
-            aggressionLevel,
+            RacePersonality(favoriteGovernment, shunnedGovernment, aggressionLevel),
             uniqueCivilizationCounter,
-            shunnedGovernment,
-            favoriteGovernment,
             defaultColor,
             uniqueColor,
-            freeTech1,
-            freeTech2,
-            freeTech3,
-            freeTech4,
+            listOf(freeTech1, freeTech2, freeTech3, freeTech4),
             bonuses,
-            governorSettings,
-            buildNever,
-            buildOften,
+            RaceGovernor(governorSettings, buildNever, buildOften),
             plurality,
             unitTypeForKing,
             flavors,

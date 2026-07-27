@@ -5,40 +5,32 @@ import io.kotest.matchers.shouldBe
 import okio.ByteString
 
 private fun validRaceEntry(
-    freeTech1: Int = 0,
-    freeTech2: Int = 0,
-    freeTech3: Int = 0,
-    freeTech4: Int = 0,
+    freeTechs: List<Int> = listOf(0, 0, 0, 0),
     unitTypeForKing: Int = 0,
     shunnedGovernment: Int = 0,
     favoriteGovernment: Int = 0,
 ): RaceEntry = RaceEntry(
     cityNames = emptyList(),
     greatLeaderNames = emptyList(),
-    leaderName = "",
-    leaderTitle = "",
+    leader = RaceLeader(name = "", title = "", gender = 0),
     civilopediaEntry = "",
     adjective = "",
     name = "Rome",
     noun = "",
     eras = emptyList(),
     cultureGroup = 0,
-    leaderGender = 0,
     civilizationGender = 0,
-    aggressionLevel = 0,
+    personality = RacePersonality(
+        favoriteGovernment = favoriteGovernment,
+        shunnedGovernment = shunnedGovernment,
+        aggressionLevel = 0,
+    ),
     uniqueCivilizationCounter = 0,
-    shunnedGovernment = shunnedGovernment,
-    favoriteGovernment = favoriteGovernment,
     defaultColor = 0,
     uniqueColor = 0,
-    freeTech1 = freeTech1,
-    freeTech2 = freeTech2,
-    freeTech3 = freeTech3,
-    freeTech4 = freeTech4,
+    freeTechs = freeTechs,
     bonuses = 0,
-    governorSettings = 0,
-    buildNever = 0,
-    buildOften = 0,
+    governor = RaceGovernor(settings = 0, buildNever = 0, buildOften = 0),
     plurality = 0,
     unitTypeForKing = unitTypeForKing,
     flavors = 0,
@@ -155,28 +147,10 @@ private fun validGovtEntry(): GovtEntry = GovtEntry(
 
 class RaceEntryReferencesTest : FunSpec({
 
-    test("freeTech1Tech resolves against the TECH list") {
+    test("freeTechsTech resolves each slot against the TECH list, preserving position") {
         val tech = validTechEntry()
-        validRaceEntry(freeTech1 = 0).freeTech1Tech(listOf(tech)) shouldBe tech
-        validRaceEntry(freeTech1 = 5).freeTech1Tech(emptyList()) shouldBe null
-    }
-
-    test("freeTech2Tech resolves against the TECH list") {
-        val tech = validTechEntry()
-        validRaceEntry(freeTech2 = 0).freeTech2Tech(listOf(tech)) shouldBe tech
-        validRaceEntry(freeTech2 = 5).freeTech2Tech(emptyList()) shouldBe null
-    }
-
-    test("freeTech3Tech resolves against the TECH list") {
-        val tech = validTechEntry()
-        validRaceEntry(freeTech3 = 0).freeTech3Tech(listOf(tech)) shouldBe tech
-        validRaceEntry(freeTech3 = 5).freeTech3Tech(emptyList()) shouldBe null
-    }
-
-    test("freeTech4Tech resolves against the TECH list") {
-        val tech = validTechEntry()
-        validRaceEntry(freeTech4 = 0).freeTech4Tech(listOf(tech)) shouldBe tech
-        validRaceEntry(freeTech4 = 5).freeTech4Tech(emptyList()) shouldBe null
+        val entry = validRaceEntry(freeTechs = listOf(0, 5, 0, 5))
+        entry.freeTechsTech(listOf(tech)) shouldBe listOf(tech, null, tech, null)
     }
 
     test("unitTypeForKingPrto resolves against the PRTO list") {

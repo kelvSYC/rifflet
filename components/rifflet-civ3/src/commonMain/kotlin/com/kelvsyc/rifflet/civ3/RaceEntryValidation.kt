@@ -11,7 +11,7 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
  * Every real file's barbarian entry has no traits ([RaceEntry.bonuses]), no Flavor membership
  * ([RaceEntry.flavors]), no free techs, no leader (name, title, or Great/Scientific Leader name
  * pools), default personality settings (aggression level, leader/civilization gender), no era
- * animation filenames, no Culture Group, and [RaceEntry.governorSettings] set to exactly
+ * animation filenames, no Culture Group, and [RaceGovernor.settings] set to exactly
  * [manageCitizens] and [manageProduction] — every other governor setting is locked off. On
  * [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS] files, where the King unit mechanic exists, it
  * also has no [RaceEntry.unitTypeForKing]; [Civ3FormatEra.VANILLA] predates King units entirely
@@ -33,33 +33,29 @@ fun validateRaceBarbarianPlaceholder(file: Civ3File): List<ValidationIssue> {
     return listOfNotNull(
         if (entry.bonuses != 0) issue("bonuses", "no traits (bonuses=0, was ${entry.bonuses})") else null,
         if (entry.flavors != 0) issue("flavors", "no Flavor membership (flavors=0, was ${entry.flavors})") else null,
-        if (entry.freeTech1 != -1 || entry.freeTech2 != -1 || entry.freeTech3 != -1 || entry.freeTech4 != -1) {
-            issue(
-                "freeTech1/freeTech2/freeTech3/freeTech4",
-                "no free techs (freeTech1=${entry.freeTech1}, freeTech2=${entry.freeTech2}, " +
-                    "freeTech3=${entry.freeTech3}, freeTech4=${entry.freeTech4})",
-            )
+        if (entry.freeTechs.any { it != -1 }) {
+            issue("freeTechs", "no free techs (freeTechs=${entry.freeTechs})")
         } else {
             null
         },
-        if (entry.leaderName.isNotBlank() ||
-            entry.leaderTitle.isNotBlank() ||
+        if (entry.leader.name.isNotBlank() ||
+            entry.leader.title.isNotBlank() ||
             entry.greatLeaderNames.any { it.isNotBlank() } ||
             entry.scientificLeaderNames.any { it.isNotBlank() }
         ) {
             issue(
                 "leaderName/leaderTitle/greatLeaderNames/scientificLeaderNames",
-                "no leader (leaderName='${entry.leaderName}', leaderTitle='${entry.leaderTitle}', " +
+                "no leader (leaderName='${entry.leader.name}', leaderTitle='${entry.leader.title}', " +
                     "greatLeaderNames=${entry.greatLeaderNames}, scientificLeaderNames=${entry.scientificLeaderNames})",
             )
         } else {
             null
         },
-        if (entry.aggressionLevel != 0 || entry.leaderGender != 0 || entry.civilizationGender != 0) {
+        if (entry.personality.aggressionLevel != 0 || entry.leader.gender != 0 || entry.civilizationGender != 0) {
             issue(
                 "aggressionLevel/leaderGender/civilizationGender",
-                "default personality settings (aggressionLevel=${entry.aggressionLevel}, " +
-                    "leaderGender=${entry.leaderGender}, civilizationGender=${entry.civilizationGender})",
+                "default personality settings (aggressionLevel=${entry.personality.aggressionLevel}, " +
+                    "leaderGender=${entry.leader.gender}, civilizationGender=${entry.civilizationGender})",
             )
         } else {
             null
@@ -74,11 +70,11 @@ fun validateRaceBarbarianPlaceholder(file: Civ3File): List<ValidationIssue> {
         } else {
             null
         },
-        if (entry.governorSettings != ((1 shl 0) or (1 shl 4))) {
+        if (entry.governor.settings != ((1 shl 0) or (1 shl 4))) {
             issue(
                 "governorSettings",
                 "only manageCitizens and manageProduction enabled (governorSettings=17, " +
-                    "was ${entry.governorSettings})",
+                    "was ${entry.governor.settings})",
             )
         } else {
             null

@@ -2,6 +2,9 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import com.kelvsyc.rifflet.civ3.RaceEraFilenames
+import com.kelvsyc.rifflet.civ3.RaceGovernor
+import com.kelvsyc.rifflet.civ3.RaceLeader
+import com.kelvsyc.rifflet.civ3.RacePersonality
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -78,30 +81,21 @@ class RaceEntryParserTest : FunSpec({
         entry shouldBe RaceEntry(
             cityNames = listOf("Roma", "Neapolis"),
             greatLeaderNames = listOf("Caesar"),
-            leaderName = "Caesar Augustus",
-            leaderTitle = "Emperor",
+            leader = RaceLeader(name = "Caesar Augustus", title = "Emperor", gender = 0),
             civilopediaEntry = "",
             adjective = "Roman",
             name = "Rome",
             noun = "Romans",
             eras = listOf(RaceEraFilenames("anc_fwd", "anc_rev"), RaceEraFilenames("mid_fwd", "mid_rev")),
             cultureGroup = 0,
-            leaderGender = 0,
             civilizationGender = 0,
-            aggressionLevel = 0,
+            personality = RacePersonality(favoriteGovernment = 0, shunnedGovernment = 0, aggressionLevel = 0),
             uniqueCivilizationCounter = 0,
-            shunnedGovernment = 0,
-            favoriteGovernment = 0,
             defaultColor = 0,
             uniqueColor = 0,
-            freeTech1 = 0,
-            freeTech2 = 0,
-            freeTech3 = 0,
-            freeTech4 = 0,
+            freeTechs = listOf(0, 0, 0, 0),
             bonuses = 0,
-            governorSettings = 0,
-            buildNever = 0,
-            buildOften = 0,
+            governor = RaceGovernor(settings = 0, buildNever = 0, buildOften = 0),
             plurality = 0,
             unitTypeForKing = 0,
             flavors = 0,
