@@ -2,6 +2,8 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.GovtEntry
+import com.kelvsyc.rifflet.civ3.GovtRulerTitles
+import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
 import okio.Buffer
 
 /**
@@ -9,7 +11,7 @@ import okio.Buffer
  * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop. The embedded `numberOfGovernments`-sized relationship array is read as
  * a loop resuming the same cursor; `numberOfGovernments` itself is not stored on [GovtEntry] —
- * `relationships.size` is already that count. The 8 ruler-title fields are always read
+ * `relationships.size` is already that count. [GovtEntry.rulerTitles]'s 8 fields are always read
  * unconditionally — they do not vary with any other section's entry count.
  *
  * The trailing 2 fields (`xenophobic`, `forceResettle`) are read defensively:
@@ -32,14 +34,14 @@ internal object GovtEntryParser {
         val tradeBonus = item.readIntLe()
         val name = item.readByteString(64L).truncateAtFirstNull()
         val civilopediaEntry = item.readByteString(32L).truncateAtFirstNull()
-        val maleRulerTitle1 = item.readByteString(32L).truncateAtFirstNull()
-        val femaleRulerTitle1 = item.readByteString(32L).truncateAtFirstNull()
-        val maleRulerTitle2 = item.readByteString(32L).truncateAtFirstNull()
-        val femaleRulerTitle2 = item.readByteString(32L).truncateAtFirstNull()
-        val maleRulerTitle3 = item.readByteString(32L).truncateAtFirstNull()
-        val femaleRulerTitle3 = item.readByteString(32L).truncateAtFirstNull()
-        val maleRulerTitle4 = item.readByteString(32L).truncateAtFirstNull()
-        val femaleRulerTitle4 = item.readByteString(32L).truncateAtFirstNull()
+        val male1 = item.readByteString(32L).truncateAtFirstNull()
+        val female1 = item.readByteString(32L).truncateAtFirstNull()
+        val male2 = item.readByteString(32L).truncateAtFirstNull()
+        val female2 = item.readByteString(32L).truncateAtFirstNull()
+        val male3 = item.readByteString(32L).truncateAtFirstNull()
+        val female3 = item.readByteString(32L).truncateAtFirstNull()
+        val male4 = item.readByteString(32L).truncateAtFirstNull()
+        val female4 = item.readByteString(32L).truncateAtFirstNull()
         val corruption = item.readIntLe()
         val immuneTo = item.readIntLe()
         val diplomatsAre = item.readIntLe()
@@ -66,46 +68,37 @@ internal object GovtEntryParser {
         val xenophobic = if (item.size >= 4L) item.readIntLe() else 0
         val forceResettle = if (item.size >= 4L) item.readIntLe() else 0
         return GovtEntry(
-            defaultType,
-            transitionType,
-            requiresMaintenance,
-            toggle1,
-            tilePenalty,
-            tradeBonus,
-            name,
-            civilopediaEntry,
-            maleRulerTitle1,
-            femaleRulerTitle1,
-            maleRulerTitle2,
-            femaleRulerTitle2,
-            maleRulerTitle3,
-            femaleRulerTitle3,
-            maleRulerTitle4,
-            femaleRulerTitle4,
-            corruption,
-            immuneTo,
-            diplomatsAre,
-            spiesAre,
-            relationships,
-            hurrying,
-            assimilationChance,
-            draftLimit,
-            militaryPoliceLimit,
-            rulerTitlePairsUsed,
-            prerequisiteTechnology,
-            scienceRateCap,
-            workerRate,
-            toggle2,
-            toggle3,
-            unknown,
-            freeUnits,
-            freeUnitsPerTown,
-            freeUnitsPerCity,
-            freeUnitsPerMetropolis,
-            unitCost,
-            warWeariness,
-            xenophobic,
-            forceResettle,
+            defaultType = defaultType,
+            transitionType = transitionType,
+            requiresMaintenance = requiresMaintenance,
+            toggle1 = toggle1,
+            tilePenalty = tilePenalty,
+            tradeBonus = tradeBonus,
+            name = name,
+            civilopediaEntry = civilopediaEntry,
+            rulerTitles = GovtRulerTitles(male1, female1, male2, female2, male3, female3, male4, female4),
+            corruption = corruption,
+            immuneTo = immuneTo,
+            diplomatsAre = diplomatsAre,
+            spiesAre = spiesAre,
+            relationships = relationships,
+            hurrying = hurrying,
+            assimilationChance = assimilationChance,
+            draftLimit = draftLimit,
+            militaryPoliceLimit = militaryPoliceLimit,
+            rulerTitlePairsUsed = rulerTitlePairsUsed,
+            prerequisiteTechnology = prerequisiteTechnology,
+            scienceRateCap = scienceRateCap,
+            workerRate = workerRate,
+            toggle2 = toggle2,
+            toggle3 = toggle3,
+            unknown = unknown,
+            unitSupportCosts = GovtUnitSupportCosts(
+                freeUnits, freeUnitsPerTown, freeUnitsPerCity, freeUnitsPerMetropolis, unitCost,
+            ),
+            warWeariness = warWeariness,
+            xenophobic = xenophobic,
+            forceResettle = forceResettle,
         )
     }
 }
