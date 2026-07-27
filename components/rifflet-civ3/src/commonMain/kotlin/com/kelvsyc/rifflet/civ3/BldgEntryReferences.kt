@@ -22,23 +22,23 @@ fun BldgEntry.gainInEveryCityOnContinentBldg(buildings: List<BldgEntry>): BldgEn
     buildings.getOrNull(gainInEveryCityOnContinent)
 
 /**
- * Resolves [BldgEntry.requiredBuilding] against [buildings] (the same `BLDG` section this entry
- * came from).
+ * Resolves [BldgRequirements.requiredBuilding] against [buildings] (the same `BLDG` section this
+ * entry came from).
  */
 fun BldgEntry.requiredBuildingBldg(buildings: List<BldgEntry>): BldgEntry? =
-    buildings.getOrNull(requiredBuilding)
+    buildings.getOrNull(requirements.requiredBuilding)
 
 /**
- * Resolves [BldgEntry.requiredGovernment] against [governments].
+ * Resolves [BldgRequirements.requiredGovernment] against [governments].
  */
 fun BldgEntry.requiredGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
-    governments.getOrNull(requiredGovernment)
+    governments.getOrNull(requirements.requiredGovernment)
 
 /**
- * Resolves [BldgEntry.requiredAdvance] against [techs]. Same treatment applies to
+ * Resolves [BldgRequirements.requiredAdvance] against [techs]. Same treatment applies to
  * [BldgEntry.renderedObsoleteBy].
  */
-fun BldgEntry.requiredAdvanceTech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(requiredAdvance)
+fun BldgEntry.requiredAdvanceTech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(requirements.requiredAdvance)
 
 /**
  * Resolves [BldgEntry.renderedObsoleteBy] against [techs].
@@ -47,24 +47,28 @@ fun BldgEntry.renderedObsoleteByTech(techs: List<TechEntry>): TechEntry? =
     techs.getOrNull(renderedObsoleteBy)
 
 /**
- * Resolves [BldgEntry.requiredResource1] against [goods]. Same treatment applies to
- * [BldgEntry.requiredResource2].
+ * Resolves [BldgRequiredResources.requiredResource1] against [goods]. Same treatment applies to
+ * [BldgRequiredResources.requiredResource2].
  */
 fun BldgEntry.requiredResource1Good(goods: List<GoodEntry>): GoodEntry? =
-    goods.getOrNull(requiredResource1)
+    goods.getOrNull(requiredResources.requiredResource1)
 
 /**
- * Resolves [BldgEntry.requiredResource2] against [goods].
+ * Resolves [BldgRequiredResources.requiredResource2] against [goods].
  */
 fun BldgEntry.requiredResource2Good(goods: List<GoodEntry>): GoodEntry? =
-    goods.getOrNull(requiredResource2)
+    goods.getOrNull(requiredResources.requiredResource2)
 
 /**
- * Resolves [BldgEntry.unitProduced] against [prtos]. A `PRTO` section index — explicitly
+ * Resolves [BldgUnitsProduced.unitProduced] against [prtos]. A `PRTO` section index — explicitly
  * documented by existing reverse-engineering work ("Unit produced (PRTO ref)"), not merely a
- * naming-based inference.
+ * naming-based inference. Returns `null` outright if [BldgEntry.unitsProduced] itself is `null`
+ * (a VANILLA/PTW building was never capable of specifying a produced unit at all) — distinct from
+ * the previous flat-field behavior, which defaulted the absent field to `0` and could accidentally
+ * resolve against index 0.
  */
-fun BldgEntry.unitProducedPrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(unitProduced)
+fun BldgEntry.unitProducedPrto(prtos: List<PrtoEntry>): PrtoEntry? =
+    unitsProduced?.let { prtos.getOrNull(it.unitProduced) }
 
 /**
  * [BldgEntry.requiredGoodsMustBeInCityRadius] resolved for [era]: reads

@@ -14,18 +14,20 @@ import okio.ByteString
  *   the building this entry grants for free in every city on the same continent — e.g. the
  *   Pyramids grant a free Granary, the Great Wall grants free Walls, and Hoover Dam grants a free
  *   Hydro Plant.
- * @param requiredBuilding A `BLDG` section self-reference, per the Conquests Rules Editor (not
- *   merely a naming-based inference).
- * @param requiredGovernment A `GOVT` section index, per the Conquests Rules Editor (not merely
- *   a naming-based inference).
- * @param requiredAdvance A `TECH` section index, per the Conquests Rules Editor (not merely a
- *   naming-based inference). Same treatment applies to [renderedObsoleteBy].
- * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
- *   naming-based inference). Same treatment applies to [requiredResource2].
+ * @param requirements This building's prerequisites (advance, other required building,
+ *   government). See [BldgRequirements].
+ * @param combatValues This building's combat modifiers. See [BldgCombatValues].
+ * @param navalDefenseBonus 4 bytes with zero documented behavior from either reverse-engineering
+ *   source; preserved raw, not validated. Despite its similar name, this is not part of
+ *   [combatValues] — it doesn't correspond to any control in either the PTW or Conquests
+ *   "Improvements and Wonders" tab.
+ * @param happiness This building's happiness effect. See [BldgHappiness].
  * @param spaceshipPart `-1` if this building doesn't produce a spaceship part, or an index into
  *   `RuleEntry.spaceshipPartQuantities` identifying which part it produces — confirmed by real
  *   data (the Conquests base ruleset's 10 "SS ..." buildings each carry a distinct index 0-9,
  *   matching the General Settings tab's "Spaceship Parts" group's part dropdown/count).
+ * @param requiredResources This building's required natural resources. See
+ *   [BldgRequiredResources].
  * @param flags 16 bytes, four packed 4-byte named sub-fields per existing reverse-engineering
  *   documentation of the BIX/BIQ format: [BldgEntry.improvements] (bytes 0-3), [BldgEntry.otherCharacteristics]
  *   (bytes 4-7), [BldgEntry.smallWonders] (bytes 8-11), [BldgEntry.wonders] (bytes 12-15) — see
@@ -35,8 +37,8 @@ import okio.ByteString
  *   scheme on advances and civilizations.
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
- * @param unitProduced A `PRTO` section index — explicitly documented by existing
- *   reverse-engineering work ("Unit produced (PRTO ref)"), not merely a naming-based inference.
+ * @param unitsProduced The unit this building produces each turn, if any — absent (`null`) from
+ *   real VANILLA/PTW files. See [BldgUnitsProduced].
  */
 data class BldgEntry(
     val description: String,
@@ -45,35 +47,24 @@ data class BldgEntry(
     val doublesHappiness: Int,
     val gainInEveryCity: Int,
     val gainInEveryCityOnContinent: Int,
-    val requiredBuilding: Int,
+    val requirements: BldgRequirements,
     val cost: Int,
     val culture: Int,
-    val bombardDefense: Int,
-    val navalBombardDefense: Int,
-    val defenseBonus: Int,
+    val combatValues: BldgCombatValues,
     val navalDefenseBonus: Int,
     val maintenanceCost: Int,
-    val contentFacesAllCities: Int,
-    val contentFaces: Int,
-    val unhappyFacesAllCities: Int,
-    val unhappyFaces: Int,
+    val happiness: BldgHappiness,
     val numberOfRequiredBuildings: Int,
-    val airPower: Int,
-    val navalPower: Int,
     val pollution: Int,
     val production: Int,
-    val requiredGovernment: Int,
     val spaceshipPart: Int,
-    val requiredAdvance: Int,
     val renderedObsoleteBy: Int,
-    val requiredResource1: Int,
-    val requiredResource2: Int,
+    val requiredResources: BldgRequiredResources,
     val flags: ByteString,
     val numberOfArmiesRequired: Int,
     val flavors: Int,
     val unknown: ByteString,
-    val unitProduced: Int,
-    val unitFrequency: Int,
+    val unitsProduced: BldgUnitsProduced?,
 ) {
     init {
         require(flags.size == 16) { "BldgEntry.flags must be exactly 16 bytes, was ${flags.size}" }

@@ -134,16 +134,17 @@ fun validateBldgSpaceshipPartInvariants(file: Civ3File): List<ValidationIssue> {
                 null
             },
             if (!(
-                    entry.bombardDefense == 0 && entry.navalBombardDefense == 0 && entry.defenseBonus == 0 &&
-                        entry.navalDefenseBonus == 0 && entry.airPower == 0 && entry.navalPower == 0
+                    entry.combatValues.bombardDefense == 0 && entry.combatValues.navalBombardDefense == 0 &&
+                        entry.combatValues.defenseBonus == 0 && entry.navalDefenseBonus == 0 &&
+                        entry.combatValues.airPower == 0 && entry.combatValues.navalPower == 0
                     )
             ) {
                 issue(
                     "combat values",
-                    "bombardDefense=0 (${entry.bombardDefense}), navalBombardDefense=0 " +
-                        "(${entry.navalBombardDefense}), defenseBonus=0 (${entry.defenseBonus}), " +
-                        "navalDefenseBonus=0 (${entry.navalDefenseBonus}), airPower=0 (${entry.airPower}), " +
-                        "navalPower=0 (${entry.navalPower})",
+                    "bombardDefense=0 (${entry.combatValues.bombardDefense}), navalBombardDefense=0 " +
+                        "(${entry.combatValues.navalBombardDefense}), defenseBonus=0 (${entry.combatValues.defenseBonus}), " +
+                        "navalDefenseBonus=0 (${entry.navalDefenseBonus}), airPower=0 (${entry.combatValues.airPower}), " +
+                        "navalPower=0 (${entry.combatValues.navalPower})",
                 )
             } else {
                 null
@@ -166,8 +167,8 @@ fun validateBldgSpaceshipPartInvariants(file: Civ3File): List<ValidationIssue> {
             } else {
                 null
             },
-            if (era == Civ3FormatEra.CONQUESTS && entry.unitProduced != -1) {
-                issue("unitProduced", "unitProduced=-1 (was ${entry.unitProduced})")
+            if (era == Civ3FormatEra.CONQUESTS && entry.unitsProduced?.unitProduced != -1) {
+                issue("unitProduced", "unitProduced=-1 (was ${entry.unitsProduced?.unitProduced})")
             } else {
                 null
             },
@@ -216,17 +217,18 @@ fun validateBldgSpaceshipPartConventionalStats(file: Civ3File): List<ValidationI
                 null
             },
             if (!(
-                    entry.contentFacesAllCities == 0 && entry.contentFaces == 0 &&
-                        entry.unhappyFacesAllCities == 0 && entry.unhappyFaces == 0 &&
+                    entry.happiness.contentFacesAllCities == 0 && entry.happiness.contentFaces == 0 &&
+                        entry.happiness.unhappyFacesAllCities == 0 && entry.happiness.unhappyFaces == 0 &&
                         entry.doublesHappiness == -1 && entry.gainInEveryCity == -1 &&
                         entry.gainInEveryCityOnContinent == -1
                     )
             ) {
                 issue(
                     "happiness settings",
-                    "no happiness effect (contentFacesAllCities=${entry.contentFacesAllCities}, " +
-                        "contentFaces=${entry.contentFaces}, unhappyFacesAllCities=${entry.unhappyFacesAllCities}, " +
-                        "unhappyFaces=${entry.unhappyFaces}, doublesHappiness=${entry.doublesHappiness}, " +
+                    "no happiness effect (contentFacesAllCities=${entry.happiness.contentFacesAllCities}, " +
+                        "contentFaces=${entry.happiness.contentFaces}, " +
+                        "unhappyFacesAllCities=${entry.happiness.unhappyFacesAllCities}, " +
+                        "unhappyFaces=${entry.happiness.unhappyFaces}, doublesHappiness=${entry.doublesHappiness}, " +
                         "gainInEveryCity=${entry.gainInEveryCity}, " +
                         "gainInEveryCityOnContinent=${entry.gainInEveryCityOnContinent})",
                 )
