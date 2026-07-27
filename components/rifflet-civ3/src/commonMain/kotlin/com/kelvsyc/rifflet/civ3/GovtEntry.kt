@@ -15,6 +15,7 @@ import okio.ByteString
  *   exactly one such entry. [defaultType] and [transitionType] can both be set on the same entry.
  * @param requiresMaintenance Int-shaped boolean.
  * @param toggle1 `???` — observed: 0 = Republic/Democracy, 1 = other.
+ * @param rulerTitles This government's ruler titles. See [GovtRulerTitles].
  * @param relationships The embedded dynamic array; its on-disk count (`numberOfGovernments`) is
  *   not stored separately — `relationships.size` is already that count.
  * @param toggle2 `???` — observed: -1 = Despotism/Communism, 0 = Anarchy/Monarchy,
@@ -26,6 +27,7 @@ import okio.ByteString
  *   "Prerequisite" dropdown.
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
+ * @param unitSupportCosts This government's unit support costs. See [GovtUnitSupportCosts].
  */
 data class GovtEntry(
     val defaultType: Int,
@@ -36,14 +38,7 @@ data class GovtEntry(
     val tradeBonus: Int,
     val name: String,
     val civilopediaEntry: String,
-    val maleRulerTitle1: String,
-    val femaleRulerTitle1: String,
-    val maleRulerTitle2: String,
-    val femaleRulerTitle2: String,
-    val maleRulerTitle3: String,
-    val femaleRulerTitle3: String,
-    val maleRulerTitle4: String,
-    val femaleRulerTitle4: String,
+    val rulerTitles: GovtRulerTitles,
     val corruption: Int,
     val immuneTo: Int,
     val diplomatsAre: Int,
@@ -60,11 +55,7 @@ data class GovtEntry(
     val toggle2: Int,
     val toggle3: Int,
     val unknown: ByteString,
-    val freeUnits: Int,
-    val freeUnitsPerTown: Int,
-    val freeUnitsPerCity: Int,
-    val freeUnitsPerMetropolis: Int,
-    val unitCost: Int,
+    val unitSupportCosts: GovtUnitSupportCosts,
     val warWeariness: Int,
     val xenophobic: Int,
     val forceResettle: Int,

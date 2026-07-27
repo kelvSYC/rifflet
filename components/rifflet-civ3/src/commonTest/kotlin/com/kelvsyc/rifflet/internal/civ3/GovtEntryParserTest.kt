@@ -2,6 +2,8 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtRelationship
+import com.kelvsyc.rifflet.civ3.GovtRulerTitles
+import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -80,14 +82,12 @@ class GovtEntryParserTest : FunSpec({
             tradeBonus = 0,
             name = "Despotism",
             civilopediaEntry = "",
-            maleRulerTitle1 = "",
-            femaleRulerTitle1 = "",
-            maleRulerTitle2 = "",
-            femaleRulerTitle2 = "",
-            maleRulerTitle3 = "",
-            femaleRulerTitle3 = "",
-            maleRulerTitle4 = "",
-            femaleRulerTitle4 = "",
+            rulerTitles = GovtRulerTitles(
+                male1 = "", female1 = "",
+                male2 = "", female2 = "",
+                male3 = "", female3 = "",
+                male4 = "", female4 = "",
+            ),
             corruption = 0,
             immuneTo = 0,
             diplomatsAre = 0,
@@ -104,11 +104,13 @@ class GovtEntryParserTest : FunSpec({
             toggle2 = -1,
             toggle3 = 0,
             unknown = ByteString.of(0, 0, 0, 0),
-            freeUnits = 0,
-            freeUnitsPerTown = 0,
-            freeUnitsPerCity = 0,
-            freeUnitsPerMetropolis = 0,
-            unitCost = 0,
+            unitSupportCosts = GovtUnitSupportCosts(
+                freeUnits = 0,
+                freeUnitsPerTown = 0,
+                freeUnitsPerCity = 0,
+                freeUnitsPerMetropolis = 0,
+                unitCost = 0,
+            ),
             warWeariness = 0,
             xenophobic = 0,
             forceResettle = 0,
@@ -118,7 +120,7 @@ class GovtEntryParserTest : FunSpec({
     test("an empty relationships list (zero governments) is parsed correctly, resuming the fixed suffix") {
         val entry = GovtEntryParser.parse(govtItemBinary(relationships = emptyList()))
         entry.relationships shouldBe emptyList()
-        entry.freeUnits shouldBe 0
+        entry.unitSupportCosts.freeUnits shouldBe 0
     }
 
     test("unknown trailing field is preserved raw, not validated") {
