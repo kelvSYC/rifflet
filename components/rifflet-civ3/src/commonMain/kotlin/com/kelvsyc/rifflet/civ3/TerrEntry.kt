@@ -11,19 +11,24 @@ import okio.ByteString
  * @param possibleResources A bit array, one bit per `GOOD` section entry (packed 8 per byte,
  *   rounded up to `⌈numberOfPossibleResources / 8⌉` bytes), indicating which resources can
  *   appear on this terrain type; preserved raw, not decomposed into individual bit accessors.
+ * @param terraformBonuses This terrain type's worker-job terraform bonuses. See
+ *   [TerrTerraformBonuses].
+ * @param tileValues This terrain type's base Food/Shields/Commerce yield. See [TerrTileValues].
  * @param workerJobAllowed A `TFRM` section index identifying the worker job that transforms this
  *   terrain type, or `-1` for none. See [workerJobAllowedTfrm]. The Terrain editor tab's own
  *   "Worker Job" dropdown only ever offers a handful of terrain-transform jobs (e.g. Plant
  *   Forest, Clear Forest, Clear Wetlands) rather than the full `TFRM` list — the other jobs
- *   (Mine, Irrigate, Road, ...) are governed by this entry's own [miningBonus]/[irrigationBonus]/
- *   [roadBonus] fields instead.
+ *   (Mine, Irrigate, Road, ...) are governed by this entry's own [terraformBonuses] instead.
  * @param pollutionEffect Decodes to [TerrPollutionEffect] via [pollutionEffectResolved]: `-1` for
  *   no pollution effect, this section's own entry count for reverting to this tile's own base
  *   terrain (the Terrain editor tab's "Base Terrain Type" option, used by overlay terrain types
  *   like Forest/Jungle rather than a fixed other terrain), otherwise a `TERR` section index for
  *   the terrain this becomes when polluted.
+ * @param allowances This terrain type's city/improvement/movement allowances. See
+ *   [TerrAllowances].
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
+ * @param landmark This terrain type's Conquests-only landmark override. See [TerrLandmark].
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
  * @param terrainFlags Mostly opaque — neither the earlier, BIC-format reverse-engineering
@@ -48,36 +53,15 @@ data class TerrEntry(
     val possibleResources: ByteString,
     val name: String,
     val civilopediaEntry: String,
-    val irrigationBonus: Int,
-    val miningBonus: Int,
-    val roadBonus: Int,
+    val terraformBonuses: TerrTerraformBonuses,
     val defenseBonus: Int,
     val movementCost: Int,
-    val food: Int,
-    val shields: Int,
-    val commerce: Int,
+    val tileValues: TerrTileValues,
     val workerJobAllowed: Int,
     val pollutionEffect: Int,
-    val allowCities: Byte,
-    val allowColonies: Byte,
-    val impassable: Byte,
-    val impassableByWheeled: Byte,
-    val allowAirfields: Byte,
-    val allowForts: Byte,
-    val allowOutposts: Byte,
-    val allowRadarTowers: Byte,
+    val allowances: TerrAllowances,
     val unknown: ByteString,
-    val landmarkEnabled: Byte,
-    val landmarkFood: Int,
-    val landmarkShields: Int,
-    val landmarkCommerce: Int,
-    val landmarkIrrigationBonus: Int,
-    val landmarkMiningBonus: Int,
-    val landmarkRoadBonus: Int,
-    val landmarkMovementBonus: Int,
-    val landmarkDefensiveBonus: Int,
-    val landmarkName: String,
-    val landmarkCivilopediaEntry: String,
+    val landmark: TerrLandmark?,
     val unknown2: ByteString,
     val terrainFlags: Int,
     val diseaseStrength: Int,

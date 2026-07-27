@@ -1,6 +1,10 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.TerrAllowances
 import com.kelvsyc.rifflet.civ3.TerrEntry
+import com.kelvsyc.rifflet.civ3.TerrLandmark
+import com.kelvsyc.rifflet.civ3.TerrTerraformBonuses
+import com.kelvsyc.rifflet.civ3.TerrTileValues
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -120,36 +124,32 @@ class TerrEntryParserTest : FunSpec({
             possibleResources = ByteString.of(0b00010101.toByte()),
             name = "Plains",
             civilopediaEntry = "Plains",
-            irrigationBonus = 1,
-            miningBonus = 0,
-            roadBonus = 1,
+            terraformBonuses = TerrTerraformBonuses(irrigationBonus = 1, miningBonus = 0, roadBonus = 1),
             defenseBonus = 0,
             movementCost = 1,
-            food = 1,
-            shields = 1,
-            commerce = 0,
+            tileValues = TerrTileValues(food = 1, shields = 1, commerce = 0),
             workerJobAllowed = -1,
             pollutionEffect = -1,
-            allowCities = 1,
-            allowColonies = 1,
-            impassable = 0,
-            impassableByWheeled = 0,
-            allowAirfields = 1,
-            allowForts = 1,
-            allowOutposts = 1,
-            allowRadarTowers = 1,
+            allowances = TerrAllowances(
+                allowCities = 1,
+                allowColonies = 1,
+                impassable = 0,
+                impassableByWheeled = 0,
+                allowAirfields = 1,
+                allowForts = 1,
+                allowOutposts = 1,
+                allowRadarTowers = 1,
+            ),
             unknown = ByteString.of(*ByteArray(4)),
-            landmarkEnabled = 0,
-            landmarkFood = 0,
-            landmarkShields = 0,
-            landmarkCommerce = 0,
-            landmarkIrrigationBonus = 0,
-            landmarkMiningBonus = 0,
-            landmarkRoadBonus = 0,
-            landmarkMovementBonus = 0,
-            landmarkDefensiveBonus = 0,
-            landmarkName = "",
-            landmarkCivilopediaEntry = "",
+            landmark = TerrLandmark(
+                landmarkEnabled = 0,
+                tileValues = TerrTileValues(food = 0, shields = 0, commerce = 0),
+                terraformBonuses = TerrTerraformBonuses(irrigationBonus = 0, miningBonus = 0, roadBonus = 0),
+                landmarkMovementBonus = 0,
+                landmarkDefensiveBonus = 0,
+                landmarkName = "",
+                landmarkCivilopediaEntry = "",
+            ),
             unknown2 = ByteString.of(*ByteArray(4)),
             terrainFlags = 0,
             diseaseStrength = 0,
@@ -158,24 +158,14 @@ class TerrEntryParserTest : FunSpec({
 
     test("item missing all 21 trailing fields defaults them (vanilla shape)") {
         val entry = TerrEntryParser.parse(terrItemBinary(includeBooleanFlags = false))
-        entry.impassable shouldBe 0
-        entry.impassableByWheeled shouldBe 0
-        entry.allowAirfields shouldBe 0
-        entry.allowForts shouldBe 0
-        entry.allowOutposts shouldBe 0
-        entry.allowRadarTowers shouldBe 0
+        entry.allowances.impassable shouldBe null
+        entry.allowances.impassableByWheeled shouldBe null
+        entry.allowances.allowAirfields shouldBe null
+        entry.allowances.allowForts shouldBe null
+        entry.allowances.allowOutposts shouldBe null
+        entry.allowances.allowRadarTowers shouldBe null
         entry.unknown shouldBe ByteString.of(*ByteArray(4))
-        entry.landmarkEnabled shouldBe 0
-        entry.landmarkFood shouldBe 0
-        entry.landmarkShields shouldBe 0
-        entry.landmarkCommerce shouldBe 0
-        entry.landmarkIrrigationBonus shouldBe 0
-        entry.landmarkMiningBonus shouldBe 0
-        entry.landmarkRoadBonus shouldBe 0
-        entry.landmarkMovementBonus shouldBe 0
-        entry.landmarkDefensiveBonus shouldBe 0
-        entry.landmarkName shouldBe ""
-        entry.landmarkCivilopediaEntry shouldBe ""
+        entry.landmark shouldBe null
         entry.unknown2 shouldBe ByteString.of(*ByteArray(4))
         entry.terrainFlags shouldBe 0
         entry.diseaseStrength shouldBe 0
@@ -193,17 +183,14 @@ class TerrEntryParserTest : FunSpec({
                 includeConquestsTail = false,
             ),
         )
-        entry.impassable shouldBe 1
-        entry.impassableByWheeled shouldBe 1
-        entry.allowAirfields shouldBe 0
-        entry.allowForts shouldBe 0
-        entry.allowOutposts shouldBe 0
-        entry.allowRadarTowers shouldBe 0
+        entry.allowances.impassable shouldBe 1
+        entry.allowances.impassableByWheeled shouldBe 1
+        entry.allowances.allowAirfields shouldBe 0
+        entry.allowances.allowForts shouldBe 0
+        entry.allowances.allowOutposts shouldBe 0
+        entry.allowances.allowRadarTowers shouldBe 0
         entry.unknown shouldBe ByteString.of(*ByteArray(4))
-        entry.landmarkEnabled shouldBe 0
-        entry.landmarkFood shouldBe 0
-        entry.landmarkName shouldBe ""
-        entry.landmarkCivilopediaEntry shouldBe ""
+        entry.landmark shouldBe null
         entry.unknown2 shouldBe ByteString.of(*ByteArray(4))
         entry.terrainFlags shouldBe 0
         entry.diseaseStrength shouldBe 0
@@ -247,8 +234,6 @@ class TerrEntryParserTest : FunSpec({
     }
 })
 
-/** Builds a well-formed [TerrEntry] with all-zero/empty values, for domain-invariant tests that
- * only care about overriding one field. */
 private fun wellFormedTerrEntry(
     numberOfPossibleResources: Int = 0,
     possibleResources: ByteString = ByteString.of(),
@@ -257,16 +242,27 @@ private fun wellFormedTerrEntry(
 ): TerrEntry = TerrEntry(
     numberOfPossibleResources = numberOfPossibleResources,
     possibleResources = possibleResources,
-    name = "", civilopediaEntry = "",
-    irrigationBonus = 0, miningBonus = 0, roadBonus = 0, defenseBonus = 0, movementCost = 0,
-    food = 0, shields = 0, commerce = 0, workerJobAllowed = 0, pollutionEffect = 0,
-    allowCities = 0, allowColonies = 0, impassable = 0, impassableByWheeled = 0,
-    allowAirfields = 0, allowForts = 0, allowOutposts = 0, allowRadarTowers = 0,
+    name = "",
+    civilopediaEntry = "",
+    terraformBonuses = TerrTerraformBonuses(irrigationBonus = 0, miningBonus = 0, roadBonus = 0),
+    defenseBonus = 0,
+    movementCost = 0,
+    tileValues = TerrTileValues(food = 0, shields = 0, commerce = 0),
+    workerJobAllowed = 0,
+    pollutionEffect = 0,
+    allowances = TerrAllowances(
+        allowCities = 0,
+        allowColonies = 0,
+        impassable = 0,
+        impassableByWheeled = 0,
+        allowAirfields = 0,
+        allowForts = 0,
+        allowOutposts = 0,
+        allowRadarTowers = 0,
+    ),
     unknown = unknown,
-    landmarkEnabled = 0, landmarkFood = 0, landmarkShields = 0, landmarkCommerce = 0,
-    landmarkIrrigationBonus = 0, landmarkMiningBonus = 0, landmarkRoadBonus = 0,
-    landmarkMovementBonus = 0, landmarkDefensiveBonus = 0,
-    landmarkName = "", landmarkCivilopediaEntry = "",
+    landmark = null,
     unknown2 = unknown2,
-    terrainFlags = 0, diseaseStrength = 0,
+    terrainFlags = 0,
+    diseaseStrength = 0,
 )
