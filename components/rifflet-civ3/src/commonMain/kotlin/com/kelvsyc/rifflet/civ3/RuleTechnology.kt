@@ -8,9 +8,11 @@ package com.kelvsyc.rifflet.civ3
  * Age" groupbox sits between this group's members in both the editor and the file, and stays a
  * loose field on [RuleEntry].
  *
- * @param futureTechCost The "Future Tech Cost" field.
+ * @param futureTechCost The beaker cost of each Future Technology research — the repeatable
+ *   research a civilization can keep doing once it has learned every advance in the tech tree.
  * @param maximumResearchTime The "Maximum Research Time (turns)" field.
- * @param minimumResearchTime The "Minimum Research Time (turns)" field.
+ * @param minimumResearchTime The minimum number of turns any technology takes to research,
+ *   regardless of its beaker cost.
  */
 data class RuleTechnology(
     val futureTechCost: Int,

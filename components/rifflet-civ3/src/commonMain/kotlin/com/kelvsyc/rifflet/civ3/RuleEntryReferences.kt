@@ -63,10 +63,9 @@ fun RuleEntry.defaultMoneyResourceGood(goods: List<GoodEntry>): GoodEntry? =
     goods.getOrNull(defaultMoneyResource)
 
 /**
- * Resolves [RuleDefaultUnits.flagUnitType] against [prtos]. A `PRTO` section index — explicitly
- * documented by existing reverse-engineering work ("flag unit (PRTO ref)"), not merely a
- * naming-based inference. Returns `null` outright if [RuleDefaultUnits.flagUnitType] itself is
- * `null` (a VANILLA-era file was never capable of specifying a flag unit at all) — distinct from
+ * Resolves [RuleDefaultUnits.flagUnitType] against [prtos]. Returns `null` outright if
+ * [RuleDefaultUnits.flagUnitType] itself is `null` (a VANILLA-era file was never capable of
+ * specifying a flag unit at all) — distinct from
  * the previous flat-field behavior, which defaulted the absent field to `0` and could accidentally
  * resolve against real `PRTO` index 0.
  */

@@ -15,10 +15,9 @@ package com.kelvsyc.rifflet.civ3
  * @param slave The "Captured Unit" dropdown, a `PRTO` section index.
  * @param startUnit1 The "Start Unit 1" dropdown, a `PRTO` section index.
  * @param startUnit2 The "Start Unit 2" dropdown, a `PRTO` section index.
- * @param flagUnitType The "Flag Unit" dropdown, a `PRTO` section index — explicitly documented by
- *   existing reverse-engineering work ("flag unit (PRTO ref)"), not merely a naming-based
- *   inference. Absent (`null`) from real [Civ3FormatEra.VANILLA] files, present in
- *   [Civ3FormatEra.PTW] and [Civ3FormatEra.CONQUESTS]. Unlike this group's other 9 members,
+ * @param flagUnitType The "Flag Unit" dropdown, a `PRTO` section index. Absent (`null`) from real
+ *   [Civ3FormatEra.VANILLA] files, present in [Civ3FormatEra.PTW] and [Civ3FormatEra.CONQUESTS].
+ *   Unlike this group's other 9 members,
  *   `null` here specifically means "absent from this file's era," not a real reference — `0` is
  *   itself a valid `PRTO` index, so this can't use `0` as its own "absent" sentinel the way this
  *   codebase's `-1` conventions do.
