@@ -2,7 +2,10 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.GameEntry
 import com.kelvsyc.rifflet.civ3.GameLockedAlliance
+import com.kelvsyc.rifflet.civ3.GameMpTimers
+import com.kelvsyc.rifflet.civ3.GamePlagueSettings
 import com.kelvsyc.rifflet.civ3.GameTimeOptions
+import com.kelvsyc.rifflet.civ3.GameVictoryPointLimits
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -192,52 +195,58 @@ class GameEntryParserTest : FunSpec({
             autoPlaceKings = 0,
             autoPlaceVictoryLocations = 0,
             debugMode = 0,
-            useTimeLimit = 0,
-            baseTimeUnit = 0,
-            startMonth = 1,
-            startWeek = 1,
-            startYear = -4000,
-            minuteTimeLimit = 0,
-            turnTimeLimit = 0,
-            timescaleNumberOfTurns = listOf(1, 2, 3, 4, 5, 6, 7),
-            turnNumberOfTimeUnits = listOf(10, 20, 30, 40, 50, 60, 70),
+            timeOptions = GameTimeOptions(
+                useTimeLimit = 0,
+                baseTimeUnit = 0,
+                startMonth = 1,
+                startWeek = 1,
+                startYear = -4000,
+                minuteTimeLimit = 0,
+                turnTimeLimit = 0,
+                timescaleNumberOfTurns = listOf(1, 2, 3, 4, 5, 6, 7),
+                turnNumberOfTimeUnits = listOf(10, 20, 30, 40, 50, 60, 70),
+            ),
             scenarioSearchFolders = "Conquests",
             civAllianceStatuses = listOf(0, 2),
-            victoryPointLimit = 0,
-            cityEliminationCount = 0,
-            oneCityCultureWin = 0,
-            allCitiesCultureWin = 0,
-            dominationTerrain = 0,
-            dominationPopulation = 0,
-            wonderCost = 0,
-            defeatingOpposingUnitCost = 0,
-            advancementCost = 0,
-            cityConquestPopulation = 0,
-            victoryPointScoring = 0,
-            capturingSpecialUnit = 0,
+            victoryPointLimits = GameVictoryPointLimits(
+                victoryPointLimit = 0,
+                cityEliminationCount = 0,
+                oneCityCultureWin = 0,
+                allCitiesCultureWin = 0,
+                dominationTerrain = 0,
+                dominationPopulation = 0,
+                wonderCost = 0,
+                defeatingOpposingUnitCost = 0,
+                advancementCost = 0,
+                cityConquestPopulation = 0,
+                victoryPointScoring = 0,
+                capturingSpecialUnit = 0,
+                respawnFlagUnits = 0,
+                captureAnyFlag = 0,
+                goldForCapture = 0,
+            ),
             unknown = ByteString.of(*ByteArray(5)),
-            allianceNames = listOf("", "Alliance A", "Alliance B", "Alliance C", "Alliance D"),
-            allianceWars = List(25) { 0 },
-            allianceVictoryType = 0,
-            plagueName = "Plague",
-            permitPlagues = 0,
-            plagueEarliestStart = 0,
-            plagueVariation = 0,
-            plagueDuration = 0,
-            plagueStrength = 0,
-            plagueGracePeriod = 0,
-            plagueMaxOccurrence = 0,
+            lockedAlliance = GameLockedAlliance(
+                allianceNames = listOf("", "Alliance A", "Alliance B", "Alliance C", "Alliance D"),
+                allianceWars = List(25) { 0 },
+                allianceVictoryType = 0,
+            ),
+            plagueSettings = GamePlagueSettings(
+                plagueName = "Plague",
+                permitPlagues = 0,
+                plagueEarliestStart = 0,
+                plagueVariation = 0,
+                plagueDuration = 0,
+                plagueStrength = 0,
+                plagueGracePeriod = 0,
+                plagueMaxOccurrence = 0,
+            ),
             unknown2 = ByteString.of(*ByteArray(264)),
-            respawnFlagUnits = 0,
-            captureAnyFlag = 0,
-            goldForCapture = 0,
             mapVisible = 1,
             retainCulture = 0,
             unknown3 = ByteString.of(*ByteArray(4)),
             eruptionPeriod = 0,
-            mpBasetime = 0,
-            mpCityTime = 0,
-            mpUnitTime = 0,
+            mpTimers = GameMpTimers(mpBasetime = 0, mpCityTime = 0, mpUnitTime = 0),
         )
     }
 
@@ -250,26 +259,24 @@ class GameEntryParserTest : FunSpec({
         entry.civAllianceStatuses shouldBe emptyList()
     }
 
-    test("item with mp timing fields absent (confirmed real Conquests minor=6 shape) defaults them to zero") {
+    test("item with mp timing fields absent (confirmed real Conquests minor=6 shape) leaves mpTimers null") {
         val entry = GameEntryParser.parse(gameItemBinary(includeMpTimingFields = false))
-        entry.mpBasetime shouldBe 0
-        entry.mpCityTime shouldBe 0
-        entry.mpUnitTime shouldBe 0
+        entry.mpTimers shouldBe null
     }
 
-    test("PTW-length item (ends after scenarioSearchFolders, confirmed real minor=18 shape) defaults every Conquests-only field") {
+    test("PTW-length item (ends after scenarioSearchFolders, confirmed real minor=18 shape) leaves every Conquests-only group null") {
         val entry = GameEntryParser.parse(
             gameItemBinary(numberOfPlayableCivs = 3, playableCivIds = listOf(1, 2, 3), includeConquestsOnlyFields = false),
         )
         entry.civAllianceStatuses shouldBe listOf(0, 0, 0)
-        entry.victoryPointLimit shouldBe 0
+        entry.victoryPointLimits shouldBe null
         entry.unknown2 shouldBe ByteString.of(*ByteArray(264))
-        entry.allianceNames shouldBe List(5) { "" }
-        entry.plagueName shouldBe ""
-        entry.mpBasetime shouldBe 0
+        entry.lockedAlliance shouldBe null
+        entry.plagueSettings shouldBe null
+        entry.mpTimers shouldBe null
     }
 
-    test("vanilla-shape item (ends right after flags, confirmed real 16-byte vanilla shape) defaults every remaining field") {
+    test("vanilla-shape item (ends right after flags, confirmed real 16-byte vanilla shape) leaves every remaining field/group at its default") {
         val entry = GameEntryParser.parse(
             gameItemBinary(
                 numberOfPlayableCivs = 0,
@@ -279,10 +286,10 @@ class GameEntryParserTest : FunSpec({
             ),
         )
         entry.placeCaptureUnits shouldBe 0
-        entry.timescaleNumberOfTurns shouldBe List(7) { 0 }
+        entry.timeOptions shouldBe null
         entry.scenarioSearchFolders shouldBe ""
         entry.civAllianceStatuses shouldBe emptyList()
-        entry.mpBasetime shouldBe 0
+        entry.mpTimers shouldBe null
     }
 
     test("PTW minor=6/9/10 shape item (ends after autoPlaceVictoryLocations, formula 28+4N) defaults debugMode onward") {
@@ -294,12 +301,12 @@ class GameEntryParserTest : FunSpec({
         entry.scenarioSearchFolders shouldBe ""
     }
 
-    test("PTW minor=13 shape item (ends after debugMode, formula 32+4N) defaults useTimeLimit onward") {
+    test("PTW minor=13 shape item (ends after debugMode, formula 32+4N) leaves timeOptions null") {
         val entry = GameEntryParser.parse(
             gameItemBinary(debugMode = 99, includeUseTimeLimitOnward = false),
         )
         entry.debugMode shouldBe 99
-        entry.useTimeLimit shouldBe 0
+        entry.timeOptions shouldBe null
         entry.scenarioSearchFolders shouldBe ""
     }
 
@@ -325,17 +332,6 @@ class GameEntryParserTest : FunSpec({
         }
     }
 
-    test("GameEntry rejects a timescaleNumberOfTurns that does not have exactly 7 elements") {
-        shouldThrow<IllegalArgumentException> {
-            wellFormedGameEntry(timescaleNumberOfTurns = listOf(1, 2, 3))
-        }
-    }
-
-    test("GameEntry rejects a turnNumberOfTimeUnits that does not have exactly 7 elements") {
-        shouldThrow<IllegalArgumentException> {
-            wellFormedGameEntry(turnNumberOfTimeUnits = listOf(1, 2, 3))
-        }
-    }
 
     test("GameEntry rejects an unknown field that is not exactly 5 bytes") {
         shouldThrow<IllegalArgumentException> {
@@ -343,17 +339,6 @@ class GameEntryParserTest : FunSpec({
         }
     }
 
-    test("GameEntry rejects an allianceNames that does not have exactly 5 elements") {
-        shouldThrow<IllegalArgumentException> {
-            wellFormedGameEntry(allianceNames = listOf("a", "b"))
-        }
-    }
-
-    test("GameEntry rejects an allianceWars that does not have exactly 25 elements") {
-        shouldThrow<IllegalArgumentException> {
-            wellFormedGameEntry(allianceWars = listOf(1, 2, 3))
-        }
-    }
 
     test("GameEntry rejects an unknown2 field that is not exactly 264 bytes") {
         shouldThrow<IllegalArgumentException> {
@@ -411,43 +396,37 @@ class GameEntryParserTest : FunSpec({
     }
 })
 
-/** Builds a well-formed [GameEntry] with all-zero/empty values, for domain-invariant tests that
- * only care about overriding one field. */
+/** Builds a well-formed [GameEntry] with all-zero/empty/null values, for domain-invariant tests
+ * that only care about overriding one field. */
 private fun wellFormedGameEntry(
     numberOfPlayableCivs: Int = 0,
     playableCivIds: List<Int> = emptyList(),
     flags: ByteString = ByteString.of(*ByteArray(4)),
-    timescaleNumberOfTurns: List<Int> = List(7) { 0 },
-    turnNumberOfTimeUnits: List<Int> = List(7) { 0 },
     civAllianceStatuses: List<Int> = emptyList(),
     unknown: ByteString = ByteString.of(*ByteArray(5)),
-    allianceNames: List<String> = List(5) { "" },
-    allianceWars: List<Int> = List(25) { 0 },
     unknown2: ByteString = ByteString.of(*ByteArray(264)),
     unknown3: ByteString = ByteString.of(*ByteArray(4)),
 ): GameEntry = GameEntry(
-    defaultGameRules = 0, defaultVictoryConditions = 0,
+    defaultGameRules = 0,
+    defaultVictoryConditions = 0,
     numberOfPlayableCivs = numberOfPlayableCivs,
     playableCivIds = playableCivIds,
     flags = flags,
-    placeCaptureUnits = 0, autoPlaceKings = 0, autoPlaceVictoryLocations = 0, debugMode = 0,
-    useTimeLimit = 0, baseTimeUnit = 0, startMonth = 0, startWeek = 0, startYear = 0,
-    minuteTimeLimit = 0, turnTimeLimit = 0,
-    timescaleNumberOfTurns = timescaleNumberOfTurns,
-    turnNumberOfTimeUnits = turnNumberOfTimeUnits,
+    placeCaptureUnits = 0,
+    autoPlaceKings = 0,
+    autoPlaceVictoryLocations = 0,
+    debugMode = 0,
+    timeOptions = null,
     scenarioSearchFolders = "",
     civAllianceStatuses = civAllianceStatuses,
-    victoryPointLimit = 0, cityEliminationCount = 0, oneCityCultureWin = 0, allCitiesCultureWin = 0,
-    dominationTerrain = 0, dominationPopulation = 0, wonderCost = 0, defeatingOpposingUnitCost = 0,
-    advancementCost = 0, cityConquestPopulation = 0, victoryPointScoring = 0, capturingSpecialUnit = 0,
+    victoryPointLimits = null,
     unknown = unknown,
-    allianceNames = allianceNames,
-    allianceWars = allianceWars,
-    allianceVictoryType = 0,
-    plagueName = "", permitPlagues = 0, plagueEarliestStart = 0, plagueVariation = 0,
-    plagueDuration = 0, plagueStrength = 0, plagueGracePeriod = 0, plagueMaxOccurrence = 0,
+    lockedAlliance = null,
+    plagueSettings = null,
     unknown2 = unknown2,
-    respawnFlagUnits = 0, captureAnyFlag = 0, goldForCapture = 0, mapVisible = 0, retainCulture = 0,
+    mapVisible = 0,
+    retainCulture = 0,
     unknown3 = unknown3,
-    eruptionPeriod = 0, mpBasetime = 0, mpCityTime = 0, mpUnitTime = 0,
+    eruptionPeriod = 0,
+    mpTimers = null,
 )
