@@ -46,12 +46,13 @@ val GameEntry.allowCulturalConversions: Boolean by BitCollection.int.extensionBi
 val GameEntry.wonderVictoryEnabled: Boolean by BitCollection.int.extensionBitFlag({ flags.toIntLe() }, 16)
 
 /**
- * [GameEntry.allianceWars] restructured from its flat, row-major 5x5 storage into a genuine
- * `List<List<Int>>`; `result[allianceA][allianceB]` is the war status between the two alliances,
- * per existing reverse-engineering documentation's nested "for each alliance: war with alliance
- * #0..#4" description. Indexing
- * outside `0..4` throws [IndexOutOfBoundsException] like any `List` access — an out-of-range
- * alliance number is a caller error, not a data-quality concern, since [GameEntry.allianceWars]'s
- * size is already a structural invariant enforced by [GameEntry]'s own `init` block.
+ * [GameEntry.lockedAlliance]'s `allianceWars` field restructured from its flat, row-major 5x5
+ * storage into a genuine `List<List<Int>>`; `result[allianceA][allianceB]` is the war status
+ * between the two alliances, per existing reverse-engineering documentation's nested "for each
+ * alliance: war with alliance #0..#4" description. Indexing outside `0..4` throws
+ * [IndexOutOfBoundsException] like any `List` access — an out-of-range alliance number is a
+ * caller error, not a data-quality concern, since [GameLockedAlliance.allianceWars]'s size is
+ * already a structural invariant enforced by [GameLockedAlliance]'s own `init` block. Returns an
+ * empty list if [lockedAlliance] is null (group absent from file).
  */
-fun GameEntry.allianceWarMatrix(): List<List<Int>> = allianceWars.chunked(5)
+fun GameEntry.allianceWarMatrix(): List<List<Int>> = lockedAlliance?.allianceWars?.chunked(5) ?: emptyList()
