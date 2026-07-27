@@ -4,9 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-// Group types were added in Task 1
-// (GameTimeOptions, GameMpTimers, GameVictoryPointLimits, GameLockedAlliance, GamePlagueSettings)
-
 private fun validGameEntry(playableCivIds: List<Int> = emptyList()): GameEntry = GameEntry(
     defaultGameRules = 0,
     defaultVictoryConditions = 0,

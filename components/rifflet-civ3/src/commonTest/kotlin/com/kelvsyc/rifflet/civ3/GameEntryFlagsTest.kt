@@ -5,9 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-// Group types were added in Task 1
-// (GameTimeOptions, GameMpTimers, GameVictoryPointLimits, GameLockedAlliance, GamePlagueSettings)
-
 private fun validGameEntry(
     flags: ByteString = ByteString.of(0, 0, 0, 0),
     allianceWars: List<Int> = List(25) { 0 },
