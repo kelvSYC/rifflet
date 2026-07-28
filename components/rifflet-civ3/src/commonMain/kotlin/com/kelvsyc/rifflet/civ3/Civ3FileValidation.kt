@@ -13,6 +13,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validatePollutionEffect(file) },
     ValidationRule { file -> validateClearForestExclusiveToForest(file) },
     ValidationRule { file -> validateWsizCardinality(file) },
+    ValidationRule { file -> validateWmapCardinality(file) },
     ValidationRule { file -> validateExprCardinality(file) },
     ValidationRule { file -> validateErasCardinality(file) },
     ValidationRule { file -> validateDiffCardinality(file) },
@@ -68,6 +69,29 @@ fun validateWsizCardinality(file: Civ3File): List<ValidationIssue> {
             null,
             "entries",
             "WSIZ has ${section.entries.size} entries; the Rules Editor always produces exactly 5",
+        ),
+    )
+}
+
+/**
+ * Flags a `WMAP` section whose entry count isn't exactly 1. Returns no issues if the `WMAP`
+ * section is absent from [file].
+ *
+ * Unlike most sections, `WMAP` has no corresponding Rules/Scenario Editor tab at all — it isn't
+ * something a user adds to or deletes from directly, only a byproduct of the map's own generation
+ * settings. Every real official file has exactly one `WMAP` entry, matching existing
+ * reverse-engineering documentation's own claim that the section never holds more than one.
+ */
+fun validateWmapCardinality(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<WmapSection>().singleOrNull() ?: return emptyList()
+    if (section.entries.size == 1) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.WMAP,
+            null,
+            "entries",
+            "WMAP has ${section.entries.size} entries; every real official file has exactly 1",
         ),
     )
 }
