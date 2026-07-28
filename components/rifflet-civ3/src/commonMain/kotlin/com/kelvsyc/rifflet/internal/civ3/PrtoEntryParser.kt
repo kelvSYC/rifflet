@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.PrtoEntry
+import com.kelvsyc.rifflet.civ3.PrtoUnitStatistics
 import okio.Buffer
 import okio.ByteString
 
@@ -23,12 +24,17 @@ import okio.ByteString
  * [PrtoEntry.stealthTargetUnitTypes] in either of its two branches.
  *
  * Every field from [PrtoEntry.standardOrders] onward is read defensively: real
- * [Civ3FormatEra.VANILLA] files end immediately after [PrtoEntry.hpBonus]; real
+ * [Civ3FormatEra.VANILLA] files end immediately after [PrtoUnitStatistics.hpBonus]; real
  * [Civ3FormatEra.PTW] files (only confirmed for `VER#` header `minor=18`) include everything
- * through [PrtoEntry.requireSupport] but omit everything from [PrtoEntry.unknown] onward — the
- * entire unit-behavior tail ([PrtoEntry.unknown] through [PrtoEntry.airDefense]) was introduced
- * together as a [Civ3FormatEra.CONQUESTS]-era `PRTO` expansion, mirroring `GAME`'s own
- * Conquests-era expansion.
+ * through [PrtoUnitStatistics.requireSupport] but omit everything from [PrtoEntry.unknown]
+ * onward — the entire unit-behavior tail ([PrtoEntry.unknown] through
+ * [PrtoUnitStatistics.airDefense]) was introduced together as a [Civ3FormatEra.CONQUESTS]-era
+ * `PRTO` expansion, mirroring `GAME`'s own Conquests-era expansion. [PrtoEntry.unitStatistics]'
+ * 5 defensively-read members ([PrtoUnitStatistics.bombardEffects] through
+ * [PrtoUnitStatistics.airDefense]) are read into nullable locals at their original positions and
+ * assembled into the always-constructed group alongside its 13 unconditional members — the same
+ * nullable-members-within-a-required-group pattern used for `RuleDefaultUnits.flagUnitType` and
+ * `TerrAllowances`.
  */
 internal object PrtoEntryParser {
     fun parse(item: Buffer, terrCount: Int): PrtoEntry {
@@ -65,13 +71,13 @@ internal object PrtoEntryParser {
         val workerActions = if (hasFlags3) item.readIntLe() else 0
         val airMissions = if (hasFlags3) item.readIntLe() else 0
         val flags4 = if (hasFlags3) item.readByteString(4L) else ByteString.of(*ByteArray(4))
-        val bombardEffects = if (item.size >= 4L) item.readIntLe() else 0
+        val bombardEffects = if (item.size >= 4L) item.readIntLe() else null
         val ignoreMovementCost = if (item.size >= terrCount.toLong()) {
             item.readByteString(terrCount.toLong())
         } else {
             ByteString.of(*ByteArray(terrCount))
         }
-        val requireSupport = if (item.size >= 4L) item.readIntLe() else 0
+        val requireSupport = if (item.size >= 4L) item.readIntLe() else null
         val unknown = if (item.size >= 16L) item.readByteString(16L) else ByteString.of(*ByteArray(16))
         val enslaveResults = if (item.size >= 4L) item.readIntLe() else 0
         val unknown2 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
@@ -86,27 +92,36 @@ internal object PrtoEntryParser {
             List(numberOfStealthTargets) { 0 }
         }
         val unknown3 = if (item.size >= 8L) item.readByteString(8L) else ByteString.of(*ByteArray(8))
-        val createCraters = if (item.size >= 1L) item.readByte() else 0.toByte()
-        val workerStrength = if (item.size >= 4L) Float.fromBits(item.readIntLe()) else 0f
+        val createCraters = if (item.size >= 1L) item.readByte() else null
+        val workerStrength = if (item.size >= 4L) Float.fromBits(item.readIntLe()) else null
         val unknown4 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
-        val airDefense = if (item.size >= 4L) item.readIntLe() else 0
-        return PrtoEntry(
+        val airDefense = if (item.size >= 4L) item.readIntLe() else null
+        val unitStatistics = PrtoUnitStatistics(
             zoneOfControl,
-            name,
-            civilopediaEntry,
             bombardStrength,
             bombardRange,
             capacity,
             shieldCost,
             defense,
-            iconIndex,
             attack,
             operationalRange,
             populationCost,
             rateOfFire,
             movement,
-            required,
             upgradeTo,
+            hpBonus,
+            bombardEffects,
+            requireSupport,
+            createCraters,
+            workerStrength,
+            airDefense,
+        )
+        return PrtoEntry(
+            unitStatistics,
+            name,
+            civilopediaEntry,
+            iconIndex,
+            required,
             requiredResource1,
             requiredResource2,
             requiredResource3,
@@ -116,24 +131,18 @@ internal object PrtoEntryParser {
             flags2,
             type,
             otherStrategy,
-            hpBonus,
             standardOrders,
             specialActions,
             workerActions,
             airMissions,
             flags4,
-            bombardEffects,
             ignoreMovementCost,
-            requireSupport,
             unknown,
             enslaveResults,
             unknown2,
             stealthTargetUnitTypes,
             unknown3,
-            createCraters,
-            workerStrength,
             unknown4,
-            airDefense,
         )
     }
 }

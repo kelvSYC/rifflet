@@ -5,10 +5,10 @@ import okio.ByteString
 /**
  * One entry of the `PRTO` section: a unit type (prototype) definition.
  *
+ * @param unitStatistics This unit's numeric stats, upgrade path, and combat-support/creation
+ *   flags. See [PrtoUnitStatistics].
  * @param required A `TECH` section index, per the Conquests Rules Editor (not merely a
  *   naming-based inference).
- * @param upgradeTo A `PRTO` section self-reference, per the Conquests Rules Editor (not merely
- *   a naming-based inference).
  * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
  *   naming-based inference). Same treatment applies to [requiredResource2], [requiredResource3].
  * @param abilities The Units editor's Abilities checkboxes (Wheeled, Foot Unit, Blitz, Radar,
@@ -41,8 +41,8 @@ import okio.ByteString
  *   compute the merged value programmatically.
  * @param standardOrders The Units editor's Standard Orders checkboxes (Skip Turn, Wait, Fortify,
  *   Disband, Go To, Explore, Sentry). See `PrtoEntryFlags.kt` for the individual named accessors.
- *   Absent from [Civ3FormatEra.VANILLA] files (the item ends immediately after [hpBonus]), read
- *   defensively.
+ *   Absent from [Civ3FormatEra.VANILLA] files (the item ends immediately after
+ *   [PrtoUnitStatistics.hpBonus]), read defensively.
  * @param specialActions The Units editor's Special Actions checkboxes (Load, Unload, Bombard,
  *   Pillage, ...). See `PrtoEntryFlags.kt` for the individual named accessors. Not decomposed at
  *   the type level. Absent from [Civ3FormatEra.VANILLA] files, read defensively (see
@@ -63,8 +63,8 @@ import okio.ByteString
  *   [Civ3FormatEra.VANILLA] files, read defensively — see `PrtoEntryParser`.
  * @param unknown 16 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
- *   [Civ3FormatEra.PTW] files (the entire tail from here through [airDefense] is a
- *   [Civ3FormatEra.CONQUESTS]-era expansion), read defensively.
+ *   [Civ3FormatEra.PTW] files (the entire tail from here through [PrtoUnitStatistics.airDefense]
+ *   is a [Civ3FormatEra.CONQUESTS]-era expansion), read defensively.
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
@@ -78,31 +78,16 @@ import okio.ByteString
  * @param unknown3 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
- * @param workerStrength Read as an IEEE-754 single-precision float via bit-reinterpretation of
- *   a little-endian `Int` read (`Float.fromBits`) — the first `Float` field in this codebase.
- *   Absent from [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files, read
- *   defensively.
  * @param unknown4 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
  */
 data class PrtoEntry(
-    val zoneOfControl: Int,
+    val unitStatistics: PrtoUnitStatistics,
     val name: String,
     val civilopediaEntry: String,
-    val bombardStrength: Int,
-    val bombardRange: Int,
-    val capacity: Int,
-    val shieldCost: Int,
-    val defense: Int,
     val iconIndex: Int,
-    val attack: Int,
-    val operationalRange: Int,
-    val populationCost: Int,
-    val rateOfFire: Int,
-    val movement: Int,
     val required: Int,
-    val upgradeTo: Int,
     val requiredResource1: Int,
     val requiredResource2: Int,
     val requiredResource3: Int,
@@ -112,24 +97,18 @@ data class PrtoEntry(
     val flags2: ByteString,
     val type: Int,
     val otherStrategy: Int,
-    val hpBonus: Int,
     val standardOrders: Int,
     val specialActions: Int,
     val workerActions: Int,
     val airMissions: Int,
     val flags4: ByteString,
-    val bombardEffects: Int,
     val ignoreMovementCost: ByteString,
-    val requireSupport: Int,
     val unknown: ByteString,
     val enslaveResults: Int,
     val unknown2: ByteString,
     val stealthTargetUnitTypes: List<Int>,
     val unknown3: ByteString,
-    val createCraters: Byte,
-    val workerStrength: Float,
     val unknown4: ByteString,
-    val airDefense: Int,
 ) {
     init {
         require(flags2.size == 8) { "PrtoEntry.flags2 must be exactly 8 bytes, was ${flags2.size}" }
