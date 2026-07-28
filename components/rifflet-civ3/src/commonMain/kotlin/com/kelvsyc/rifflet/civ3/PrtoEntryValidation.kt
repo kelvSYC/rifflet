@@ -113,17 +113,17 @@ fun validatePrtoOtherStrategyBounds(file: Civ3File): List<ValidationIssue> {
  *
  * The real Units editor grays out each Land AI Strategy checkbox until its unit meets that
  * checkbox's own prerequisites:
- * - [offenseStrategy]/[defenseStrategy]: [PrtoEntry.attack]>0, [PrtoEntry.defense]>0, [load],
- *   [capture].
- * - [artilleryStrategy]: [PrtoEntry.bombardStrength]>0, [bombard], not [cruiseMissileAbility],
- *   not [nuclearWeaponAbility].
- * - [cruiseMissileStrategy]: [PrtoEntry.bombardStrength]>0, [PrtoEntry.bombardRange]>0,
- *   [PrtoEntry.rateOfFire]>0, [bombard], [cruiseMissileAbility].
- * - [tacticalNukeStrategy]: [PrtoEntry.bombardRange]>0, [bombard], [nuclearWeaponAbility],
- *   [tacticalMissileAbility].
+ * - [offenseStrategy]/[defenseStrategy]: [PrtoEntry.unitStatistics]'s `attack`>0, `defense`>0,
+ *   [load], [capture].
+ * - [artilleryStrategy]: [PrtoEntry.unitStatistics]'s `bombardStrength`>0, [bombard], not
+ *   [cruiseMissileAbility], not [nuclearWeaponAbility].
+ * - [cruiseMissileStrategy]: [PrtoEntry.unitStatistics]'s `bombardStrength`>0, `bombardRange`>0,
+ *   `rateOfFire`>0, [bombard], [cruiseMissileAbility].
+ * - [tacticalNukeStrategy]: [PrtoEntry.unitStatistics]'s `bombardRange`>0, [bombard],
+ *   [nuclearWeaponAbility], [tacticalMissileAbility].
  * - [icbmStrategy]: [bombard], [nuclearWeaponAbility], [infiniteBombardRangeAbility].
- * - [flagUnitStrategy]: [PrtoEntry.attack], [PrtoEntry.defense], [PrtoEntry.bombardStrength], and
- *   [PrtoEntry.capacity] all `0`, [immobileAbility], [flagUnitAbility], not [disband].
+ * - [flagUnitStrategy]: [PrtoEntry.unitStatistics]'s `attack`, `defense`, `bombardStrength`, and
+ *   `capacity` all `0`, [immobileAbility], [flagUnitAbility], not [disband].
  * - [exploreStrategy]: not [immobileAbility].
  * - [terraformStrategy]: [buildColony], [buildRoad], [buildRailroad], [buildFort], [buildMine],
  *   [irrigate], [clearForest], [clearJungle], [plantForest], [clearPollution], [automate],
@@ -147,30 +147,37 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
         )
 
         listOfNotNull(
-            if (entry.offenseStrategy && !(entry.attack > 0 && entry.defense > 0 && entry.load && entry.capture)) {
+            if (entry.offenseStrategy &&
+                !(entry.unitStatistics.attack > 0 && entry.unitStatistics.defense > 0 && entry.load && entry.capture)
+            ) {
                 issue(
                     "offenseStrategy",
-                    "attack>0 (${entry.attack}), defense>0 (${entry.defense}), load (${entry.load}), " +
-                        "capture (${entry.capture})",
+                    "attack>0 (${entry.unitStatistics.attack}), defense>0 (${entry.unitStatistics.defense}), " +
+                        "load (${entry.load}), capture (${entry.capture})",
                 )
             } else {
                 null
             },
-            if (entry.defenseStrategy && !(entry.attack > 0 && entry.defense > 0 && entry.load && entry.capture)) {
+            if (entry.defenseStrategy &&
+                !(entry.unitStatistics.attack > 0 && entry.unitStatistics.defense > 0 && entry.load && entry.capture)
+            ) {
                 issue(
                     "defenseStrategy",
-                    "attack>0 (${entry.attack}), defense>0 (${entry.defense}), load (${entry.load}), " +
-                        "capture (${entry.capture})",
+                    "attack>0 (${entry.unitStatistics.attack}), defense>0 (${entry.unitStatistics.defense}), " +
+                        "load (${entry.load}), capture (${entry.capture})",
                 )
             } else {
                 null
             },
             if (entry.artilleryStrategy &&
-                !(entry.bombardStrength > 0 && entry.bombard && !entry.cruiseMissileAbility && !entry.nuclearWeaponAbility)
+                !(
+                    entry.unitStatistics.bombardStrength > 0 && entry.bombard &&
+                        !entry.cruiseMissileAbility && !entry.nuclearWeaponAbility
+                    )
             ) {
                 issue(
                     "artilleryStrategy",
-                    "bombardStrength>0 (${entry.bombardStrength}), bombard (${entry.bombard}), " +
+                    "bombardStrength>0 (${entry.unitStatistics.bombardStrength}), bombard (${entry.bombard}), " +
                         "no cruiseMissileAbility (${entry.cruiseMissileAbility}), " +
                         "no nuclearWeaponAbility (${entry.nuclearWeaponAbility})",
                 )
@@ -179,25 +186,29 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
             },
             if (entry.cruiseMissileStrategy &&
                 !(
-                    entry.bombardStrength > 0 && entry.bombardRange > 0 && entry.rateOfFire > 0 &&
-                        entry.bombard && entry.cruiseMissileAbility
+                    entry.unitStatistics.bombardStrength > 0 && entry.unitStatistics.bombardRange > 0 &&
+                        entry.unitStatistics.rateOfFire > 0 && entry.bombard && entry.cruiseMissileAbility
                     )
             ) {
                 issue(
                     "cruiseMissileStrategy",
-                    "bombardStrength>0 (${entry.bombardStrength}), bombardRange>0 (${entry.bombardRange}), " +
-                        "rateOfFire>0 (${entry.rateOfFire}), bombard (${entry.bombard}), " +
+                    "bombardStrength>0 (${entry.unitStatistics.bombardStrength}), " +
+                        "bombardRange>0 (${entry.unitStatistics.bombardRange}), " +
+                        "rateOfFire>0 (${entry.unitStatistics.rateOfFire}), bombard (${entry.bombard}), " +
                         "cruiseMissileAbility (${entry.cruiseMissileAbility})",
                 )
             } else {
                 null
             },
             if (entry.tacticalNukeStrategy &&
-                !(entry.bombardRange > 0 && entry.bombard && entry.nuclearWeaponAbility && entry.tacticalMissileAbility)
+                !(
+                    entry.unitStatistics.bombardRange > 0 && entry.bombard && entry.nuclearWeaponAbility &&
+                        entry.tacticalMissileAbility
+                    )
             ) {
                 issue(
                     "tacticalNukeStrategy",
-                    "bombardRange>0 (${entry.bombardRange}), bombard (${entry.bombard}), " +
+                    "bombardRange>0 (${entry.unitStatistics.bombardRange}), bombard (${entry.bombard}), " +
                         "nuclearWeaponAbility (${entry.nuclearWeaponAbility}), " +
                         "tacticalMissileAbility (${entry.tacticalMissileAbility})",
                 )
@@ -215,14 +226,16 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
             },
             if (entry.flagUnitStrategy &&
                 !(
-                    entry.attack == 0 && entry.defense == 0 && entry.bombardStrength == 0 && entry.capacity == 0 &&
+                    entry.unitStatistics.attack == 0 && entry.unitStatistics.defense == 0 &&
+                        entry.unitStatistics.bombardStrength == 0 && entry.unitStatistics.capacity == 0 &&
                         entry.immobileAbility && entry.flagUnitAbility && !entry.disband
                     )
             ) {
                 issue(
                     "flagUnitStrategy",
-                    "attack=0 (${entry.attack}), defense=0 (${entry.defense}), " +
-                        "bombardStrength=0 (${entry.bombardStrength}), capacity=0 (${entry.capacity}), " +
+                    "attack=0 (${entry.unitStatistics.attack}), defense=0 (${entry.unitStatistics.defense}), " +
+                        "bombardStrength=0 (${entry.unitStatistics.bombardStrength}), " +
+                        "capacity=0 (${entry.unitStatistics.capacity}), " +
                         "immobileAbility (${entry.immobileAbility}), flagUnitAbility (${entry.flagUnitAbility}), " +
                         "no disband (${entry.disband})",
                 )
@@ -292,7 +305,7 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
  *
  * The real Units editor grays out each Sea AI Strategy checkbox until its unit meets that
  * checkbox's own prerequisites:
- * - [navalPowerStrategy]: [PrtoEntry.attack]>0, [PrtoEntry.defense]>0.
+ * - [navalPowerStrategy]: [PrtoEntry.unitStatistics]'s `attack`>0, `defense`>0.
  * - [navalTransportStrategy]: [unload].
  * - [navalCarrierStrategy]: [transportsOnlyAircraftAbility], [unload].
  * - [navalMissileTransportStrategy]: [transportsOnlyTacticalMissilesAbility], [unload].
@@ -311,8 +324,11 @@ fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
         )
 
         listOfNotNull(
-            if (entry.navalPowerStrategy && !(entry.attack > 0 && entry.defense > 0)) {
-                issue("navalPowerStrategy", "attack>0 (${entry.attack}), defense>0 (${entry.defense})")
+            if (entry.navalPowerStrategy && !(entry.unitStatistics.attack > 0 && entry.unitStatistics.defense > 0)) {
+                issue(
+                    "navalPowerStrategy",
+                    "attack>0 (${entry.unitStatistics.attack}), defense>0 (${entry.unitStatistics.defense})",
+                )
             } else {
                 null
             },
@@ -354,10 +370,12 @@ fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
  *
  * The real Units editor grays out each Air AI Strategy checkbox until its unit meets that
  * checkbox's own prerequisites:
- * - [airBombardStrategy]: [PrtoEntry.bombardStrength]>0, [PrtoEntry.operationalRange]>0, and
- *   either [bombing] or [precisionBombing].
- * - [airDefenseStrategy]: [PrtoEntry.attack]>0, [PrtoEntry.operationalRange]>0, [interception].
- * - [airTransportStrategy]: [PrtoEntry.operationalRange]>0, [airdrop], [unload].
+ * - [airBombardStrategy]: [PrtoEntry.unitStatistics]'s `bombardStrength`>0, `operationalRange`>0,
+ *   and either [bombing] or [precisionBombing].
+ * - [airDefenseStrategy]: [PrtoEntry.unitStatistics]'s `attack`>0, `operationalRange`>0,
+ *   [interception].
+ * - [airTransportStrategy]: [PrtoEntry.unitStatistics]'s `operationalRange`>0, [airdrop],
+ *   [unload].
  */
 fun validatePrtoAirStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
@@ -374,33 +392,38 @@ fun validatePrtoAirStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
 
         listOfNotNull(
             if (entry.airBombardStrategy &&
-                !(entry.bombardStrength > 0 && entry.operationalRange > 0 && (entry.bombing || entry.precisionBombing))
+                !(
+                    entry.unitStatistics.bombardStrength > 0 && entry.unitStatistics.operationalRange > 0 &&
+                        (entry.bombing || entry.precisionBombing)
+                    )
             ) {
                 issue(
                     "airBombardStrategy",
-                    "bombardStrength>0 (${entry.bombardStrength}), operationalRange>0 (${entry.operationalRange}), " +
+                    "bombardStrength>0 (${entry.unitStatistics.bombardStrength}), " +
+                        "operationalRange>0 (${entry.unitStatistics.operationalRange}), " +
                         "bombing or precisionBombing (${entry.bombing} / ${entry.precisionBombing})",
                 )
             } else {
                 null
             },
             if (entry.airDefenseStrategy &&
-                !(entry.attack > 0 && entry.operationalRange > 0 && entry.interception)
+                !(entry.unitStatistics.attack > 0 && entry.unitStatistics.operationalRange > 0 && entry.interception)
             ) {
                 issue(
                     "airDefenseStrategy",
-                    "attack>0 (${entry.attack}), operationalRange>0 (${entry.operationalRange}), " +
+                    "attack>0 (${entry.unitStatistics.attack}), " +
+                        "operationalRange>0 (${entry.unitStatistics.operationalRange}), " +
                         "interception (${entry.interception})",
                 )
             } else {
                 null
             },
             if (entry.airTransportStrategy &&
-                !(entry.operationalRange > 0 && entry.airdrop && entry.unload)
+                !(entry.unitStatistics.operationalRange > 0 && entry.airdrop && entry.unload)
             ) {
                 issue(
                     "airTransportStrategy",
-                    "operationalRange>0 (${entry.operationalRange}), airdrop (${entry.airdrop}), " +
+                    "operationalRange>0 (${entry.unitStatistics.operationalRange}), airdrop (${entry.airdrop}), " +
                         "unload (${entry.unload})",
                 )
             } else {

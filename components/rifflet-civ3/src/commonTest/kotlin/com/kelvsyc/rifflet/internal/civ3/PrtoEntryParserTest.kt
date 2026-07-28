@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.PrtoEntry
+import com.kelvsyc.rifflet.civ3.PrtoUnitStatistics
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -131,22 +132,30 @@ class PrtoEntryParserTest : FunSpec({
     test("well-formed item is parsed into all fields, including the dynamic stealth-target list") {
         val entry = PrtoEntryParser.parse(prtoItemBinary(), terrCount = 14)
         entry shouldBe PrtoEntry(
-            zoneOfControl = 0,
+            unitStatistics = PrtoUnitStatistics(
+                zoneOfControl = 0,
+                bombardStrength = 0,
+                bombardRange = 0,
+                capacity = 0,
+                shieldCost = 10,
+                defense = 1,
+                attack = 1,
+                operationalRange = 0,
+                populationCost = 0,
+                rateOfFire = 1,
+                movement = 1,
+                upgradeTo = 3,
+                hpBonus = 0,
+                bombardEffects = 0,
+                requireSupport = 0,
+                createCraters = 0,
+                workerStrength = 1.5f,
+                airDefense = 0,
+            ),
             name = "Warrior",
             civilopediaEntry = "Warrior",
-            bombardStrength = 0,
-            bombardRange = 0,
-            capacity = 0,
-            shieldCost = 10,
-            defense = 1,
             iconIndex = 5,
-            attack = 1,
-            operationalRange = 0,
-            populationCost = 0,
-            rateOfFire = 1,
-            movement = 1,
             required = 0,
-            upgradeTo = 3,
             requiredResource1 = -1,
             requiredResource2 = -1,
             requiredResource3 = -1,
@@ -156,24 +165,18 @@ class PrtoEntryParserTest : FunSpec({
             flags2 = ByteString.of(*ByteArray(8)),
             type = 0,
             otherStrategy = -1,
-            hpBonus = 0,
             standardOrders = 0,
             specialActions = 0,
             workerActions = 0,
             airMissions = 0,
             flags4 = ByteString.of(*ByteArray(4)),
-            bombardEffects = 0,
             ignoreMovementCost = ByteString.of(*ByteArray(14)),
-            requireSupport = 0,
             unknown = ByteString.of(*ByteArray(16)),
             enslaveResults = 0,
             unknown2 = ByteString.of(*ByteArray(4)),
             stealthTargetUnitTypes = listOf(4, 9),
             unknown3 = ByteString.of(*ByteArray(8)),
-            createCraters = 0,
-            workerStrength = 1.5f,
             unknown4 = ByteString.of(*ByteArray(4)),
-            airDefense = 0,
         )
     }
 
@@ -196,7 +199,7 @@ class PrtoEntryParserTest : FunSpec({
         entry.airMissions shouldBe 0
         entry.flags4 shouldBe ByteString.of(*ByteArray(4))
         entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
-        entry.requireSupport shouldBe 0
+        entry.unitStatistics.requireSupport shouldBe null
         entry.unknown shouldBe ByteString.of(*ByteArray(16))
     }
 
@@ -210,7 +213,7 @@ class PrtoEntryParserTest : FunSpec({
             terrCount = 12,
         )
         entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
-        entry.requireSupport shouldBe 1
+        entry.unitStatistics.requireSupport shouldBe 1
         entry.unknown shouldBe ByteString.of(*ByteArray(16))
         entry.stealthTargetUnitTypes shouldBe emptyList()
     }
@@ -277,31 +280,30 @@ private fun wellFormedPrtoEntry(
     unknown3: ByteString = ByteString.of(*ByteArray(8)),
     unknown4: ByteString = ByteString.of(*ByteArray(4)),
 ): PrtoEntry = PrtoEntry(
-    zoneOfControl = 0, name = "", civilopediaEntry = "",
-    bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0, defense = 0,
-    iconIndex = 0, attack = 0, operationalRange = 0, populationCost = 0, rateOfFire = 0,
-    movement = 0, required = 0, upgradeTo = 0, requiredResource1 = 0, requiredResource2 = 0,
+    unitStatistics = PrtoUnitStatistics(
+        zoneOfControl = 0, bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0,
+        defense = 0, attack = 0, operationalRange = 0, populationCost = 0, rateOfFire = 0,
+        movement = 0, upgradeTo = 0, hpBonus = 0, bombardEffects = 0, requireSupport = 0,
+        createCraters = 0, workerStrength = 0f, airDefense = 0,
+    ),
+    name = "", civilopediaEntry = "",
+    iconIndex = 0, required = 0, requiredResource1 = 0, requiredResource2 = 0,
     requiredResource3 = 0,
     abilities = 0,
     aiStrategies = 0,
     availableTo = 0,
     flags2 = flags2,
-    type = 0, otherStrategy = 0, hpBonus = 0,
+    type = 0, otherStrategy = 0,
     standardOrders = 0,
     specialActions = 0,
     workerActions = 0,
     airMissions = 0,
     flags4 = flags4,
-    bombardEffects = 0,
     ignoreMovementCost = ByteString.of(*ByteArray(14)),
-    requireSupport = 0,
     unknown = unknown,
     enslaveResults = 0,
     unknown2 = unknown2,
     stealthTargetUnitTypes = emptyList(),
     unknown3 = unknown3,
-    createCraters = 0,
-    workerStrength = 0f,
     unknown4 = unknown4,
-    airDefense = 0,
 )

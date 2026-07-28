@@ -6,9 +6,10 @@ package com.kelvsyc.rifflet.civ3
 fun PrtoEntry.requiredTech(techs: List<TechEntry>): TechEntry? = techs.getOrNull(required)
 
 /**
- * Resolves [PrtoEntry.upgradeTo] against [prtos] (the same `PRTO` section this entry came from).
+ * Resolves [PrtoUnitStatistics.upgradeTo] against [prtos] (the same `PRTO` section this entry
+ * came from).
  */
-fun PrtoEntry.upgradeToPrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(upgradeTo)
+fun PrtoEntry.upgradeToPrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(unitStatistics.upgradeTo)
 
 /**
  * Resolves [PrtoEntry.otherStrategy] against [prtos] (the same `PRTO` section this entry came
