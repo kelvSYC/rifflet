@@ -32,6 +32,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validatePrtoArmyStrategyConsistency(file) },
     ValidationRule { file -> validatePrtoKingStrategyConsistency(file) },
     ValidationRule { file -> validatePrtoOtherStrategyBounds(file) },
+    ValidationRule { file -> validatePrtoAvailableToBounds(file) },
     ValidationRule { file -> validatePrtoLandStrategyPrerequisites(file) },
     ValidationRule { file -> validatePrtoSeaStrategyPrerequisites(file) },
     ValidationRule { file -> validatePrtoAirStrategyPrerequisites(file) },
@@ -50,6 +51,8 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateGovtTransitionHasNoPrerequisite(file) },
     ValidationRule { file -> validateRaceBarbarianPlaceholder(file) },
     ValidationRule { file -> validateRaceCultureGroup(file) },
+    ValidationRule { file -> validateRaceMaxCount(file) },
+    ValidationRule { file -> validateRaceMinCount(file) },
 )
 
 /**

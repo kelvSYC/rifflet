@@ -250,4 +250,56 @@ class RaceEntryValidationTest : FunSpec({
 
         validateRaceCultureGroup(file) shouldBe emptyList()
     }
+
+    test("returns no issues for exactly 32 RACE entries") {
+        val file = fileWithRaces(List(32) { barbarianRaceEntry() })
+
+        validateRaceMaxCount(file) shouldBe emptyList()
+    }
+
+    test("flags a RACE section with more than 32 entries") {
+        val file = fileWithRaces(List(33) { barbarianRaceEntry() })
+
+        validateRaceMaxCount(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.RACE,
+                null,
+                "entries",
+                "RACE has 33 entries; the format caps this at 32",
+            ),
+        )
+    }
+
+    test("returns no issues for RACE max count when RACE is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateRaceMaxCount(file) shouldBe emptyList()
+    }
+
+    test("returns no issues for exactly 2 RACE entries") {
+        val file = fileWithRaces(List(2) { barbarianRaceEntry() })
+
+        validateRaceMinCount(file) shouldBe emptyList()
+    }
+
+    test("flags a RACE section with fewer than 2 entries") {
+        val file = fileWithRaces(listOf(barbarianRaceEntry()))
+
+        validateRaceMinCount(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.RACE,
+                null,
+                "entries",
+                "RACE has 1 entries; at least 2 are needed (the barbarian placeholder plus a playable civilization)",
+            ),
+        )
+    }
+
+    test("returns no issues for RACE min count when RACE is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateRaceMinCount(file) shouldBe emptyList()
+    }
 })

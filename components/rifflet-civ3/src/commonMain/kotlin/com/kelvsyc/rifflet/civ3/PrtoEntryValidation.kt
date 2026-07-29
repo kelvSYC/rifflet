@@ -106,6 +106,34 @@ fun validatePrtoOtherStrategyBounds(file: Civ3File): List<ValidationIssue> {
 }
 
 /**
+ * Flags a [PrtoEntry] whose [PrtoEntry.availableTo] has a bit set beyond the file's own `RACE`
+ * section size. Returns no issues if `PRTO` or `RACE` is absent from [file].
+ *
+ * Every real official file's units have an `availableTo` bounded exactly to the file's own `RACE`
+ * entry count, with zero exceptions.
+ */
+fun validatePrtoAvailableToBounds(file: Civ3File): List<ValidationIssue> {
+    val prto = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
+    val race = file.sections.filterIsInstance<RaceSection>().singleOrNull() ?: return emptyList()
+    val raceCount = race.entries.size
+    val mask = if (raceCount >= Int.SIZE_BITS) -1 else (1 shl raceCount) - 1
+    return prto.entries.mapIndexedNotNull { index, entry ->
+        val stray = entry.availableTo and mask.inv()
+        if (stray == 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.PRTO,
+                index,
+                "availableTo",
+                "availableTo=${entry.availableTo} has bit(s) set beyond RACE's own $raceCount entries",
+            )
+        }
+    }
+}
+
+/**
  * Flags a [PrtoDomain.LAND] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
  * absent from [file], and skips every entry whose [PrtoEntry.domainEnum] isn't [PrtoDomain.LAND]

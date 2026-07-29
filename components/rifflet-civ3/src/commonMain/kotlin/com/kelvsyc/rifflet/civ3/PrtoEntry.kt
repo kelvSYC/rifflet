@@ -17,8 +17,10 @@ import okio.ByteString
  * @param aiStrategies The Units editor's 20 AI Strategy checkboxes (Offense, Defense, Explore,
  *   Artillery, Naval Power, ..., Army, Leader, King). See `PrtoEntryFlags.kt` for the individual
  *   named accessors.
- * @param availableTo Per-civilization availability bitmask, per the Conquests Rules Editor;
- *   preserved raw, not decomposed.
+ * @param availableTo Per-civilization availability bitmask, per the Conquests Rules Editor: bit
+ *   *n* means this unit is available to the file's own `RACE` section index *n*, including index 0
+ *   (the barbarian placeholder). See [availableToRaces] to resolve it against the file's `RACE`
+ *   entries directly.
  * @param flags2 8 bytes. In real [Civ3FormatEra.VANILLA] files this is where Standard Orders,
  *   Special Actions, Worker/Engineer Actions, and Air Missions live, packed together rather than
  *   in the later separate fields ([standardOrders] etc.); it is all zero in real
