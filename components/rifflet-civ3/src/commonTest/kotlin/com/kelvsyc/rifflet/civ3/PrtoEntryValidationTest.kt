@@ -22,6 +22,7 @@ private fun prtoEntry(
     workerActions: Int = 0,
     operationalRange: Int = 0,
     airMissions: Int = 0,
+    availableTo: Int = 0,
 ): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
         zoneOfControl = 0,
@@ -52,7 +53,7 @@ private fun prtoEntry(
     requiredResource3 = -1,
     abilities = abilities,
     aiStrategies = aiStrategies,
-    availableTo = 0,
+    availableTo = availableTo,
     flags2 = ByteString.of(*ByteArray(8)),
     type = type,
     otherStrategy = otherStrategy,
@@ -73,6 +74,37 @@ private fun prtoEntry(
 private fun fileWithPrtos(entries: List<PrtoEntry>): Civ3File = Civ3File(
     Civ3Header(major = 12, minor = 0, description = "", title = ""),
     listOf(PrtoSection(entries)),
+)
+
+private fun raceEntry(): RaceEntry = RaceEntry(
+    cityNames = emptyList(),
+    greatLeaderNames = emptyList(),
+    leader = RaceLeader(name = "", title = "", gender = 0),
+    civilopediaEntry = "",
+    adjective = "",
+    name = "",
+    noun = "",
+    eras = emptyList(),
+    cultureGroup = -1,
+    civilizationGender = 0,
+    personality = RacePersonality(favoriteGovernment = -1, shunnedGovernment = -1, aggressionLevel = 0),
+    uniqueCivilizationCounter = 0,
+    defaultColor = 0,
+    uniqueColor = 0,
+    freeTechs = listOf(-1, -1, -1, -1),
+    bonuses = 0,
+    governor = RaceGovernor(settings = 0, buildNever = 0, buildOften = 0),
+    plurality = 1,
+    unitTypeForKing = -1,
+    flavors = 0,
+    unknown = ByteString.of(0, 0, 0, 0),
+    diplomacyTextIndex = 0,
+    scientificLeaderNames = emptyList(),
+)
+
+private fun fileWithPrtosAndRaces(prtos: List<PrtoEntry>, raceCount: Int): Civ3File = Civ3File(
+    Civ3Header(major = 12, minor = 0, description = "", title = ""),
+    listOf(PrtoSection(prtos), RaceSection(List(raceCount) { raceEntry() })),
 )
 
 class PrtoEntryValidationTest : FunSpec({
@@ -186,6 +218,38 @@ class PrtoEntryValidationTest : FunSpec({
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         validatePrtoOtherStrategyBounds(file) shouldBe emptyList()
+    }
+
+    test("returns no issues when availableTo is bounded to RACE's entry count") {
+        val file = fileWithPrtosAndRaces(listOf(prtoEntry(availableTo = (1 shl 3) - 1)), raceCount = 3)
+
+        validatePrtoAvailableToBounds(file) shouldBe emptyList()
+    }
+
+    test("flags an availableTo bit set beyond RACE's entry count") {
+        val file = fileWithPrtosAndRaces(listOf(prtoEntry(availableTo = 1 shl 3)), raceCount = 3)
+
+        validatePrtoAvailableToBounds(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.PRTO,
+                0,
+                "availableTo",
+                "availableTo=8 has bit(s) set beyond RACE's own 3 entries",
+            ),
+        )
+    }
+
+    test("returns no issues for availableTo when PRTO is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), listOf(RaceSection(emptyList())))
+
+        validatePrtoAvailableToBounds(file) shouldBe emptyList()
+    }
+
+    test("returns no issues for availableTo when RACE is absent") {
+        val file = fileWithPrtos(listOf(prtoEntry(availableTo = -1)))
+
+        validatePrtoAvailableToBounds(file) shouldBe emptyList()
     }
 
     test("returns no issues when every land strategy's prerequisites are satisfied") {

@@ -13,6 +13,7 @@ private fun validPrtoEntry(
     stealthTargetUnitTypes: List<Int> = emptyList(),
     otherStrategy: Int = 0,
     aiStrategies: Int = 0,
+    availableTo: Int = 0,
 ): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
         zoneOfControl = 0, bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0,
@@ -29,7 +30,7 @@ private fun validPrtoEntry(
     requiredResource3 = requiredResource3,
     abilities = 0,
     aiStrategies = aiStrategies,
-    availableTo = 0,
+    availableTo = availableTo,
     flags2 = ByteString.of(*ByteArray(8)),
     type = 0,
     otherStrategy = otherStrategy,
@@ -75,6 +76,32 @@ private fun validGoodEntry(): GoodEntry = GoodEntry(
     foodBonus = 0,
     shieldsBonus = 0,
     commerceBonus = 0,
+)
+
+private fun validRaceEntry(name: String): RaceEntry = RaceEntry(
+    cityNames = emptyList(),
+    greatLeaderNames = emptyList(),
+    leader = RaceLeader(name = "", title = "", gender = 0),
+    civilopediaEntry = "",
+    adjective = "",
+    name = name,
+    noun = "",
+    eras = emptyList(),
+    cultureGroup = -1,
+    civilizationGender = 0,
+    personality = RacePersonality(favoriteGovernment = -1, shunnedGovernment = -1, aggressionLevel = 0),
+    uniqueCivilizationCounter = 0,
+    defaultColor = 0,
+    uniqueColor = 0,
+    freeTechs = listOf(-1, -1, -1, -1),
+    bonuses = 0,
+    governor = RaceGovernor(settings = 0, buildNever = 0, buildOften = 0),
+    plurality = 1,
+    unitTypeForKing = -1,
+    flavors = 0,
+    unknown = ByteString.of(0, 0, 0, 0),
+    diplomacyTextIndex = 0,
+    scientificLeaderNames = emptyList(),
 )
 
 class PrtoEntryReferencesTest : FunSpec({
@@ -132,5 +159,23 @@ class PrtoEntryReferencesTest : FunSpec({
         val prto = validPrtoEntry()
         val entry = validPrtoEntry(stealthTargetUnitTypes = listOf(0, 5))
         entry.stealthTargetUnitTypesPrto(listOf(prto)) shouldBe listOf(prto, null)
+    }
+
+    test("availableToRaces resolves the bitmask into RACE entries, matching Caravel/Carrack exclusivity") {
+        val barbarians = validRaceEntry("A Barbarian Chiefdom")
+        val rome = validRaceEntry("Rome")
+        val portugal = validRaceEntry("Portugal")
+        val races = listOf(barbarians, rome, portugal)
+
+        val caravel = validPrtoEntry(availableTo = (1 shl 1))
+        val carrack = validPrtoEntry(availableTo = (1 shl 2))
+
+        caravel.availableToRaces(races) shouldBe listOf(rome)
+        carrack.availableToRaces(races) shouldBe listOf(portugal)
+    }
+
+    test("availableToRaces returns no entries for a zero bitmask") {
+        val races = listOf(validRaceEntry("Rome"))
+        validPrtoEntry(availableTo = 0).availableToRaces(races) shouldBe emptyList()
     }
 })

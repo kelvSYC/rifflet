@@ -88,6 +88,51 @@ fun validateRaceBarbarianPlaceholder(file: Civ3File): List<ValidationIssue> {
 }
 
 /**
+ * Flags a `RACE` section with more than 32 entries. Returns no issues if the `RACE` section is
+ * absent from [file].
+ *
+ * `PrtoEntry.availableTo` addresses civilizations by `RACE` index as bits of a 32-bit `Int` (see
+ * [availableToRaces]), which caps the format at 32 civilization slots (index 0's barbarian
+ * placeholder plus 31 playable civilizations) — every real official file stays at or under that
+ * ceiling, with zero exceptions.
+ */
+fun validateRaceMaxCount(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<RaceSection>().singleOrNull() ?: return emptyList()
+    if (section.entries.size <= 32) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.RACE,
+            null,
+            "entries",
+            "RACE has ${section.entries.size} entries; the format caps this at 32",
+        ),
+    )
+}
+
+/**
+ * Flags a `RACE` section with fewer than 2 entries. Returns no issues if the `RACE` section is
+ * absent from [file].
+ *
+ * `RACE` entry 0 is always the barbarian placeholder (see [validateRaceBarbarianPlaceholder]), so
+ * a file needs at least one further entry to have any playable civilization at all. Every real
+ * official file has at least 6, well clear of this floor.
+ */
+fun validateRaceMinCount(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<RaceSection>().singleOrNull() ?: return emptyList()
+    if (section.entries.size >= 2) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.RACE,
+            null,
+            "entries",
+            "RACE has ${section.entries.size} entries; at least 2 are needed (the barbarian placeholder plus a playable civilization)",
+        ),
+    )
+}
+
+/**
  * Flags a [RaceEntry] whose [RaceEntry.cultureGroup] doesn't decode into a [RaceCultureGroup].
  * Returns no issues if the `RACE` section is absent from [file].
  *

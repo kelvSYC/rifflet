@@ -63,6 +63,13 @@ fun PrtoEntry.stealthTargetUnitTypesPrto(prtos: List<PrtoEntry>): List<PrtoEntry
     stealthTargetUnitTypes.map { prtos.getOrNull(it) }
 
 /**
+ * Resolves [PrtoEntry.availableTo] against [races] (the file's own `RACE` section): the
+ * [RaceEntry] values whose index this unit is available to, in `RACE` index order.
+ */
+fun PrtoEntry.availableToRaces(races: List<RaceEntry>): List<RaceEntry> =
+    races.filterIndexed { index, _ -> availableTo and (1 shl index) != 0 }
+
+/**
  * The 3 documented values of [PrtoEntry.type], per the Conquests Rules Editor's "Class" control.
  * Ordinal position deliberately matches the raw file values (0=land, 1=sea, 2=air) — do not
  * reorder these constants.
