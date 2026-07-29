@@ -313,6 +313,30 @@ class Civ3FileValidationTest : FunSpec({
         validateWsizCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
     }
 
+    test("validateWmapCardinality returns no issues for exactly 1 entry") {
+        val file = fileWithSections(major = 12, listOf(WmapSection(listOf(wmapEntry(0, 0)))))
+
+        validateWmapCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateWmapCardinality flags a count other than 1") {
+        val file = fileWithSections(major = 12, listOf(WmapSection(List(2) { wmapEntry(0, 0) })))
+
+        validateWmapCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.WMAP,
+                null,
+                "entries",
+                "WMAP has 2 entries; every real official file has exactly 1",
+            ),
+        )
+    }
+
+    test("validateWmapCardinality returns no issues when WMAP is absent") {
+        validateWmapCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
     test("validateExprCardinality returns no issues for exactly 4 entries") {
         val file = fileWithSections(major = 12, listOf(ExprSection(List(4) { exprEntry() })))
 
