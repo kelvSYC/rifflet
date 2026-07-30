@@ -67,7 +67,7 @@ internal object RaceEntryParser {
         val buildNever = item.readIntLe()
         val buildOften = item.readIntLe()
         val plurality = item.readIntLe()
-        val unitTypeForKing = if (item.size >= 4L) item.readIntLe() else 0
+        val unitTypeForKing = if (item.size >= 4L) item.readIntLe() else -1
         val flavors = if (item.size >= 4L) item.readIntLe() else 0
         val unknown = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         val diplomacyTextIndex = if (item.size >= 4L) item.readIntLe() else 0
