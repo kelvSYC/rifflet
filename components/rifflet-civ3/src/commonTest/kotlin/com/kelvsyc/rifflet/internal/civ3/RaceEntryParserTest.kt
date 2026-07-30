@@ -131,7 +131,7 @@ class RaceEntryParserTest : FunSpec({
             raceItemBinary(includeUnitTypeForKing = false),
             erasCount = 2,
         )
-        entry.unitTypeForKing shouldBe 0
+        entry.unitTypeForKing shouldBe -1
         entry.flavors shouldBe 0
         entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
         entry.diplomacyTextIndex shouldBe 0

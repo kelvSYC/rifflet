@@ -85,7 +85,7 @@ class TileEntryParserTest : FunSpec({
             city = 2,
             continent = 1,
             unknown2 = ByteString.of(0),
-            victoryPointLocation = 0,
+            victoryPointLocation = -1,
             ruin = 0,
             c3cOverlays = ByteString.of(0, 0, 0, 0),
             unknown3 = ByteString.of(0),
@@ -101,7 +101,7 @@ class TileEntryParserTest : FunSpec({
     test("major=3/4-length item (23 bytes, unknown2 present but victoryPointLocation/ruin absent) parses unknown2 and defaults the rest") {
         val entry = TileEntryParser.parse(tileItemBinary(tier = 2, includeVictoryPointAndRuin = false))
         entry.unknown2 shouldBe ByteString.of(0x33)
-        entry.victoryPointLocation shouldBe 0
+        entry.victoryPointLocation shouldBe -1
         entry.ruin shouldBe 0
         entry.c3cOverlays shouldBe ByteString.of(0, 0, 0, 0)
     }
