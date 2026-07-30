@@ -215,6 +215,7 @@ class PrtoEntryParserTest : FunSpec({
         entry.ignoreMovementCost shouldBe ByteString.of(*ByteArray(12))
         entry.unitStatistics.requireSupport shouldBe 1
         entry.unknown shouldBe ByteString.of(*ByteArray(16))
+        entry.enslaveResults shouldBe -1
         entry.stealthTargetUnitTypes shouldBe emptyList()
     }
 

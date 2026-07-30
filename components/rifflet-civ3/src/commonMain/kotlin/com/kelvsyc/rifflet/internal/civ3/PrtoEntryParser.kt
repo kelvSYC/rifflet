@@ -79,7 +79,7 @@ internal object PrtoEntryParser {
         }
         val requireSupport = if (item.size >= 4L) item.readIntLe() else null
         val unknown = if (item.size >= 16L) item.readByteString(16L) else ByteString.of(*ByteArray(16))
-        val enslaveResults = if (item.size >= 4L) item.readIntLe() else 0
+        val enslaveResults = if (item.size >= 4L) item.readIntLe() else -1
         val unknown2 = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         val numberOfStealthTargets = item.requireSaneCount(
             if (item.size >= 4L) item.readIntLe() else 0,
