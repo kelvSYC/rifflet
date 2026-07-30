@@ -59,7 +59,7 @@ internal object TileEntryParser {
         val colony = item.readShortLe()
         val continent = item.readShortLe()
         val unknown2 = if (item.size >= 1L) item.readByteString(1L) else ByteString.of(0)
-        val victoryPointLocation = if (item.size >= 2L) item.readShortLe() else 0.toShort()
+        val victoryPointLocation = if (item.size >= 2L) item.readShortLe() else (-1).toShort()
         val ruin = if (item.size >= 4L) item.readIntLe() else 0
         val c3cOverlays = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         val unknown3 = if (item.size >= 1L) item.readByteString(1L) else ByteString.of(0)
