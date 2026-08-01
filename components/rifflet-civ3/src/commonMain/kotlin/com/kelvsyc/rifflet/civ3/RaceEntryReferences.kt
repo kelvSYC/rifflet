@@ -8,9 +8,9 @@ package com.kelvsyc.rifflet.civ3
 fun RaceEntry.freeTechsTech(techs: List<TechEntry>): List<TechEntry?> = freeTechs.map { techs.getOrNull(it) }
 
 /**
- * Resolves [RaceEntry.unitTypeForKing] against [units]. A `PRTO` section index — explicitly
- * documented by existing reverse-engineering work ("King Unit... an index into the unit
- * list"), not merely a naming-based inference.
+ * Resolves [RaceEntry.unitTypeForKing] against [units]. A `PRTO` section index, per existing
+ * reverse-engineering documentation of the BIX/BIQ format ("King Unit... an index into the unit
+ * list").
  */
 fun RaceEntry.unitTypeForKingPrto(units: List<PrtoEntry>): PrtoEntry? = units.getOrNull(unitTypeForKing)
 
@@ -29,14 +29,16 @@ fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
 
 /**
  * The 6 values of [RaceEntry.cultureGroup], per the Civilizations editor tab's "Culture Group"
- * dropdown. Ordinal position matches the raw file value offset by 1 (raw `-1` is [NONE], raw `0`
- * is [AMERICAN], etc.) — do not reorder these constants. Confirmed by the Conquests base
- * ruleset's civilizations, whose values group by real-world region exactly (e.g. America/Aztecs/
- * Iroquois/Inca/Maya all [AMERICAN]; Germany/Russia/France/England/Spain all [EUROPEAN]).
+ * dropdown.
  *
- * [NONE] is only ever used by the barbarian placeholder in every real file checked, but the
- * Rules Editor doesn't enforce that restriction — nothing stops a real civilization from being
- * assigned it too.
+ * Ordinal position matches the raw file value offset by 1 (raw `-1` is [NONE], raw `0` is
+ * [AMERICAN], etc.) — do not reorder these constants. Civilizations group by real-world region
+ * (e.g. America/Aztecs/Iroquois/Inca/Maya are all [AMERICAN]; Germany/Russia/France/England/Spain
+ * are all [EUROPEAN]).
+ *
+ * In practice, [NONE] is only ever used by the barbarian placeholder — but the Rules Editor
+ * doesn't enforce that restriction, so nothing stops a real civilization from being assigned it
+ * too.
  */
 enum class RaceCultureGroup { NONE, AMERICAN, EUROPEAN, MEDITERRANEAN, MID_EAST, ASIAN }
 

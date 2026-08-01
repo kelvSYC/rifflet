@@ -8,8 +8,10 @@ fun ClnyEntry.resolveOwner(races: List<RaceEntry>): Owner = resolveOwner(ownerTy
 
 /**
  * The 4 documented values of [ClnyEntry.improvementType], per existing reverse-engineering
- * work. Ordinal position deliberately matches the documented file values (0=colony,
- * 1=airfield, 2=radar tower, 3=outpost) — do not reorder these constants.
+ * documentation of the BIX/BIQ format.
+ *
+ * Ordinal position deliberately matches the documented file values (0=colony, 1=airfield,
+ * 2=radar tower, 3=outpost) — do not reorder these constants.
  */
 enum class ClnyImprovementType { COLONY, AIRFIELD, RADAR_TOWER, OUTPOST }
 

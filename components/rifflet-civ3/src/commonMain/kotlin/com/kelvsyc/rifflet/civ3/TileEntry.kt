@@ -3,11 +3,11 @@ package com.kelvsyc.rifflet.civ3
 import okio.ByteString
 
 /**
- * One entry of the `TILE` section: a single map tile's terrain, overlay, and ownership data. A
- * separate reverse-engineered reference implementation's own authors describe this as their
- * least-complete, most tangled struct.
+ * One entry of the `TILE` section: a single map tile's terrain, overlay, and ownership data.
  *
- * Has (at least) a four-step version ladder keyed by the `VER#` header's `major` value:
+ * A separate reverse-engineered reference implementation's own authors describe this as their
+ * least-complete, most tangled struct. Has (at least) a four-step version ladder keyed by the
+ * `VER#` header's `major` value:
  * `major=2` (22 bytes, [riverConnections] through [continent]), `major=3` or `4` (23 bytes,
  * +[unknown2] — both are [Civ3FormatEra.VANILLA], a finer split than [Civ3FormatEra] itself
  * distinguishes), `major=11`/[Civ3FormatEra.PTW] (29 bytes, +[victoryPointLocation]/[ruin] on top

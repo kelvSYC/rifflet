@@ -6,9 +6,7 @@ package com.kelvsyc.rifflet.civ3
  * @param type Resource classification: a 3-way choice per the Conquests Rules Editor — Bonus
  *   Resource, Luxury, Strategic Resource, in that order. See [GoodResourceType] for the decoded
  *   form.
- * @param prerequisite A `TECH` section index, per the Conquests Rules Editor (not merely a
- *   naming-based inference from the convention shared with `CtznEntry.prerequisite`/
- *   `GovtEntry.prerequisiteTechnology`).
+ * @param prerequisite A `TECH` section index, per the Conquests Rules Editor.
  */
 data class GoodEntry(
     val name: String,

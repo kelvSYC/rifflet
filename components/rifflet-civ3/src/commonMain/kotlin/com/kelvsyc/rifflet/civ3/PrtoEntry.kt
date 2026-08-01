@@ -7,10 +7,9 @@ import okio.ByteString
  *
  * @param unitStatistics This unit's numeric stats, upgrade path, and combat-support/creation
  *   flags. See [PrtoUnitStatistics].
- * @param required A `TECH` section index, per the Conquests Rules Editor (not merely a
- *   naming-based inference).
- * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor (not merely a
- *   naming-based inference). Same treatment applies to [requiredResource2], [requiredResource3].
+ * @param required A `TECH` section index, per the Conquests Rules Editor.
+ * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor. Same treatment
+ *   applies to [requiredResource2], [requiredResource3].
  * @param abilities The Units editor's Abilities checkboxes (Wheeled, Foot Unit, Blitz, Radar,
  *   Amphibious, Stealth, King, ...) plus a handful of single-unit-anchor traits (Nuclear Weapon,
  *   Army, Leader, ...). See `PrtoEntryFlags.kt` for the individual named accessors.
@@ -70,8 +69,7 @@ import okio.ByteString
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
- * @param enslaveResults A `PRTO` section self-reference, per the Conquests Rules Editor (not
- *   merely a naming-based inference).
+ * @param enslaveResults A `PRTO` section self-reference, per the Conquests Rules Editor.
  * @param stealthTargetUnitTypes `PRTO` section self-references identifying units this entry's
  *   Stealth Attack ability (see [stealthAttack]) cannot target — an exclusion list, not an
  *   allow-list, despite the name. The Stealth Fighter's list, for example, excludes Leader,

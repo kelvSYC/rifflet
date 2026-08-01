@@ -71,6 +71,7 @@ fun PrtoEntry.availableToRaces(races: List<RaceEntry>): List<RaceEntry> =
 
 /**
  * The 3 documented values of [PrtoEntry.type], per the Conquests Rules Editor's "Class" control.
+ *
  * Ordinal position deliberately matches the raw file values (0=land, 1=sea, 2=air) — do not
  * reorder these constants.
  */

@@ -5,9 +5,8 @@ import okio.ByteString
 /**
  * One entry of the `TECH` section: a civilization advance (technology).
  *
- * @param prerequisite1 A self-referential `TECH` section index, per the Conquests Rules Editor
- *   (not merely a naming-based inference). Same treatment applies to [prerequisite2],
- *   [prerequisite3], [prerequisite4].
+ * @param prerequisite1 A self-referential `TECH` section index, per the Conquests Rules Editor.
+ *   Same treatment applies to [prerequisite2], [prerequisite3], [prerequisite4].
  * @param flags 4 bytes of packed boolean flags, all 23 bits named — see [TechEntry.enablesDiplomats]
  *   and its sibling accessors in `TechEntryFlags.kt` for the full breakdown and sourcing.
  * @param flavors Bitmask membership in the `FLAV` section's 7 flavor slots: bit *n* means this

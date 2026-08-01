@@ -1,9 +1,10 @@
 package com.kelvsyc.rifflet.civ3
 
 /**
- * One entry of the `WCHR` section: the scenario's world-generation settings, each recorded as
- * both a "selected" value (what was requested) and an "actual" value (what was rolled — only
- * relevant when the selected value is a "Random" sentinel).
+ * One entry of the `WCHR` section: the scenario's world-generation settings.
+ *
+ * Each setting is recorded as both a "selected" value (what was requested) and an "actual" value
+ * (what was rolled — only relevant when the selected value is a "Random" sentinel).
  */
 data class WchrEntry(
     val selectedClimate: Int,

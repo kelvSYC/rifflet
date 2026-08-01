@@ -3,9 +3,10 @@ package com.kelvsyc.rifflet.civ3
 import okio.ByteString
 
 /**
- * One entry of the `RULE` section: general game-rule settings (there is always exactly one
- * `RULE` entry per file, per existing reverse-engineering documentation's own "(1)" annotation
- * on the section's item count).
+ * One entry of the `RULE` section: general game-rule settings.
+ *
+ * There is always exactly one `RULE` entry per file, per existing reverse-engineering
+ * documentation's own "(1)" annotation on the section's item count.
  *
  * @param spaceshipPartQuantities The `General Settings` tab's "Spaceship Parts" groupbox: how
  *   many of each spaceship part type are needed to build a working spaceship, in part order. The
@@ -17,8 +18,7 @@ import okio.ByteString
  *   [RuleDefensiveBonuses].
  * @param unknown 8 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param defaultMoneyResource A `GOOD` section index, per the Conquests Rules Editor (not
- *   merely a naming-based inference).
+ * @param defaultMoneyResource A `GOOD` section index, per the Conquests Rules Editor.
  * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param unknown3 4 bytes with zero documented behavior from either reverse-engineering source;
