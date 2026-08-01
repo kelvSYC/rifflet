@@ -4,10 +4,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-private fun validGoodEntry(prerequisite: Int = 0): GoodEntry = GoodEntry(
+private fun validGoodEntry(prerequisite: Int = 0, type: Int = 0): GoodEntry = GoodEntry(
     name = "",
     civilopediaEntry = "",
-    type = 0,
+    type = type,
     appearanceRatio = 0,
     disappearanceProbability = 0,
     icon = 0,
@@ -40,5 +40,16 @@ class GoodEntryReferencesTest : FunSpec({
         val tech = validTechEntry()
         validGoodEntry(prerequisite = 0).prerequisiteTech(listOf(tech)) shouldBe tech
         validGoodEntry(prerequisite = 5).prerequisiteTech(emptyList()) shouldBe null
+    }
+
+    test("typeEnum decodes 0/1/2 into BONUS/LUXURY/STRATEGIC") {
+        validGoodEntry(type = 0).typeEnum shouldBe GoodResourceType.BONUS
+        validGoodEntry(type = 1).typeEnum shouldBe GoodResourceType.LUXURY
+        validGoodEntry(type = 2).typeEnum shouldBe GoodResourceType.STRATEGIC
+    }
+
+    test("typeEnum returns null for a type value outside the documented 0..2 range") {
+        validGoodEntry(type = 3).typeEnum shouldBe null
+        validGoodEntry(type = -1).typeEnum shouldBe null
     }
 })

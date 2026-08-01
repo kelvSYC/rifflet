@@ -53,6 +53,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateRaceCultureGroup(file) },
     ValidationRule { file -> validateRaceMaxCount(file) },
     ValidationRule { file -> validateRaceMinCount(file) },
+    ValidationRule { file -> validateGoodBonusResourceDisabledFields(file) },
 )
 
 /**
