@@ -28,6 +28,10 @@ import okio.ByteString
  *   `FLAV` section's 7 flavor slots (see `FlavorEntry`).
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
+ * @param diplomacyTextIndex Likely a dialogue/text-index reference (exact target undetermined);
+ *   a separate reverse-engineered reference implementation's editor labels this control "Diplomacy
+ *   Text Index" and shows `-1` for the barbarian placeholder, the same "none" sentinel real
+ *   Conquests data uses.
  */
 data class RaceEntry(
     val cityNames: List<String>,

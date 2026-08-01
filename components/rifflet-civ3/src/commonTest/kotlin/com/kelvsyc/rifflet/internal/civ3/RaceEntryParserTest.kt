@@ -134,7 +134,7 @@ class RaceEntryParserTest : FunSpec({
         entry.unitTypeForKing shouldBe -1
         entry.flavors shouldBe 0
         entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
-        entry.diplomacyTextIndex shouldBe 0
+        entry.diplomacyTextIndex shouldBe -1
         entry.scientificLeaderNames shouldBe emptyList()
     }
 
@@ -146,7 +146,7 @@ class RaceEntryParserTest : FunSpec({
         entry.unitTypeForKing shouldBe 0
         entry.flavors shouldBe 0
         entry.unknown shouldBe ByteString.of(0, 0, 0, 0)
-        entry.diplomacyTextIndex shouldBe 0
+        entry.diplomacyTextIndex shouldBe -1
         entry.scientificLeaderNames shouldBe emptyList()
     }
 
