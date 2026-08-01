@@ -1028,7 +1028,7 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            GoodSection(listOf(GoodEntry("Wine", "", 1, 50, 0, 12, -1, 0, 0, 3))),
+            GoodSection(listOf(GoodEntry("Wine", "", GoodResourceType.LUXURY, 50, 0, 12, -1, 0, 0, 3))),
         )
     }
 

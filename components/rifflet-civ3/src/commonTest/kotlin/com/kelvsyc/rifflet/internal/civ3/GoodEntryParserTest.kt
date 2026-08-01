@@ -1,6 +1,9 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.GoodEntry
+import com.kelvsyc.rifflet.civ3.GoodResourceType
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -27,7 +30,7 @@ private fun goodItemBinary(
 ): Buffer = Buffer().apply {
     writePaddedField(name, 24)
     writePaddedField(civilopediaEntry, 32)
-    writeIntLe(type)
+    writeIntLe(type)  // Note: accepts Int for direct test control; parsed to GoodResourceType in the real parser
     writeIntLe(appearanceRatio)
     writeIntLe(disappearanceProbability)
     writeIntLe(icon)
@@ -44,7 +47,7 @@ class GoodEntryParserTest : FunSpec({
         entry shouldBe GoodEntry(
             name = "Wine",
             civilopediaEntry = "",
-            type = 1,
+            type = GoodResourceType.LUXURY,
             appearanceRatio = 50,
             disappearanceProbability = 0,
             icon = 12,
@@ -53,5 +56,19 @@ class GoodEntryParserTest : FunSpec({
             shieldsBonus = 0,
             commerceBonus = 3,
         )
+    }
+
+    test("type decodes each raw value to the matching GoodResourceType") {
+        GoodResourceType.entries.forEachIndexed { raw, expected ->
+            val item = goodItemBinary(type = raw)
+            GoodEntryParser.parse(item).type shouldBe expected
+        }
+    }
+
+    test("an out-of-range type throws Civ3EnumDecodeException") {
+        val item = goodItemBinary(type = 3)
+        val e = shouldThrow<Civ3EnumDecodeException> { GoodEntryParser.parse(item) }
+        e.field shouldBe "GoodEntry.type"
+        e.rawValue shouldBe 3
     }
 })

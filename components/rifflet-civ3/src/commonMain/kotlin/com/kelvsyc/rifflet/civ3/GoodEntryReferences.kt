@@ -14,10 +14,3 @@ fun GoodEntry.prerequisiteTech(techs: List<TechEntry>): TechEntry? = techs.getOr
  * [LUXURY]/[STRATEGIC] (see [validateGoodBonusResourceDisabledFields]).
  */
 enum class GoodResourceType { BONUS, LUXURY, STRATEGIC }
-
-/**
- * Decodes [GoodEntry.type] into [GoodResourceType], or `null` if the raw value is outside the
- * documented 0..2 range.
- */
-val GoodEntry.typeEnum: GoodResourceType?
-    get() = GoodResourceType.entries.getOrNull(type)
