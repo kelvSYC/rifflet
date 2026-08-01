@@ -17,6 +17,7 @@ private fun validTileEntry(
     riverConnections: Byte = 0,
     riverCrossingFlags: Byte = 0,
     c3cBonuses: ByteString = ByteString.of(0, 0, 0, 0),
+    c3cOverlays: ByteString = ByteString.of(0, 0, 0, 0),
 ): TileEntry = TileEntry(
     riverConnections = riverConnections,
     border = 0.toByte(),
@@ -35,7 +36,7 @@ private fun validTileEntry(
     unknown2 = ByteString.of(0),
     victoryPointLocation = 0.toShort(),
     ruin = 0,
-    c3cOverlays = ByteString.of(0, 0, 0, 0),
+    c3cOverlays = c3cOverlays,
     unknown3 = ByteString.of(0),
     c3cTerrain = 0.toByte(),
     unknown4 = ByteString.of(0, 0),
@@ -135,6 +136,40 @@ class TileEntryC3cBonusesFlagsTest : FunSpec({
 
     test("all named bits clear") {
         val entry = validTileEntry(c3cBonuses = ByteString.of(0, 0, 0, 0))
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class TileEntryC3cOverlaysFlagsTest : FunSpec({
+
+    val properties: List<Pair<Int, (TileEntry) -> Boolean>> = listOf(
+        0 to TileEntry::c3cRoad,
+        1 to TileEntry::c3cRailroad,
+        2 to TileEntry::c3cMine,
+        3 to TileEntry::c3cIrrigation,
+        4 to TileEntry::c3cFortress,
+        5 to TileEntry::c3cGoodyHuts,
+        6 to TileEntry::c3cPollution,
+        7 to TileEntry::c3cBarbarianCamp,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validTileEntry(c3cOverlays = ByteString.of(*bytesFor(1 shl bit).toByteArray()))
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validTileEntry(c3cOverlays = ByteString.of(*bytesFor(allBits).toByteArray()))
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validTileEntry(c3cOverlays = ByteString.of(0, 0, 0, 0))
         properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })

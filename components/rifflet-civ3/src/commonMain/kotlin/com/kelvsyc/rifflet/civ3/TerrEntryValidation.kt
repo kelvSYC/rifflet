@@ -62,3 +62,60 @@ fun validateClearForestExclusiveToForest(file: Civ3File): List<ValidationIssue> 
         }
     }
 }
+
+/**
+ * Flags a [TerrEntry] whose [TerrEntry.curedBySanitation] is set without
+ * [TerrEntry.causesDisease]. Returns no issues if the `TERR` section is absent from [file].
+ *
+ * The Terrain editor tab's "Cured by Sanitation" checkbox is only enabled once "Causes Disease"
+ * is checked — every real vanilla, PTW, and Conquests ruleset respects this, with zero exceptions.
+ */
+fun validateCuredBySanitationRequiresCausesDisease(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (!entry.curedBySanitation || entry.causesDisease) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                index,
+                "curedBySanitation",
+                "curedBySanitation is set but causesDisease isn't; the Rules Editor only allows enabling " +
+                    "Cured by Sanitation when Causes Disease is also checked",
+            )
+        }
+    }
+}
+
+private val LANDMARK_TERR_INDICES = setOf(0, 1, 2, 5, 6, 7, 12)
+
+/**
+ * Flags a [TerrEntry] whose [TerrLandmark.landmarkEnabled] is set on a `TERR` index other than
+ * Desert(0)/Plains(1)/Grassland(2)/Hills(5)/Mountains(6)/Forest(7)/Sea(12). Returns no issues if
+ * the `TERR` section is absent from [file], or for an entry whose [TerrEntry.landmark] is `null`
+ * (a [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] file, which predates landmarks entirely).
+ *
+ * These 7 fixed-position terrain types are the only ones the Terrain editor tab offers landmark
+ * information for — every other terrain type's landmark data is present in the file (the whole
+ * `Landmark Information` panel is always read once a file is `CONQUESTS`-era) but structurally
+ * disabled, with zero exceptions across every real Conquests ruleset checked.
+ */
+fun validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        val landmark = entry.landmark ?: return@mapIndexedNotNull null
+        if (index in LANDMARK_TERR_INDICES || landmark.landmarkEnabled.toInt() == 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                index,
+                "landmark",
+                "TERR[$index] (${entry.name}) has landmark.landmarkEnabled set, but the Rules Editor only " +
+                    "offers landmark information for Desert/Plains/Grassland/Hills/Mountains/Forest/Sea",
+            )
+        }
+    }
+}

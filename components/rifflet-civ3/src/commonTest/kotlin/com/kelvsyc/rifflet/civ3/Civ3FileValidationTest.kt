@@ -65,15 +65,21 @@ private fun wmapEntry(width: Int, height: Int): WmapEntry = WmapEntry(
     flags = 0,
 )
 
-private fun tileEntry(city: Short = 0, colony: Short = 0): TileEntry = TileEntry(
+private fun tileEntry(
+    city: Short = 0,
+    colony: Short = 0,
+    terrain: Byte = 0,
+    c3cTerrain: Byte = 0,
+    fortress: Boolean = false,
+): TileEntry = TileEntry(
     riverConnections = 0,
     border = 0,
     resource = -1,
     textureLocation = 0,
     textureFile = 0,
     unknown = ByteString.of(*ByteArray(2)),
-    overlayFlags = 0,
-    terrain = 0,
+    overlayFlags = if (fortress) (1 shl 4).toByte() else 0,
+    terrain = terrain,
     bonusFlags = 0,
     riverCrossingFlags = 0,
     barbarianTribe = 0,
@@ -83,9 +89,9 @@ private fun tileEntry(city: Short = 0, colony: Short = 0): TileEntry = TileEntry
     unknown2 = ByteString.of(*ByteArray(1)),
     victoryPointLocation = 0,
     ruin = 0,
-    c3cOverlays = ByteString.of(*ByteArray(4)),
+    c3cOverlays = if (fortress) ByteString.of((1 shl 4).toByte(), 0, 0, 0) else ByteString.of(*ByteArray(4)),
     unknown3 = ByteString.of(*ByteArray(1)),
-    c3cTerrain = 0,
+    c3cTerrain = c3cTerrain,
     unknown4 = ByteString.of(*ByteArray(2)),
     fogOfWar = 0,
     c3cBonuses = ByteString.of(*ByteArray(4)),
@@ -109,12 +115,59 @@ private fun cityEntry(x: Int, y: Int): CityEntry = CityEntry(
     useAutoName = 0,
 )
 
-private fun clnyEntry(x: Int, y: Int): ClnyEntry = ClnyEntry(
+private fun clnyEntry(x: Int, y: Int, improvementType: ClnyImprovementType = ClnyImprovementType.COLONY): ClnyEntry = ClnyEntry(
     ownerType = 2,
     owner = 0,
     x = x,
     y = y,
-    improvementType = ClnyImprovementType.COLONY,
+    improvementType = improvementType,
+)
+
+private fun unitEntry(x: Int, y: Int, unitType: Int = 0): UnitEntry = UnitEntry(
+    legacyName = "",
+    ownerType = 2,
+    experienceLevel = 0,
+    owner = 0,
+    unitType = unitType,
+    aiStrategy = 0,
+    x = x,
+    y = y,
+    ptwName = "",
+    useCivilizationKing = 0,
+)
+
+private fun prtoEntry(wheeledAbility: Boolean = false): PrtoEntry = PrtoEntry(
+    unitStatistics = PrtoUnitStatistics(
+        zoneOfControl = 0, bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0,
+        defense = 0, attack = 0, operationalRange = 0, populationCost = 0, rateOfFire = 0,
+        movement = 0, upgradeTo = -1, hpBonus = 0, bombardEffects = 0, requireSupport = 0,
+        createCraters = 0, workerStrength = 0f, airDefense = 0,
+    ),
+    name = "",
+    civilopediaEntry = "",
+    iconIndex = 0,
+    required = -1,
+    requiredResource1 = -1,
+    requiredResource2 = -1,
+    requiredResource3 = -1,
+    abilities = if (wheeledAbility) 1 shl 0 else 0,
+    aiStrategies = 0,
+    availableTo = 0,
+    flags2 = ByteString.of(*ByteArray(8)),
+    type = PrtoDomain.LAND,
+    otherStrategy = -1,
+    standardOrders = 0,
+    specialActions = 0,
+    workerActions = 0,
+    airMissions = 0,
+    flags4 = ByteString.of(*ByteArray(4)),
+    ignoreMovementCost = ByteString.of(),
+    unknown = ByteString.of(*ByteArray(16)),
+    enslaveResults = -1,
+    unknown2 = ByteString.of(*ByteArray(4)),
+    stealthTargetUnitTypes = emptyList(),
+    unknown3 = ByteString.of(*ByteArray(8)),
+    unknown4 = ByteString.of(*ByteArray(4)),
 )
 
 private fun ctznEntry(defaultCitizen: Int = 0, prerequisite: Int = -1): CtznEntry = CtznEntry(
@@ -130,10 +183,20 @@ private fun ctznEntry(defaultCitizen: Int = 0, prerequisite: Int = -1): CtznEntr
     construction = 0,
 )
 
-private fun terrEntry(): TerrEntry = TerrEntry(
+private fun terrEntry(
+    name: String = "",
+    allowCities: Byte = 0,
+    allowColonies: Byte = 0,
+    allowAirfields: Byte? = 0,
+    allowRadarTowers: Byte? = 0,
+    allowOutposts: Byte? = 0,
+    allowForts: Byte? = 0,
+    impassable: Byte? = 0,
+    impassableByWheeled: Byte? = 0,
+): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
-    name = "",
+    name = name,
     civilopediaEntry = "",
     terraformBonuses = TerrTerraformBonuses(irrigationBonus = 0, miningBonus = 0, roadBonus = 0),
     defenseBonus = 0,
@@ -142,14 +205,14 @@ private fun terrEntry(): TerrEntry = TerrEntry(
     workerJobAllowed = -1,
     pollutionEffect = -1,
     allowances = TerrAllowances(
-        allowCities = 0,
-        allowColonies = 0,
-        impassable = 0,
-        impassableByWheeled = 0,
-        allowAirfields = 0,
-        allowForts = 0,
-        allowOutposts = 0,
-        allowRadarTowers = 0,
+        allowCities = allowCities,
+        allowColonies = allowColonies,
+        impassable = impassable,
+        impassableByWheeled = impassableByWheeled,
+        allowAirfields = allowAirfields,
+        allowForts = allowForts,
+        allowOutposts = allowOutposts,
+        allowRadarTowers = allowRadarTowers,
     ),
     unknown = ByteString.of(*ByteArray(4)),
     landmark = null,
@@ -548,6 +611,435 @@ class Civ3FileValidationTest : FunSpec({
         )
 
         validateCityTileBackReference(file) shouldBe emptyList()
+    }
+
+    test("validateCityTerrainAllowsCities returns no issues when the tile's terrain allows cities") {
+        val terrains = listOf(terrEntry(name = "Grassland", allowCities = 1))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTerrainAllowsCities(file) shouldBe emptyList()
+    }
+
+    test("validateCityTerrainAllowsCities flags a city sitting on a terrain type that disallows cities") {
+        val terrains = listOf(terrEntry(name = "Ocean", allowCities = 0))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTerrainAllowsCities(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CITY,
+                0,
+                "x/y",
+                "CityEntry at (2, 0) sits on Ocean terrain, which disallows cities",
+            ),
+        )
+    }
+
+    test("validateCityTerrainAllowsCities returns no issues when WMAP is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                TerrSection(listOf(terrEntry())),
+                TileSection(List(10) { tileEntry() }),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTerrainAllowsCities(file) shouldBe emptyList()
+    }
+
+    test("validateCityTerrainAllowsCities returns no issues when TERR is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(List(10) { tileEntry() }),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTerrainAllowsCities(file) shouldBe emptyList()
+    }
+
+    test("validateCityTerrainAllowsCities returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                CitySection(listOf(cityEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateCityTerrainAllowsCities(file) shouldBe emptyList()
+    }
+
+    test("validateCityTerrainAllowsCities returns no issues when CITY is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                TileSection(List(10) { tileEntry() }),
+            ),
+        )
+
+        validateCityTerrainAllowsCities(file) shouldBe emptyList()
+    }
+
+    test("validateColonyTerrainAllowsImprovementType returns no issues when the terrain allows the improvement") {
+        val terrains = listOf(terrEntry(name = "Grassland", allowAirfields = 1))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0, improvementType = ClnyImprovementType.AIRFIELD))),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe emptyList()
+    }
+
+    test("validateColonyTerrainAllowsImprovementType flags a colony sitting on a terrain type that disallows its improvement type") {
+        val terrains = listOf(terrEntry(name = "Ocean", allowAirfields = 0))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0, improvementType = ClnyImprovementType.AIRFIELD))),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CLNY,
+                0,
+                "x/y",
+                "ClnyEntry (AIRFIELD) at (2, 0) sits on Ocean terrain, which disallows it",
+            ),
+        )
+    }
+
+    test("validateColonyTerrainAllowsImprovementType returns no issues when the allowance field is absent (VANILLA/PTW)") {
+        val terrains = listOf(terrEntry(name = "Ocean", allowAirfields = null))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 4,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0, improvementType = ClnyImprovementType.AIRFIELD))),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe emptyList()
+    }
+
+    test("validateColonyTerrainAllowsImprovementType returns no issues when WMAP is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                TerrSection(listOf(terrEntry())),
+                TileSection(List(10) { tileEntry() }),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe emptyList()
+    }
+
+    test("validateColonyTerrainAllowsImprovementType returns no issues when TERR is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(List(10) { tileEntry() }),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe emptyList()
+    }
+
+    test("validateColonyTerrainAllowsImprovementType returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                ClnySection(listOf(clnyEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe emptyList()
+    }
+
+    test("validateColonyTerrainAllowsImprovementType returns no issues when CLNY is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                TileSection(List(10) { tileEntry() }),
+            ),
+        )
+
+        validateColonyTerrainAllowsImprovementType(file) shouldBe emptyList()
+    }
+
+    test("validateFortressTerrainAllowsForts returns no issues when the terrain allows forts") {
+        val terrains = listOf(terrEntry(name = "Grassland", allowForts = 1))
+        val tiles = List(10) { i -> if (i == 3) tileEntry(terrain = 0, fortress = true) else tileEntry() }
+        val file = fileWithSections(major = 12, listOf(TerrSection(terrains), TileSection(tiles)))
+
+        validateFortressTerrainAllowsForts(file) shouldBe emptyList()
+    }
+
+    test("validateFortressTerrainAllowsForts returns no issues when there is no fortress") {
+        val terrains = listOf(terrEntry(name = "Ocean", allowForts = 0))
+        val tiles = List(10) { tileEntry(terrain = 0) }
+        val file = fileWithSections(major = 12, listOf(TerrSection(terrains), TileSection(tiles)))
+
+        validateFortressTerrainAllowsForts(file) shouldBe emptyList()
+    }
+
+    test("validateFortressTerrainAllowsForts flags a fortress sitting on a terrain type that disallows forts") {
+        val terrains = listOf(terrEntry(name = "Ocean", allowForts = 0))
+        val tiles = List(10) { i -> if (i == 3) tileEntry(terrain = 0, fortress = true) else tileEntry() }
+        val file = fileWithSections(major = 12, listOf(TerrSection(terrains), TileSection(tiles)))
+
+        validateFortressTerrainAllowsForts(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                3,
+                "fortress",
+                "TILE[3] has a Fortress built, but sits on Ocean terrain, which disallows Forts",
+            ),
+        )
+    }
+
+    test("validateFortressTerrainAllowsForts returns no issues when the allowance field is absent (VANILLA/PTW)") {
+        val terrains = listOf(terrEntry(name = "Ocean", allowForts = null))
+        val tiles = List(10) { i -> if (i == 3) tileEntry(terrain = 0, fortress = true) else tileEntry() }
+        val file = fileWithSections(major = 4, listOf(TerrSection(terrains), TileSection(tiles)))
+
+        validateFortressTerrainAllowsForts(file) shouldBe emptyList()
+    }
+
+    test("validateFortressTerrainAllowsForts returns no issues when TERR is absent") {
+        val file = fileWithSections(major = 12, listOf(TileSection(List(10) { tileEntry() })))
+
+        validateFortressTerrainAllowsForts(file) shouldBe emptyList()
+    }
+
+    test("validateFortressTerrainAllowsForts returns no issues when TILE is absent") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(listOf(terrEntry()))))
+
+        validateFortressTerrainAllowsForts(file) shouldBe emptyList()
+    }
+
+    test("validateUnitNotOnImpassableTerrain returns no issues when the terrain is passable") {
+        val terrains = listOf(terrEntry(name = "Grassland", impassable = 0))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                UnitSection(listOf(unitEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateUnitNotOnImpassableTerrain flags a unit sitting on impassable terrain") {
+        val terrains = listOf(terrEntry(name = "Mountains", impassable = 1))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                UnitSection(listOf(unitEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.UNIT,
+                0,
+                "x/y",
+                "UnitEntry at (2, 0) sits on Mountains terrain, which is Impassable",
+            ),
+        )
+    }
+
+    test("validateUnitNotOnImpassableTerrain returns no issues when the allowance field is absent (VANILLA/PTW)") {
+        val terrains = listOf(terrEntry(name = "Mountains", impassable = null))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 4,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                UnitSection(listOf(unitEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateUnitNotOnImpassableTerrain returns no issues when WMAP is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(TerrSection(listOf(terrEntry())), TileSection(List(10) { tileEntry() }), UnitSection(listOf(unitEntry(x = 2, y = 0)))),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateUnitNotOnImpassableTerrain returns no issues when TERR is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TileSection(List(10) { tileEntry() }),
+                UnitSection(listOf(unitEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateUnitNotOnImpassableTerrain returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                UnitSection(listOf(unitEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateUnitNotOnImpassableTerrain returns no issues when UNIT is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                TileSection(List(10) { tileEntry() }),
+            ),
+        )
+
+        validateUnitNotOnImpassableTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateWheeledUnitNotOnImpassableByWheeledTerrain returns no issues for a non-wheeled unit") {
+        val terrains = listOf(terrEntry(name = "Desert", impassableByWheeled = 1))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                UnitSection(listOf(unitEntry(x = 2, y = 0, unitType = 0))),
+                PrtoSection(listOf(prtoEntry(wheeledAbility = false))),
+            ),
+        )
+
+        validateWheeledUnitNotOnImpassableByWheeledTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateWheeledUnitNotOnImpassableByWheeledTerrain flags a wheeled unit sitting on terrain impassable by wheeled units") {
+        val terrains = listOf(terrEntry(name = "Desert", impassableByWheeled = 1))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                UnitSection(listOf(unitEntry(x = 2, y = 0, unitType = 0))),
+                PrtoSection(listOf(prtoEntry(wheeledAbility = true))),
+            ),
+        )
+
+        validateWheeledUnitNotOnImpassableByWheeledTerrain(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.UNIT,
+                0,
+                "x/y",
+                "UnitEntry at (2, 0) is a wheeled unit sitting on Desert terrain, which is Impassable by Wheeled Units",
+            ),
+        )
+    }
+
+    test("validateWheeledUnitNotOnImpassableByWheeledTerrain returns no issues when the allowance field is absent (VANILLA/PTW)") {
+        val terrains = listOf(terrEntry(name = "Desert", impassableByWheeled = null))
+        val tiles = List(10) { i -> if (i == 1) tileEntry(terrain = 0) else tileEntry() }
+        val file = fileWithSections(
+            major = 4,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(terrains),
+                TileSection(tiles),
+                UnitSection(listOf(unitEntry(x = 2, y = 0, unitType = 0))),
+                PrtoSection(listOf(prtoEntry(wheeledAbility = true))),
+            ),
+        )
+
+        validateWheeledUnitNotOnImpassableByWheeledTerrain(file) shouldBe emptyList()
+    }
+
+    test("validateWheeledUnitNotOnImpassableByWheeledTerrain returns no issues when PRTO is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 10, height = 2))),
+                TerrSection(listOf(terrEntry())),
+                TileSection(List(10) { tileEntry() }),
+                UnitSection(listOf(unitEntry(x = 2, y = 0))),
+            ),
+        )
+
+        validateWheeledUnitNotOnImpassableByWheeledTerrain(file) shouldBe emptyList()
     }
 
     test("validateClnyTileBackReference returns no issues when the TILE back-reference matches") {

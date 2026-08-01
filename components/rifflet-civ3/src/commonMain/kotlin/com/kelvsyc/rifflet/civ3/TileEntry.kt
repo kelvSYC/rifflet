@@ -52,11 +52,13 @@ import okio.ByteString
  *   (`major=11`) onward, read defensively.
  * @param ruin Present only from [Civ3FormatEra.PTW] (`major=11`) onward, read defensively.
  * @param c3cOverlays 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
- *   5 of its 32 bits are named — Airfield, Radar Tower, Outpost, Barricade, and Craters —
- *   representing per-tile *built* state, as distinct from `TerrEntry`'s
+ *   13 of its 32 bits are named. Bits 16/28/29/30/31 — Craters, Barricade, Airfield, Radar Tower,
+ *   and Outpost — represent per-tile *built* state, as distinct from `TerrEntry`'s
  *   allow-airfields/allow-outposts/allow-radar-towers terrain-type *permissions* — see
- *   [TileEntry.craters] and its sibling accessors in `TileEntryFlags.kt`. The remaining bits are
- *   preserved raw, not decomposed.
+ *   [TileEntry.craters] and its sibling accessors in `TileEntryFlags.kt`. Bits 0-7 duplicate
+ *   [overlayFlags]'s 8 named booleans at the same positions — real per-tile data for this era
+ *   lives here rather than in the vestigial [overlayFlags] — see [TileEntry.c3cRoad] and its
+ *   sibling accessors. The remaining bits are preserved raw, not decomposed.
  * @param unknown3 1 byte with zero documented behavior from either reverse-engineering source;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.

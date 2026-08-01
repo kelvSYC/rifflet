@@ -14,7 +14,12 @@ private fun ByteString.toIntLe(): Int =
 
 /**
  * Named accessors for [TileEntry.overlayFlags]'s 8 documented bits, per existing
- * reverse-engineering documentation of the BIX/BIQ format.
+ * reverse-engineering documentation of the BIX/BIQ format. Real [Civ3FormatEra.CONQUESTS] tile
+ * data shows this field is vestigial, exactly like [TileEntry.terrain] and [TileEntry.bonusFlags]
+ * — the same 8 bits, at the same positions, are duplicated in the low byte of [c3cOverlays]
+ * (see [c3cRoad] and its siblings below), which is where real per-tile data lives for that era.
+ * Use `TileEntryReferences.kt`'s era-aware resolver functions (e.g. `fortress(era)`) rather than
+ * reading these directly.
  */
 val TileEntry.road: Boolean by BitCollection.byte.extensionBitFlag({ overlayFlags }, 0)
 val TileEntry.railroad: Boolean by BitCollection.byte.extensionBitFlag({ overlayFlags }, 1)
@@ -67,6 +72,21 @@ val TileEntry.barricade: Boolean by BitCollection.int.extensionBitFlag({ c3cOver
 val TileEntry.airfield: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 29)
 val TileEntry.radarTower: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 30)
 val TileEntry.outpost: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 31)
+
+/**
+ * The [Civ3FormatEra.CONQUESTS]-tier equivalents of the legacy [road]/[railroad]/[mine]/
+ * [irrigation]/[fortress]/[goodyHuts]/[pollution]/[barbarianCamp] (same bit positions, 0-7, in
+ * [c3cOverlays]'s low byte instead of [TileEntry.overlayFlags]) — prefer `TileEntryReferences.kt`'s
+ * era-aware resolver functions over reading these directly.
+ */
+val TileEntry.c3cRoad: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 0)
+val TileEntry.c3cRailroad: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 1)
+val TileEntry.c3cMine: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 2)
+val TileEntry.c3cIrrigation: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 3)
+val TileEntry.c3cFortress: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 4)
+val TileEntry.c3cGoodyHuts: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 5)
+val TileEntry.c3cPollution: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 6)
+val TileEntry.c3cBarbarianCamp: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 7)
 
 /**
  * Named accessors for 4 of [TileEntry.c3cBonuses]'s 32 bits (see that field's own KDoc). Bits
