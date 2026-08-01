@@ -10,7 +10,7 @@ private fun clnyEntry(x: Int, y: Int): ClnyEntry = ClnyEntry(
     owner = 0,
     x = x,
     y = y,
-    improvementType = 0,
+    improvementType = ClnyImprovementType.COLONY,
 )
 
 private fun fileWithColonies(entries: List<ClnyEntry>): Civ3File =

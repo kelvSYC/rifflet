@@ -1109,7 +1109,7 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            ClnySection(listOf(ClnyEntry(2, 0, 5, 15, 3))),
+            ClnySection(listOf(ClnyEntry(2, 0, 5, 15, ClnyImprovementType.OUTPOST))),
         )
     }
 

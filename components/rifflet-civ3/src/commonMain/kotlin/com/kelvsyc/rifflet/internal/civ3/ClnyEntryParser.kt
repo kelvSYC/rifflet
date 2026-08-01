@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.ClnyEntry
+import com.kelvsyc.rifflet.civ3.ClnyImprovementType
 import okio.Buffer
 
 /**
@@ -22,7 +23,7 @@ internal object ClnyEntryParser {
         val owner = item.readIntLe()
         val x = item.readIntLe()
         val y = item.readIntLe()
-        val improvementType = item.readIntLe()
+        val improvementType = decodeEnum("ClnyEntry.improvementType", item.readIntLe(), ClnyImprovementType.entries)
         return ClnyEntry(ownerType, owner, x, y, improvementType)
     }
 }

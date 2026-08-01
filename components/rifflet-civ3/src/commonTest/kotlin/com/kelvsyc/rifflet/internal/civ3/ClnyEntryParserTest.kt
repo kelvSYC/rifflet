@@ -1,6 +1,9 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.ClnyEntry
+import com.kelvsyc.rifflet.civ3.ClnyImprovementType
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -29,7 +32,21 @@ class ClnyEntryParserTest : FunSpec({
             owner = 0,
             x = 5,
             y = 15,
-            improvementType = 3,
+            improvementType = ClnyImprovementType.OUTPOST,
         )
+    }
+
+    test("improvementType decodes each raw value to the matching ClnyImprovementType") {
+        ClnyImprovementType.entries.forEachIndexed { raw, expected ->
+            val item = clnyItemBinary(improvementType = raw)
+            ClnyEntryParser.parse(item).improvementType shouldBe expected
+        }
+    }
+
+    test("an out-of-range improvementType throws Civ3EnumDecodeException") {
+        val item = clnyItemBinary(improvementType = 4)
+        val e = shouldThrow<Civ3EnumDecodeException> { ClnyEntryParser.parse(item) }
+        e.field shouldBe "ClnyEntry.improvementType"
+        e.rawValue shouldBe 4
     }
 })

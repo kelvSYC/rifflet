@@ -15,9 +15,3 @@ fun ClnyEntry.resolveOwner(races: List<RaceEntry>): Owner = resolveOwner(ownerTy
  */
 enum class ClnyImprovementType { COLONY, AIRFIELD, RADAR_TOWER, OUTPOST }
 
-/**
- * Decodes [ClnyEntry.improvementType] into [ClnyImprovementType], or `null` if the raw value is
- * outside the documented 0-3 range.
- */
-val ClnyEntry.improvementTypeEnum: ClnyImprovementType?
-    get() = ClnyImprovementType.entries.getOrNull(improvementType)

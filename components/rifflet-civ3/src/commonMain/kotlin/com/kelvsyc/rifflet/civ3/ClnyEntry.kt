@@ -14,5 +14,5 @@ data class ClnyEntry(
     val owner: Int,
     val x: Int,
     val y: Int,
-    val improvementType: Int,
+    val improvementType: ClnyImprovementType,
 )

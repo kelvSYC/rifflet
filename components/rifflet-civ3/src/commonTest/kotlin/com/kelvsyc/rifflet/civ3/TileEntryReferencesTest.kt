@@ -52,7 +52,7 @@ private fun validGoodEntry(): GoodEntry = GoodEntry(
     commerceBonus = 0,
 )
 
-private fun validClnyEntry(): ClnyEntry = ClnyEntry(ownerType = 0, owner = 0, x = 0, y = 0, improvementType = 0)
+private fun validClnyEntry(): ClnyEntry = ClnyEntry(ownerType = 0, owner = 0, x = 0, y = 0, improvementType = ClnyImprovementType.COLONY)
 
 private fun validContEntry(): ContEntry = ContEntry(type = 0, numberOfTiles = 0)
 
