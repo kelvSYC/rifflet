@@ -70,7 +70,7 @@ internal object RaceEntryParser {
         val unitTypeForKing = if (item.size >= 4L) item.readIntLe() else -1
         val flavors = if (item.size >= 4L) item.readIntLe() else 0
         val unknown = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
-        val diplomacyTextIndex = if (item.size >= 4L) item.readIntLe() else 0
+        val diplomacyTextIndex = if (item.size >= 4L) item.readIntLe() else -1
         val numberOfScientificLeaders = if (item.size >= 4L) {
             item.requireSaneCount(item.readIntLe(), 32L, "RaceEntry.scientificLeaderNames")
         } else {
