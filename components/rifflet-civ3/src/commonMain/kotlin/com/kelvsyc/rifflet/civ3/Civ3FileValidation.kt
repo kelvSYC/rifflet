@@ -23,6 +23,11 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateSlocCoordinateParity(file) },
     ValidationRule { file -> validateUnitCoordinateParity(file) },
     ValidationRule { file -> validateCityTileBackReference(file) },
+    ValidationRule { file -> validateCityTerrainAllowsCities(file) },
+    ValidationRule { file -> validateColonyTerrainAllowsImprovementType(file) },
+    ValidationRule { file -> validateFortressTerrainAllowsForts(file) },
+    ValidationRule { file -> validateUnitNotOnImpassableTerrain(file) },
+    ValidationRule { file -> validateWheeledUnitNotOnImpassableByWheeledTerrain(file) },
     ValidationRule { file -> validateClnyTileBackReference(file) },
     ValidationRule { file -> validateCtznDefaultCount(file) },
     ValidationRule { file -> validateCtznDefaultPrerequisite(file) },
@@ -52,6 +57,8 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateRaceMaxCount(file) },
     ValidationRule { file -> validateRaceMinCount(file) },
     ValidationRule { file -> validateGoodBonusResourceDisabledFields(file) },
+    ValidationRule { file -> validateCuredBySanitationRequiresCausesDisease(file) },
+    ValidationRule { file -> validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) },
 )
 
 /**
@@ -225,6 +232,169 @@ fun validateCityTileBackReference(file: Civ3File): List<ValidationIssue> {
                 "x/y",
                 "CityEntry at (${entry.x}, ${entry.y}) resolves to TILE[$expectedIndex], whose city " +
                     "back-reference is $actual, not $index",
+            )
+        }
+    }
+}
+
+/**
+ * Flags a [CityEntry] whose tile's base terrain type disallows cities
+ * ([TerrAllowances.allowCities] is `0`). Returns no issues if `WMAP`, `TERR`, `TILE`, or `CITY`
+ * is absent from [file].
+ */
+fun validateCityTerrainAllowsCities(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val city = file.sections.filterIsInstance<CitySection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    return city.entries.mapIndexedNotNull { index, entry ->
+        val tileEntry = tile.entries.getOrNull(wmap.tileIndex(entry.x, entry.y)) ?: return@mapIndexedNotNull null
+        val terrEntry = tileEntry.baseTerrain(terr.entries, era) ?: return@mapIndexedNotNull null
+        if (terrEntry.allowances.allowCities.toInt() != 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CITY,
+                index,
+                "x/y",
+                "CityEntry at (${entry.x}, ${entry.y}) sits on ${terrEntry.name} terrain, which disallows cities",
+            )
+        }
+    }
+}
+
+/**
+ * Flags a [ClnyEntry] whose tile's base terrain type disallows its own [ClnyEntry.improvementType]
+ * (e.g. an `AIRFIELD` colony sitting on terrain whose [TerrAllowances.allowAirfields] is `0`).
+ * Returns no issues if `WMAP`, `TERR`, `TILE`, or `CLNY` is absent from [file], or for a
+ * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] file whose terrain predates the relevant allowance
+ * field entirely.
+ */
+fun validateColonyTerrainAllowsImprovementType(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val clny = file.sections.filterIsInstance<ClnySection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    return clny.entries.mapIndexedNotNull { index, entry ->
+        val tileEntry = tile.entries.getOrNull(wmap.tileIndex(entry.x, entry.y)) ?: return@mapIndexedNotNull null
+        val terrEntry = tileEntry.baseTerrain(terr.entries, era) ?: return@mapIndexedNotNull null
+        val allowed = when (entry.improvementType) {
+            ClnyImprovementType.COLONY -> terrEntry.allowances.allowColonies
+            ClnyImprovementType.AIRFIELD -> terrEntry.allowances.allowAirfields
+            ClnyImprovementType.RADAR_TOWER -> terrEntry.allowances.allowRadarTowers
+            ClnyImprovementType.OUTPOST -> terrEntry.allowances.allowOutposts
+        }
+        if (allowed == null || allowed.toInt() != 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CLNY,
+                index,
+                "x/y",
+                "ClnyEntry (${entry.improvementType}) at (${entry.x}, ${entry.y}) sits on ${terrEntry.name} " +
+                    "terrain, which disallows it",
+            )
+        }
+    }
+}
+
+/**
+ * Flags a [TileEntry.fortress] (resolved for the file's era — see [TileEntry.fortress]'s
+ * era-resolved overload) built on a tile whose base terrain type disallows forts
+ * ([TerrAllowances.allowForts] is `0`). Returns no issues if `TERR` or `TILE` is absent from
+ * [file], or for a [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] file, which predates the
+ * `allowForts` field entirely.
+ */
+fun validateFortressTerrainAllowsForts(file: Civ3File): List<ValidationIssue> {
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    return tile.entries.mapIndexedNotNull { index, entry ->
+        if (!entry.fortress(era)) return@mapIndexedNotNull null
+        val terrEntry = entry.baseTerrain(terr.entries, era) ?: return@mapIndexedNotNull null
+        val allowed = terrEntry.allowances.allowForts
+        if (allowed == null || allowed.toInt() != 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                index,
+                "fortress",
+                "TILE[$index] has a Fortress built, but sits on ${terrEntry.name} terrain, which disallows Forts",
+            )
+        }
+    }
+}
+
+/**
+ * Flags a [UnitEntry] sitting on a tile whose base terrain type is Impassable
+ * ([TerrAllowances.impassable] is nonzero). Returns no issues if `WMAP`, `TERR`, `TILE`, or `UNIT`
+ * is absent from [file], or for a [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] file, which
+ * predates the `impassable` field entirely.
+ */
+fun validateUnitNotOnImpassableTerrain(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val unit = file.sections.filterIsInstance<UnitSection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    return unit.entries.mapIndexedNotNull { index, entry ->
+        val tileEntry = tile.entries.getOrNull(wmap.tileIndex(entry.x, entry.y)) ?: return@mapIndexedNotNull null
+        val terrEntry = tileEntry.baseTerrain(terr.entries, era) ?: return@mapIndexedNotNull null
+        val impassable = terrEntry.allowances.impassable
+        if (impassable == null || impassable.toInt() == 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.UNIT,
+                index,
+                "x/y",
+                "UnitEntry at (${entry.x}, ${entry.y}) sits on ${terrEntry.name} terrain, which is Impassable",
+            )
+        }
+    }
+}
+
+/**
+ * Flags a [UnitEntry] whose [PrtoEntry.wheeledAbility] resolves `true` sitting on a tile whose
+ * base terrain type is Impassable by Wheeled Units ([TerrAllowances.impassableByWheeled] is
+ * nonzero). Returns no issues if `WMAP`, `TERR`, `TILE`, `UNIT`, or `PRTO` is absent from [file],
+ * or for a [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] file, which predates the
+ * `impassableByWheeled` field entirely.
+ */
+fun validateWheeledUnitNotOnImpassableByWheeledTerrain(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val unit = file.sections.filterIsInstance<UnitSection>().singleOrNull() ?: return emptyList()
+    val prto = file.sections.filterIsInstance<PrtoSection>().singleOrNull()?.entries ?: return emptyList()
+    val era = file.header.formatEra
+    return unit.entries.mapIndexedNotNull { index, entry ->
+        val unitType = entry.unitTypePrto(prto) ?: return@mapIndexedNotNull null
+        if (!unitType.wheeledAbility) return@mapIndexedNotNull null
+        val tileEntry = tile.entries.getOrNull(wmap.tileIndex(entry.x, entry.y)) ?: return@mapIndexedNotNull null
+        val terrEntry = tileEntry.baseTerrain(terr.entries, era) ?: return@mapIndexedNotNull null
+        val impassableByWheeled = terrEntry.allowances.impassableByWheeled
+        if (impassableByWheeled == null || impassableByWheeled.toInt() == 0) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.UNIT,
+                index,
+                "x/y",
+                "UnitEntry at (${entry.x}, ${entry.y}) is a wheeled unit sitting on ${terrEntry.name} terrain, " +
+                    "which is Impassable by Wheeled Units",
             )
         }
     }

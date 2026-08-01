@@ -10,6 +10,9 @@ private fun validTerrEntry(
     name: String = "",
     pollutionEffect: Int = -1,
     workerJobAllowed: Int = -1,
+    allowCities: Byte = 0,
+    terrainFlags: Int = 0,
+    landmark: TerrLandmark? = null,
 ): TerrEntry = TerrEntry(
     numberOfPossibleResources = 0,
     possibleResources = ByteString.of(),
@@ -22,7 +25,7 @@ private fun validTerrEntry(
     workerJobAllowed = workerJobAllowed,
     pollutionEffect = pollutionEffect,
     allowances = TerrAllowances(
-        allowCities = 0,
+        allowCities = allowCities,
         allowColonies = 0,
         impassable = 0,
         impassableByWheeled = 0,
@@ -32,10 +35,20 @@ private fun validTerrEntry(
         allowRadarTowers = 0,
     ),
     unknown = ByteString.of(*ByteArray(4)),
-    landmark = null,
+    landmark = landmark,
     unknown2 = ByteString.of(*ByteArray(4)),
-    terrainFlags = 0,
+    terrainFlags = terrainFlags,
     diseaseStrength = 0,
+)
+
+private fun validTerrLandmark(landmarkEnabled: Byte = 0): TerrLandmark = TerrLandmark(
+    landmarkEnabled = landmarkEnabled,
+    tileValues = TerrTileValues(food = 0, shields = 0, commerce = 0),
+    terraformBonuses = TerrTerraformBonuses(irrigationBonus = 0, miningBonus = 0, roadBonus = 0),
+    landmarkMovementBonus = 0,
+    landmarkDefensiveBonus = 0,
+    landmarkName = "",
+    landmarkCivilopediaEntry = "",
 )
 
 private fun fileWithTerrains(terrains: List<TerrEntry>): Civ3File = Civ3File(
@@ -125,5 +138,87 @@ class TerrEntryValidationTest : FunSpec({
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         validateClearForestExclusiveToForest(file) shouldBe emptyList()
+    }
+
+    test("validateCuredBySanitationRequiresCausesDisease returns no issues when neither is set") {
+        val file = fileWithTerrains(listOf(validTerrEntry(name = "Desert", terrainFlags = 0)))
+
+        validateCuredBySanitationRequiresCausesDisease(file) shouldBe emptyList()
+    }
+
+    test("validateCuredBySanitationRequiresCausesDisease returns no issues when both are set") {
+        val file = fileWithTerrains(listOf(validTerrEntry(name = "Desert", terrainFlags = (1 shl 2) or (1 shl 3))))
+
+        validateCuredBySanitationRequiresCausesDisease(file) shouldBe emptyList()
+    }
+
+    test("validateCuredBySanitationRequiresCausesDisease returns no issues when only causesDisease is set") {
+        val file = fileWithTerrains(listOf(validTerrEntry(name = "Marsh", terrainFlags = 1 shl 2)))
+
+        validateCuredBySanitationRequiresCausesDisease(file) shouldBe emptyList()
+    }
+
+    test("validateCuredBySanitationRequiresCausesDisease flags curedBySanitation set without causesDisease") {
+        val file = fileWithTerrains(listOf(validTerrEntry(name = "Desert", terrainFlags = 1 shl 3)))
+
+        validateCuredBySanitationRequiresCausesDisease(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                0,
+                "curedBySanitation",
+                "curedBySanitation is set but causesDisease isn't; the Rules Editor only allows enabling " +
+                    "Cured by Sanitation when Causes Disease is also checked",
+            ),
+        )
+    }
+
+    test("validateCuredBySanitationRequiresCausesDisease returns no issues when TERR is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateCuredBySanitationRequiresCausesDisease(file) shouldBe emptyList()
+    }
+
+    test("validateLandmarkEnabledOnlyOnSupportedTerrainTypes returns no issues when landmark is absent (VANILLA/PTW)") {
+        val file = fileWithTerrains(listOf(validTerrEntry(name = "Desert", landmark = null)))
+
+        validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) shouldBe emptyList()
+    }
+
+    test("validateLandmarkEnabledOnlyOnSupportedTerrainTypes returns no issues when a supported index is enabled") {
+        val terrains = List(12) { validTerrEntry(name = "Filler$it", landmark = validTerrLandmark(landmarkEnabled = 0)) } +
+            validTerrEntry(name = "Sea", landmark = validTerrLandmark(landmarkEnabled = 1))
+        val file = fileWithTerrains(terrains)
+
+        validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) shouldBe emptyList()
+    }
+
+    test("validateLandmarkEnabledOnlyOnSupportedTerrainTypes returns no issues when an unsupported index is disabled") {
+        val file = fileWithTerrains(listOf(validTerrEntry(name = "Tundra", landmark = validTerrLandmark(landmarkEnabled = 0))))
+
+        validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) shouldBe emptyList()
+    }
+
+    test("validateLandmarkEnabledOnlyOnSupportedTerrainTypes flags an unsupported index with landmark enabled") {
+        val terrains = List(3) { validTerrEntry(name = "Filler$it") } +
+            validTerrEntry(name = "Tundra", landmark = validTerrLandmark(landmarkEnabled = 1))
+        val file = fileWithTerrains(terrains)
+
+        validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TERR,
+                3,
+                "landmark",
+                "TERR[3] (Tundra) has landmark.landmarkEnabled set, but the Rules Editor only offers " +
+                    "landmark information for Desert/Plains/Grassland/Hills/Mountains/Forest/Sea",
+            ),
+        )
+    }
+
+    test("validateLandmarkEnabledOnlyOnSupportedTerrainTypes returns no issues when TERR is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) shouldBe emptyList()
     }
 })
