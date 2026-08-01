@@ -77,9 +77,3 @@ fun PrtoEntry.availableToRaces(races: List<RaceEntry>): List<RaceEntry> =
  */
 enum class PrtoDomain { LAND, SEA, AIR }
 
-/**
- * Decodes [PrtoEntry.type] into [PrtoDomain], or `null` if the raw value is outside the
- * documented 0-2 range.
- */
-val PrtoEntry.domainEnum: PrtoDomain?
-    get() = PrtoDomain.entries.getOrNull(type)

@@ -4,30 +4,6 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationIssue
 import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
 
 /**
- * Flags a [PrtoEntry] whose [PrtoEntry.type] doesn't decode into a [PrtoDomain]. Returns no
- * issues if the `PRTO` section is absent from [file].
- *
- * Every real official file's units have a `type` value in the documented 0-2 range, with zero
- * exceptions across every era and every degree of `PRTO` pruning observed.
- */
-fun validatePrtoDomain(file: Civ3File): List<ValidationIssue> {
-    val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
-    return section.entries.mapIndexedNotNull { index, entry ->
-        if (entry.domainEnum != null) {
-            null
-        } else {
-            ValidationIssue(
-                ValidationSeverity.ERROR,
-                Civ3SectionIds.PRTO,
-                index,
-                "type",
-                "type=${entry.type} is not a valid PrtoDomain index (0..2)",
-            )
-        }
-    }
-}
-
-/**
  * Flags a [PrtoEntry] where [PrtoEntry.armyAbility] and [PrtoEntry.armyStrategy] disagree. Returns
  * no issues if the `PRTO` section is absent from [file].
  *
@@ -136,7 +112,7 @@ fun validatePrtoAvailableToBounds(file: Civ3File): List<ValidationIssue> {
 /**
  * Flags a [PrtoDomain.LAND] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
- * absent from [file], and skips every entry whose [PrtoEntry.domainEnum] isn't [PrtoDomain.LAND]
+ * absent from [file], and skips every entry whose [PrtoEntry.type] isn't [PrtoDomain.LAND]
  * (Sea and Air strategies have their own, different prerequisites).
  *
  * The real Units editor grays out each Land AI Strategy checkbox until its unit meets that
@@ -164,7 +140,7 @@ fun validatePrtoAvailableToBounds(file: Civ3File): List<ValidationIssue> {
 fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
-        if (entry.domainEnum != PrtoDomain.LAND) return@flatMapIndexed emptyList()
+        if (entry.type != PrtoDomain.LAND) return@flatMapIndexed emptyList()
 
         fun issue(field: String, requirement: String) = ValidationIssue(
             ValidationSeverity.ERROR,
@@ -327,7 +303,7 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
 /**
  * Flags a [PrtoDomain.SEA] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
- * absent from [file], and skips every entry whose [PrtoEntry.domainEnum] isn't [PrtoDomain.SEA]
+ * absent from [file], and skips every entry whose [PrtoEntry.type] isn't [PrtoDomain.SEA]
  * (Land and Air strategies have their own, different prerequisites; see
  * [validatePrtoLandStrategyPrerequisites]).
  *
@@ -341,7 +317,7 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
 fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
-        if (entry.domainEnum != PrtoDomain.SEA) return@flatMapIndexed emptyList()
+        if (entry.type != PrtoDomain.SEA) return@flatMapIndexed emptyList()
 
         fun issue(field: String, requirement: String) = ValidationIssue(
             ValidationSeverity.ERROR,
@@ -392,7 +368,7 @@ fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
 /**
  * Flags a [PrtoDomain.AIR] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
- * absent from [file], and skips every entry whose [PrtoEntry.domainEnum] isn't [PrtoDomain.AIR]
+ * absent from [file], and skips every entry whose [PrtoEntry.type] isn't [PrtoDomain.AIR]
  * (Land and Sea strategies have their own, different prerequisites; see
  * [validatePrtoLandStrategyPrerequisites]).
  *
@@ -408,7 +384,7 @@ fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
 fun validatePrtoAirStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
-        if (entry.domainEnum != PrtoDomain.AIR) return@flatMapIndexed emptyList()
+        if (entry.type != PrtoDomain.AIR) return@flatMapIndexed emptyList()
 
         fun issue(field: String, requirement: String) = ValidationIssue(
             ValidationSeverity.ERROR,

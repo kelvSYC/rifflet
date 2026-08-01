@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.GoodEntry
+import com.kelvsyc.rifflet.civ3.GoodResourceType
 import okio.Buffer
 
 /**
@@ -15,7 +16,7 @@ internal object GoodEntryParser {
     fun parse(item: Buffer): GoodEntry {
         val name = item.readByteString(24L).truncateAtFirstNull()
         val civilopediaEntry = item.readByteString(32L).truncateAtFirstNull()
-        val type = item.readIntLe()
+        val type = decodeEnum("GoodEntry.type", item.readIntLe(), GoodResourceType.entries)
         val appearanceRatio = item.readIntLe()
         val disappearanceProbability = item.readIntLe()
         val icon = item.readIntLe()

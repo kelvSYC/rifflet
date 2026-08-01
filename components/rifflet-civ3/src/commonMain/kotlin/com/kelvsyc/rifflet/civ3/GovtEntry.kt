@@ -39,7 +39,7 @@ data class GovtEntry(
     val name: String,
     val civilopediaEntry: String,
     val rulerTitles: GovtRulerTitles,
-    val corruption: Int,
+    val corruption: GovtCorruption,
     val immuneTo: Int,
     val diplomatsAre: Int,
     val spiesAre: Int,

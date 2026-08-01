@@ -1,5 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
+import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtRelationship
 import com.kelvsyc.rifflet.civ3.GovtRulerTitles
@@ -25,6 +27,7 @@ private fun govtItemBinary(
     name: String = "Despotism",
     relationships: List<Triple<Int, Int, Int>> = listOf(Triple(1, 20, 30), Triple(0, 5, 10)),
     unknown: ByteArray = ByteArray(4),
+    corruption: Int = 0,
     includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(0) // defaultType
@@ -36,7 +39,7 @@ private fun govtItemBinary(
     writePaddedField(name, 64)
     writePaddedField("", 32) // civilopediaEntry
     repeat(8) { writePaddedField("", 32) } // 4 male/female ruler title pairs, always present
-    writeIntLe(0) // corruption
+    writeIntLe(corruption)
     writeIntLe(0) // immuneTo
     writeIntLe(0) // diplomatsAre
     writeIntLe(0) // spiesAre
@@ -88,7 +91,7 @@ class GovtEntryParserTest : FunSpec({
                 male3 = "", female3 = "",
                 male4 = "", female4 = "",
             ),
-            corruption = 0,
+            corruption = GovtCorruption.MINIMAL,
             immuneTo = 0,
             diplomatsAre = 0,
             spiesAre = 0,
@@ -144,5 +147,19 @@ class GovtEntryParserTest : FunSpec({
             writeIntLe(Int.MAX_VALUE) // numberOfGovernments
         }
         shouldThrow<RiffletParseException> { GovtEntryParser.parse(buffer) }
+    }
+
+    test("corruption decodes each raw value to the matching GovtCorruption") {
+        GovtCorruption.entries.forEachIndexed { raw, expected ->
+            val item = govtItemBinary(corruption = raw)
+            GovtEntryParser.parse(item).corruption shouldBe expected
+        }
+    }
+
+    test("an out-of-range corruption throws Civ3EnumDecodeException") {
+        val item = govtItemBinary(corruption = 7)
+        val e = shouldThrow<Civ3EnumDecodeException> { GovtEntryParser.parse(item) }
+        e.field shouldBe "GovtEntry.corruption"
+        e.rawValue shouldBe 7
     }
 })

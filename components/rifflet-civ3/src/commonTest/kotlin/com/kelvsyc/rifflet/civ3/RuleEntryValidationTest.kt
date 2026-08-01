@@ -65,7 +65,7 @@ private fun fileWithRule(entry: RuleEntry): Civ3File = Civ3File(
     listOf(RuleSection(listOf(entry))),
 )
 
-private fun prtoEntry(name: String, type: Int): PrtoEntry = PrtoEntry(
+private fun prtoEntry(name: String, type: PrtoDomain): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
         zoneOfControl = 0, bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0,
         defense = 0, attack = 0, operationalRange = 0, populationCost = 0, rateOfFire = 0,
@@ -157,21 +157,21 @@ class RuleEntryValidationTest : FunSpec({
     }
 
     test("validateBarbarianUnitDomains returns no issues when all three domains are correct") {
-        val prtos = listOf(prtoEntry("Warrior", type = 0), prtoEntry("Horseman", type = 0), prtoEntry("Galley", type = 1))
+        val prtos = listOf(prtoEntry("Warrior", type = PrtoDomain.LAND), prtoEntry("Horseman", type = PrtoDomain.LAND), prtoEntry("Galley", type = PrtoDomain.SEA))
         val rule = ruleEntry(basicBarbarianUnitType = 0, advancedBarbarianUnitType = 1, barbarianSeaUnitType = 2)
 
         validateBarbarianUnitDomains(fileWithRuleAndPrto(rule, prtos)) shouldBe emptyList()
     }
 
     test("validateBarbarianUnitDomains returns no issues when barbarianSeaUnitType is -1 (unset)") {
-        val prtos = listOf(prtoEntry("Warrior", type = 0), prtoEntry("Horseman", type = 0))
+        val prtos = listOf(prtoEntry("Warrior", type = PrtoDomain.LAND), prtoEntry("Horseman", type = PrtoDomain.LAND))
         val rule = ruleEntry(basicBarbarianUnitType = 0, advancedBarbarianUnitType = 1, barbarianSeaUnitType = -1)
 
         validateBarbarianUnitDomains(fileWithRuleAndPrto(rule, prtos)) shouldBe emptyList()
     }
 
     test("validateBarbarianUnitDomains flags a sea unit whose type isn't Sea") {
-        val prtos = listOf(prtoEntry("Warrior", type = 0), prtoEntry("Horseman", type = 0), prtoEntry("Fighter", type = 2))
+        val prtos = listOf(prtoEntry("Warrior", type = PrtoDomain.LAND), prtoEntry("Horseman", type = PrtoDomain.LAND), prtoEntry("Fighter", type = PrtoDomain.AIR))
         val rule = ruleEntry(basicBarbarianUnitType = 0, advancedBarbarianUnitType = 1, barbarianSeaUnitType = 2)
 
         validateBarbarianUnitDomains(fileWithRuleAndPrto(rule, prtos)) shouldBe listOf(
@@ -180,13 +180,13 @@ class RuleEntryValidationTest : FunSpec({
                 Civ3SectionIds.RULE,
                 0,
                 "barbarianSeaUnitType",
-                "barbarianSeaUnitType=2 (Fighter) has type=2, expected a Sea unit (type=1)",
+                "barbarianSeaUnitType=2 (Fighter) has type=AIR, expected a Sea unit (type=SEA)",
             ),
         )
     }
 
     test("validateBarbarianUnitDomains flags a basic/advanced barbarian whose type isn't Land") {
-        val prtos = listOf(prtoEntry("Galley", type = 1), prtoEntry("Fighter", type = 2))
+        val prtos = listOf(prtoEntry("Galley", type = PrtoDomain.SEA), prtoEntry("Fighter", type = PrtoDomain.AIR))
         val rule = ruleEntry(basicBarbarianUnitType = 0, advancedBarbarianUnitType = 1, barbarianSeaUnitType = -1)
 
         validateBarbarianUnitDomains(fileWithRuleAndPrto(rule, prtos)) shouldBe listOf(
@@ -195,14 +195,14 @@ class RuleEntryValidationTest : FunSpec({
                 Civ3SectionIds.RULE,
                 0,
                 "basicBarbarianUnitType",
-                "basicBarbarianUnitType=0 (Galley) has type=1, expected a Land unit (type=0)",
+                "basicBarbarianUnitType=0 (Galley) has type=SEA, expected a Land unit (type=LAND)",
             ),
             ValidationIssue(
                 ValidationSeverity.ERROR,
                 Civ3SectionIds.RULE,
                 0,
                 "advancedBarbarianUnitType",
-                "advancedBarbarianUnitType=1 (Fighter) has type=2, expected a Land unit (type=0)",
+                "advancedBarbarianUnitType=1 (Fighter) has type=AIR, expected a Land unit (type=LAND)",
             ),
         )
     }

@@ -21,7 +21,7 @@ private fun barbarianRaceEntry(
     leaderGender: Int = 0,
     civilizationGender: Int = 0,
     eras: List<RaceEraFilenames> = emptyList(),
-    cultureGroup: Int = -1,
+    cultureGroup: RaceCultureGroup = RaceCultureGroup.NONE,
     governorSettings: Int = (1 shl 0) or (1 shl 4),
     unitTypeForKing: Int = -1,
 ): RaceEntry = RaceEntry(
@@ -163,7 +163,7 @@ class RaceEntryValidationTest : FunSpec({
     }
 
     test("flags a cultureGroup other than -1") {
-        val file = fileWithRaces(listOf(barbarianRaceEntry(cultureGroup = 3)))
+        val file = fileWithRaces(listOf(barbarianRaceEntry(cultureGroup = RaceCultureGroup.MID_EAST)))
 
         validateRaceBarbarianPlaceholder(file) shouldBe listOf(
             ValidationIssue(
@@ -171,7 +171,7 @@ class RaceEntryValidationTest : FunSpec({
                 Civ3SectionIds.RACE,
                 0,
                 "cultureGroup",
-                "the barbarian placeholder is expected to have no Culture Group (cultureGroup=-1, was 3)",
+                "the barbarian placeholder is expected to have no Culture Group (cultureGroup=-1, was MID_EAST)",
             ),
         )
     }
@@ -223,32 +223,6 @@ class RaceEntryValidationTest : FunSpec({
         val file = fileWithRaces(listOf(barbarianRaceEntry(unitTypeForKing = 0)), major = 3)
 
         validateRaceBarbarianPlaceholder(file) shouldBe emptyList()
-    }
-
-    test("returns no issues for every documented cultureGroup value (-1..4)") {
-        val file = fileWithRaces((-1..4).map { barbarianRaceEntry(cultureGroup = it) })
-
-        validateRaceCultureGroup(file) shouldBe emptyList()
-    }
-
-    test("flags a cultureGroup value outside the documented -1..4 range") {
-        val file = fileWithRaces(listOf(barbarianRaceEntry(cultureGroup = 5)))
-
-        validateRaceCultureGroup(file) shouldBe listOf(
-            ValidationIssue(
-                ValidationSeverity.ERROR,
-                Civ3SectionIds.RACE,
-                0,
-                "cultureGroup",
-                "cultureGroup=5 is not a valid RaceCultureGroup index (-1..4)",
-            ),
-        )
-    }
-
-    test("returns no issues for cultureGroup bounds when RACE is absent") {
-        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
-
-        validateRaceCultureGroup(file) shouldBe emptyList()
     }
 
     test("returns no issues for exactly 32 RACE entries") {

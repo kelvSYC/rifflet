@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.BldgSection
 import com.kelvsyc.rifflet.civ3.CitySection
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.Civ3File
 import com.kelvsyc.rifflet.civ3.Civ3RawSection
 import com.kelvsyc.rifflet.civ3.Civ3Section
@@ -71,6 +72,10 @@ import okio.BufferedSource
  *
  * Every section's own item count (and `FLAV`'s group count) is passed through
  * [requireSaneCount] before it sizes any allocation — see that function's KDoc for why.
+ *
+ * Every branch that parses entries via an `*EntryParser` reads its items through [parseIndexed],
+ * which enriches any [Civ3EnumDecodeException] thrown mid-section with that section's marker and
+ * the offending item's position, since the individual `*EntryParser`s don't know their own index.
  */
 internal object Civ3RootParserImpl {
     fun parse(source: BufferedSource, magic: ChunkId): Civ3File {
@@ -97,7 +102,10 @@ internal object Civ3RootParserImpl {
         if (pendingPrtoItems != null) {
             val terr = terrCount
                 ?: throw RiffletParseException("PRTO section requires a TERR section to appear somewhere in the file")
-            sections.add(pendingPrtoIndex, PrtoSection(pendingPrtoItems.map { PrtoEntryParser.parse(it, terr) }))
+            sections.add(
+                pendingPrtoIndex,
+                PrtoSection(pendingPrtoItems.parseIndexed(Civ3SectionIds.PRTO) { PrtoEntryParser.parse(it, terr) }),
+            )
         }
         return Civ3File(header, sections)
     }
@@ -140,37 +148,52 @@ internal object Civ3RootParserImpl {
             return ParsedSection.DeferredPrto(items)
         }
         val section = when (marker) {
-            Civ3SectionIds.WSIZ -> WsizSection(items.map { WsizEntryParser.parse(it) })
-            Civ3SectionIds.DIFF -> DiffSection(items.map { DiffEntryParser.parse(it) })
-            Civ3SectionIds.ERAS -> ErasSection(items.map { ErasEntryParser.parse(it) })
-            Civ3SectionIds.GOVT -> GovtSection(items.map { GovtEntryParser.parse(it) })
+            Civ3SectionIds.WSIZ -> WsizSection(items.parseIndexed(marker) { WsizEntryParser.parse(it) })
+            Civ3SectionIds.DIFF -> DiffSection(items.parseIndexed(marker) { DiffEntryParser.parse(it) })
+            Civ3SectionIds.ERAS -> ErasSection(items.parseIndexed(marker) { ErasEntryParser.parse(it) })
+            Civ3SectionIds.GOVT -> GovtSection(items.parseIndexed(marker) { GovtEntryParser.parse(it) })
             Civ3SectionIds.RACE -> {
                 val eras = erasCount
                     ?: throw RiffletParseException("RACE section requires an ERAS section to appear first in the file")
-                RaceSection(items.map { RaceEntryParser.parse(it, eras) })
+                RaceSection(items.parseIndexed(marker) { RaceEntryParser.parse(it, eras) })
             }
-            Civ3SectionIds.EXPR -> ExprSection(items.map { ExprEntryParser.parse(it) })
-            Civ3SectionIds.CULT -> CultSection(items.map { CultEntryParser.parse(it) })
-            Civ3SectionIds.CTZN -> CtznSection(items.map { CtznEntryParser.parse(it) })
-            Civ3SectionIds.GOOD -> GoodSection(items.map { GoodEntryParser.parse(it) })
-            Civ3SectionIds.ESPN -> EspnSection(items.map { EspnEntryParser.parse(it) })
-            Civ3SectionIds.SLOC -> SlocSection(items.map { SlocEntryParser.parse(it) })
-            Civ3SectionIds.CONT -> ContSection(items.map { ContEntryParser.parse(it) })
-            Civ3SectionIds.WCHR -> WchrSection(items.map { WchrEntryParser.parse(it) })
-            Civ3SectionIds.CLNY -> ClnySection(items.map { ClnyEntryParser.parse(it) })
-            Civ3SectionIds.TFRM -> TfrmSection(items.map { TfrmEntryParser.parse(it) })
-            Civ3SectionIds.WMAP -> WmapSection(items.map { WmapEntryParser.parse(it) })
-            Civ3SectionIds.UNIT -> UnitSection(items.map { UnitEntryParser.parse(it) })
-            Civ3SectionIds.CITY -> CitySection(items.map { CityEntryParser.parse(it) })
-            Civ3SectionIds.TECH -> TechSection(items.map { TechEntryParser.parse(it) })
-            Civ3SectionIds.LEAD -> LeadSection(items.map { LeadEntryParser.parse(it) })
-            Civ3SectionIds.RULE -> RuleSection(items.map { RuleEntryParser.parse(it) })
-            Civ3SectionIds.BLDG -> BldgSection(items.map { BldgEntryParser.parse(it) })
-            Civ3SectionIds.TERR -> TerrSection(items.map { TerrEntryParser.parse(it) })
-            Civ3SectionIds.GAME -> GameSection(items.map { GameEntryParser.parse(it) })
-            Civ3SectionIds.TILE -> TileSection(items.map { TileEntryParser.parse(it) })
+            Civ3SectionIds.EXPR -> ExprSection(items.parseIndexed(marker) { ExprEntryParser.parse(it) })
+            Civ3SectionIds.CULT -> CultSection(items.parseIndexed(marker) { CultEntryParser.parse(it) })
+            Civ3SectionIds.CTZN -> CtznSection(items.parseIndexed(marker) { CtznEntryParser.parse(it) })
+            Civ3SectionIds.GOOD -> GoodSection(items.parseIndexed(marker) { GoodEntryParser.parse(it) })
+            Civ3SectionIds.ESPN -> EspnSection(items.parseIndexed(marker) { EspnEntryParser.parse(it) })
+            Civ3SectionIds.SLOC -> SlocSection(items.parseIndexed(marker) { SlocEntryParser.parse(it) })
+            Civ3SectionIds.CONT -> ContSection(items.parseIndexed(marker) { ContEntryParser.parse(it) })
+            Civ3SectionIds.WCHR -> WchrSection(items.parseIndexed(marker) { WchrEntryParser.parse(it) })
+            Civ3SectionIds.CLNY -> ClnySection(items.parseIndexed(marker) { ClnyEntryParser.parse(it) })
+            Civ3SectionIds.TFRM -> TfrmSection(items.parseIndexed(marker) { TfrmEntryParser.parse(it) })
+            Civ3SectionIds.WMAP -> WmapSection(items.parseIndexed(marker) { WmapEntryParser.parse(it) })
+            Civ3SectionIds.UNIT -> UnitSection(items.parseIndexed(marker) { UnitEntryParser.parse(it) })
+            Civ3SectionIds.CITY -> CitySection(items.parseIndexed(marker) { CityEntryParser.parse(it) })
+            Civ3SectionIds.TECH -> TechSection(items.parseIndexed(marker) { TechEntryParser.parse(it) })
+            Civ3SectionIds.LEAD -> LeadSection(items.parseIndexed(marker) { LeadEntryParser.parse(it) })
+            Civ3SectionIds.RULE -> RuleSection(items.parseIndexed(marker) { RuleEntryParser.parse(it) })
+            Civ3SectionIds.BLDG -> BldgSection(items.parseIndexed(marker) { BldgEntryParser.parse(it) })
+            Civ3SectionIds.TERR -> TerrSection(items.parseIndexed(marker) { TerrEntryParser.parse(it) })
+            Civ3SectionIds.GAME -> GameSection(items.parseIndexed(marker) { GameEntryParser.parse(it) })
+            Civ3SectionIds.TILE -> TileSection(items.parseIndexed(marker) { TileEntryParser.parse(it) })
             else -> Civ3RawSection(marker, count, items.map { it.readByteString() })
         }
         return ParsedSection.Ready(section)
     }
 }
+
+/**
+ * Parses every item in [this] via [parse], enriching any [Civ3EnumDecodeException] it throws with
+ * [marker] (the section it came from) and the offending item's position — see
+ * [Civ3RootParserImpl]'s own KDoc for why this enrichment can't happen inside the individual
+ * `*EntryParser`s themselves.
+ */
+internal fun <T> List<Buffer>.parseIndexed(marker: ChunkId, parse: (Buffer) -> T): List<T> =
+    mapIndexed { index, item ->
+        try {
+            parse(item)
+        } catch (e: Civ3EnumDecodeException) {
+            throw Civ3EnumDecodeException(marker, index, e)
+        }
+    }

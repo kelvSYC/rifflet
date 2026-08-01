@@ -26,10 +26,3 @@ fun GovtEntry.prerequisiteTechnologyTech(techs: List<TechEntry>): TechEntry? =
  * dedicated vanilla-only source exists.
  */
 enum class GovtCorruption { MINIMAL, NUISANCE, PROBLEMATIC, RAMPANT, CATASTROPHIC, COMMUNAL, OFF }
-
-/**
- * Decodes [GovtEntry.corruption] into [GovtCorruption], or `null` if the raw value is outside
- * the documented 0-6 range.
- */
-val GovtEntry.corruptionEnum: GovtCorruption?
-    get() = GovtCorruption.entries.getOrNull(corruption)

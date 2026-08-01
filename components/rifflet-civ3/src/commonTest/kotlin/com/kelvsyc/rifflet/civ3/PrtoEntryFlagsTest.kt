@@ -37,7 +37,7 @@ private fun validPrtoEntry(
     aiStrategies = aiStrategies,
     availableTo = 0,
     flags2 = ByteString.of(*ByteArray(8)),
-    type = 0,
+    type = PrtoDomain.LAND,
     otherStrategy = 0,
     standardOrders = standardOrders,
     specialActions = specialActions,

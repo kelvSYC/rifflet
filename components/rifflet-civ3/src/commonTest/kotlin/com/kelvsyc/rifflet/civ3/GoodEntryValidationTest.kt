@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private fun goodEntry(
-    type: Int = 0,
+    type: GoodResourceType = GoodResourceType.BONUS,
     appearanceRatio: Int = 0,
     disappearanceProbability: Int = 0,
 ): GoodEntry = GoodEntry(
@@ -30,7 +30,7 @@ private fun fileWithGoods(entries: List<GoodEntry>): Civ3File = Civ3File(
 class GoodEntryValidationTest : FunSpec({
 
     test("returns no issues for a Bonus Resource with both fields disabled") {
-        val file = fileWithGoods(listOf(goodEntry(type = 0, appearanceRatio = 0, disappearanceProbability = 0)))
+        val file = fileWithGoods(listOf(goodEntry(type = GoodResourceType.BONUS, appearanceRatio = 0, disappearanceProbability = 0)))
 
         validateGoodBonusResourceDisabledFields(file) shouldBe emptyList()
     }
@@ -38,8 +38,8 @@ class GoodEntryValidationTest : FunSpec({
     test("returns no issues for Luxury/Strategic entries regardless of appearance/disappearance values") {
         val file = fileWithGoods(
             listOf(
-                goodEntry(type = 1, appearanceRatio = 100, disappearanceProbability = 250),
-                goodEntry(type = 2, appearanceRatio = 0, disappearanceProbability = 0),
+                goodEntry(type = GoodResourceType.LUXURY, appearanceRatio = 100, disappearanceProbability = 250),
+                goodEntry(type = GoodResourceType.STRATEGIC, appearanceRatio = 0, disappearanceProbability = 0),
             ),
         )
 
@@ -47,7 +47,7 @@ class GoodEntryValidationTest : FunSpec({
     }
 
     test("flags a Bonus Resource with a nonzero appearanceRatio") {
-        val file = fileWithGoods(listOf(goodEntry(type = 0, appearanceRatio = 100)))
+        val file = fileWithGoods(listOf(goodEntry(type = GoodResourceType.BONUS, appearanceRatio = 100)))
 
         validateGoodBonusResourceDisabledFields(file) shouldBe listOf(
             ValidationIssue(
@@ -62,7 +62,7 @@ class GoodEntryValidationTest : FunSpec({
     }
 
     test("flags a Bonus Resource with a nonzero disappearanceProbability") {
-        val file = fileWithGoods(listOf(goodEntry(type = 0, disappearanceProbability = 250)))
+        val file = fileWithGoods(listOf(goodEntry(type = GoodResourceType.BONUS, disappearanceProbability = 250)))
 
         validateGoodBonusResourceDisabledFields(file) shouldBe listOf(
             ValidationIssue(

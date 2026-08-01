@@ -20,7 +20,7 @@ private fun validWmapEntry(resourceIds: List<Int> = emptyList()): WmapEntry = Wm
 private fun validGoodEntry(): GoodEntry = GoodEntry(
     name = "",
     civilopediaEntry = "",
-    type = 0,
+    type = GoodResourceType.BONUS,
     appearanceRatio = 0,
     disappearanceProbability = 0,
     icon = 0,

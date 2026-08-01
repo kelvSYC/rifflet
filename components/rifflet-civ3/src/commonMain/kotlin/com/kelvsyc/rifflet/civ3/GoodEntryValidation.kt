@@ -15,7 +15,7 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
 fun validateGoodBonusResourceDisabledFields(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<GoodSection>().singleOrNull() ?: return emptyList()
     return section.entries.mapIndexedNotNull { index, entry ->
-        if (entry.typeEnum != GoodResourceType.BONUS) return@mapIndexedNotNull null
+        if (entry.type != GoodResourceType.BONUS) return@mapIndexedNotNull null
         if (entry.appearanceRatio == 0 && entry.disappearanceProbability == 0) return@mapIndexedNotNull null
         ValidationIssue(
             ValidationSeverity.ERROR,

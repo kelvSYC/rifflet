@@ -2,6 +2,7 @@ package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.PrtoEntry
+import com.kelvsyc.rifflet.civ3.PrtoDomain
 import com.kelvsyc.rifflet.civ3.PrtoUnitStatistics
 import okio.Buffer
 import okio.ByteString
@@ -62,7 +63,7 @@ internal object PrtoEntryParser {
         val aiStrategies = item.readIntLe()
         val availableTo = item.readIntLe()
         val flags2 = item.readByteString(8L)
-        val type = item.readIntLe()
+        val type = decodeEnum("PrtoEntry.type", item.readIntLe(), PrtoDomain.entries)
         val otherStrategy = item.readIntLe()
         val hpBonus = item.readIntLe()
         val hasFlags3 = item.size >= 20L

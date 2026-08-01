@@ -855,7 +855,7 @@ class Civ3RootParserTest : FunSpec({
                             male3 = "", female3 = "",
                             male4 = "", female4 = "",
                         ),
-                        corruption = 0,
+                        corruption = GovtCorruption.MINIMAL,
                         immuneTo = 0,
                         diplomatsAre = 0,
                         spiesAre = 0,
@@ -958,7 +958,7 @@ class Civ3RootParserTest : FunSpec({
                 name = "Rome",
                 noun = "Romans",
                 eras = listOf(RaceEraFilenames("anc_fwd", "anc_rev")),
-                cultureGroup = 0,
+                cultureGroup = RaceCultureGroup.AMERICAN,
                 civilizationGender = 0,
                 personality = RacePersonality(favoriteGovernment = 0, shunnedGovernment = 0, aggressionLevel = 0),
                 uniqueCivilizationCounter = 0,
@@ -1028,7 +1028,7 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            GoodSection(listOf(GoodEntry("Wine", "", 1, 50, 0, 12, -1, 0, 0, 3))),
+            GoodSection(listOf(GoodEntry("Wine", "", GoodResourceType.LUXURY, 50, 0, 12, -1, 0, 0, 3))),
         )
     }
 
@@ -1109,7 +1109,7 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            ClnySection(listOf(ClnyEntry(2, 0, 5, 15, 3))),
+            ClnySection(listOf(ClnyEntry(2, 0, 5, 15, ClnyImprovementType.OUTPOST))),
         )
     }
 
@@ -1423,7 +1423,7 @@ class Civ3RootParserTest : FunSpec({
                         aiStrategies = 0,
                         availableTo = -1,
                         flags2 = ByteString.of(*ByteArray(8)),
-                        type = 0,
+                        type = PrtoDomain.LAND,
                         otherStrategy = -1,
                         standardOrders = 0,
                         specialActions = 0,
@@ -1486,7 +1486,7 @@ class Civ3RootParserTest : FunSpec({
                         aiStrategies = 0,
                         availableTo = -1,
                         flags2 = ByteString.of(*ByteArray(8)),
-                        type = 0,
+                        type = PrtoDomain.LAND,
                         otherStrategy = -1,
                         standardOrders = 0,
                         specialActions = 0,

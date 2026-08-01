@@ -20,7 +20,7 @@ private fun validGovtEntry(unknown: ByteString = ByteString.of(0, 0, 0, 0)) = Go
         male3 = "", female3 = "",
         male4 = "", female4 = "",
     ),
-    corruption = 0,
+    corruption = GovtCorruption.MINIMAL,
     immuneTo = 0,
     diplomatsAre = 0,
     spiesAre = 0,

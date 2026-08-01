@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
+import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtRulerTitles
 import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
@@ -42,7 +43,7 @@ internal object GovtEntryParser {
         val female3 = item.readByteString(32L).truncateAtFirstNull()
         val male4 = item.readByteString(32L).truncateAtFirstNull()
         val female4 = item.readByteString(32L).truncateAtFirstNull()
-        val corruption = item.readIntLe()
+        val corruption = decodeEnum("GovtEntry.corruption", item.readIntLe(), GovtCorruption.entries)
         val immuneTo = item.readIntLe()
         val diplomatsAre = item.readIntLe()
         val spiesAre = item.readIntLe()

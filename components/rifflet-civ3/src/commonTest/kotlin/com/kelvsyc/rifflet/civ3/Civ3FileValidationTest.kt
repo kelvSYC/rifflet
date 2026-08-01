@@ -114,7 +114,7 @@ private fun clnyEntry(x: Int, y: Int): ClnyEntry = ClnyEntry(
     owner = 0,
     x = x,
     y = y,
-    improvementType = 0,
+    improvementType = ClnyImprovementType.COLONY,
 )
 
 private fun ctznEntry(defaultCitizen: Int = 0, prerequisite: Int = -1): CtznEntry = CtznEntry(
