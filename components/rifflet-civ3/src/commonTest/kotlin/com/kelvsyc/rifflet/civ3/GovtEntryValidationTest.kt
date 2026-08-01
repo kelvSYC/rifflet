@@ -26,7 +26,7 @@ private fun govtEntry(
         male3 = "", female3 = "",
         male4 = "", female4 = "",
     ),
-    corruption = corruption,
+    corruption = GovtCorruption.entries[corruption],
     immuneTo = -1,
     diplomatsAre = 0,
     spiesAre = 0,
@@ -67,21 +67,7 @@ class GovtEntryValidationTest : FunSpec({
         validateGovtCorruption(file) shouldBe emptyList()
     }
 
-    test("flags a corruption value outside the documented 0-6 range") {
-        val file = fileWithGovts(listOf(govtEntry(corruption = 7)))
-
-        validateGovtCorruption(file) shouldBe listOf(
-            ValidationIssue(
-                ValidationSeverity.ERROR,
-                Civ3SectionIds.GOVT,
-                0,
-                "corruption",
-                "corruption=7 is not a valid GovtCorruption index (0..6)",
-            ),
-        )
-    }
-
-    test("returns no issues when GOVT is absent") {
+test("returns no issues when GOVT is absent") {
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         validateGovtCorruption(file) shouldBe emptyList()
