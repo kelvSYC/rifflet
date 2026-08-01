@@ -1,5 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
+import com.kelvsyc.rifflet.civ3.GameBaseTimeUnit
 import com.kelvsyc.rifflet.civ3.GameEntry
 import com.kelvsyc.rifflet.civ3.GameLockedAlliance
 import com.kelvsyc.rifflet.civ3.GameMpTimers
@@ -197,7 +199,7 @@ class GameEntryParserTest : FunSpec({
             debugMode = 0,
             timeOptions = GameTimeOptions(
                 useTimeLimit = 0,
-                baseTimeUnit = 0,
+                baseTimeUnit = GameBaseTimeUnit.YEARS,
                 startMonth = 1,
                 startWeek = 1,
                 startYear = -4000,
@@ -364,7 +366,7 @@ class GameEntryParserTest : FunSpec({
     test("GameTimeOptions rejects a timescaleNumberOfTurns that does not have exactly 7 elements") {
         shouldThrow<IllegalArgumentException> {
             GameTimeOptions(
-                useTimeLimit = 0, baseTimeUnit = 0, startMonth = 0, startWeek = 0, startYear = 0,
+                useTimeLimit = 0, baseTimeUnit = GameBaseTimeUnit.YEARS, startMonth = 0, startWeek = 0, startYear = 0,
                 minuteTimeLimit = 0, turnTimeLimit = 0,
                 timescaleNumberOfTurns = listOf(1, 2, 3),
                 turnNumberOfTimeUnits = List(7) { 0 },
@@ -375,12 +377,26 @@ class GameEntryParserTest : FunSpec({
     test("GameTimeOptions rejects a turnNumberOfTimeUnits that does not have exactly 7 elements") {
         shouldThrow<IllegalArgumentException> {
             GameTimeOptions(
-                useTimeLimit = 0, baseTimeUnit = 0, startMonth = 0, startWeek = 0, startYear = 0,
+                useTimeLimit = 0, baseTimeUnit = GameBaseTimeUnit.YEARS, startMonth = 0, startWeek = 0, startYear = 0,
                 minuteTimeLimit = 0, turnTimeLimit = 0,
                 timescaleNumberOfTurns = List(7) { 0 },
                 turnNumberOfTimeUnits = listOf(1, 2, 3),
             )
         }
+    }
+
+    test("baseTimeUnit decodes each raw value to the matching GameBaseTimeUnit") {
+        GameBaseTimeUnit.entries.forEachIndexed { raw, expected ->
+            val item = gameItemBinary(baseTimeUnit = raw)
+            GameEntryParser.parse(item).timeOptions?.baseTimeUnit shouldBe expected
+        }
+    }
+
+    test("an out-of-range baseTimeUnit throws Civ3EnumDecodeException") {
+        val item = gameItemBinary(baseTimeUnit = 3)
+        val e = shouldThrow<Civ3EnumDecodeException> { GameEntryParser.parse(item) }
+        e.field shouldBe "GameTimeOptions.baseTimeUnit"
+        e.rawValue shouldBe 3
     }
 
     test("GameLockedAlliance rejects an allianceNames that does not have exactly 5 elements") {

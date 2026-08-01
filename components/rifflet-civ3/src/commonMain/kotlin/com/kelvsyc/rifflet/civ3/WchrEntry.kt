@@ -5,12 +5,15 @@ package com.kelvsyc.rifflet.civ3
  *
  * Each setting is recorded as both a "selected" value (what was requested) and an "actual" value
  * (what was rolled — only relevant when the selected value is a "Random" sentinel).
+ *
+ * @param selectedBarbarianActivity The "Barbarian Activity" dropdown's requested value.
+ * @param actualBarbarianActivity The "Barbarian Activity" dropdown's rolled value.
  */
 data class WchrEntry(
     val selectedClimate: Int,
     val actualClimate: Int,
-    val selectedBarbarianActivity: Int,
-    val actualBarbarianActivity: Int,
+    val selectedBarbarianActivity: BarbarianActivity,
+    val actualBarbarianActivity: BarbarianActivity,
     val selectedLandform: Int,
     val actualLandform: Int,
     val selectedOceanCoverage: Int,
