@@ -1,6 +1,9 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.BarbarianActivity
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.WchrEntry
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.Buffer
@@ -43,8 +46,8 @@ class WchrEntryParserTest : FunSpec({
         entry shouldBe WchrEntry(
             selectedClimate = 1,
             actualClimate = 1,
-            selectedBarbarianActivity = 2,
-            actualBarbarianActivity = 2,
+            selectedBarbarianActivity = BarbarianActivity.ROAMING,
+            actualBarbarianActivity = BarbarianActivity.ROAMING,
             selectedLandform = 1,
             actualLandform = 1,
             selectedOceanCoverage = 0,
@@ -55,5 +58,33 @@ class WchrEntryParserTest : FunSpec({
             actualAge = 1,
             worldSize = 3,
         )
+    }
+
+    test("selectedBarbarianActivity decodes each raw value (-1..5) to the matching BarbarianActivity") {
+        BarbarianActivity.entries.forEachIndexed { ordinal, expected ->
+            val item = wchrItemBinary(selectedBarbarianActivity = ordinal - 1)
+            WchrEntryParser.parse(item).selectedBarbarianActivity shouldBe expected
+        }
+    }
+
+    test("actualBarbarianActivity decodes each raw value (-1..5) to the matching BarbarianActivity") {
+        BarbarianActivity.entries.forEachIndexed { ordinal, expected ->
+            val item = wchrItemBinary(actualBarbarianActivity = ordinal - 1)
+            WchrEntryParser.parse(item).actualBarbarianActivity shouldBe expected
+        }
+    }
+
+    test("an out-of-range selectedBarbarianActivity throws Civ3EnumDecodeException") {
+        val item = wchrItemBinary(selectedBarbarianActivity = 6)
+        val e = shouldThrow<Civ3EnumDecodeException> { WchrEntryParser.parse(item) }
+        e.field shouldBe "WchrEntry.selectedBarbarianActivity"
+        e.rawValue shouldBe 6
+    }
+
+    test("an out-of-range actualBarbarianActivity throws Civ3EnumDecodeException") {
+        val item = wchrItemBinary(actualBarbarianActivity = 6)
+        val e = shouldThrow<Civ3EnumDecodeException> { WchrEntryParser.parse(item) }
+        e.field shouldBe "WchrEntry.actualBarbarianActivity"
+        e.rawValue shouldBe 6
     }
 })

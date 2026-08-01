@@ -20,7 +20,7 @@ private fun validGameEntry(
     debugMode = 0,
     timeOptions = GameTimeOptions(
         useTimeLimit = 0,
-        baseTimeUnit = 0,
+        baseTimeUnit = GameBaseTimeUnit.YEARS,
         startMonth = 0,
         startWeek = 0,
         startYear = 0,

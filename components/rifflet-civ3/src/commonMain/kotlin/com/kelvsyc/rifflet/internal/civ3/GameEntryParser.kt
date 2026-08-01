@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
+import com.kelvsyc.rifflet.civ3.GameBaseTimeUnit
 import com.kelvsyc.rifflet.civ3.GameEntry
 import com.kelvsyc.rifflet.civ3.GameLockedAlliance
 import com.kelvsyc.rifflet.civ3.GameMpTimers
@@ -62,7 +63,11 @@ internal object GameEntryParser {
         val debugMode = if (item.size >= 4L) item.readIntLe() else 0
 
         val useTimeLimit = if (item.size >= 4L) item.readIntLe() else null
-        val baseTimeUnit = if (item.size >= 4L) item.readIntLe() else null
+        val baseTimeUnit = if (item.size >= 4L) {
+            decodeEnum("GameTimeOptions.baseTimeUnit", item.readIntLe(), GameBaseTimeUnit.entries)
+        } else {
+            null
+        }
         val startMonth = if (item.size >= 4L) item.readIntLe() else null
         val startWeek = if (item.size >= 4L) item.readIntLe() else null
         val startYear = if (item.size >= 4L) item.readIntLe() else null

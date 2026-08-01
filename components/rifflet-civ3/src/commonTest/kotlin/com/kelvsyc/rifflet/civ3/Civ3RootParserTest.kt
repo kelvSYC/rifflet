@@ -1097,7 +1097,7 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            WchrSection(listOf(WchrEntry(1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 3))),
+            WchrSection(listOf(WchrEntry(1, 1, BarbarianActivity.ROAMING, BarbarianActivity.ROAMING, 1, 1, 0, 0, 1, 1, 1, 1, 3))),
         )
     }
 
@@ -1710,7 +1710,7 @@ class Civ3RootParserTest : FunSpec({
                         debugMode = 0,
                         timeOptions = GameTimeOptions(
                             useTimeLimit = 0,
-                            baseTimeUnit = 0,
+                            baseTimeUnit = GameBaseTimeUnit.YEARS,
                             startMonth = 1,
                             startWeek = 1,
                             startYear = -4000,

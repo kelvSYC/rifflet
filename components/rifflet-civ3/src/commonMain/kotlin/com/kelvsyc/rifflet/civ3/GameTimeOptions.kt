@@ -16,7 +16,7 @@ package com.kelvsyc.rifflet.civ3
  * no "MP Timers" sub-section in its "Time Options" groupbox at all.
  *
  * @param useTimeLimit The "Time Limit" checkbox.
- * @param baseTimeUnit The "Base unit of time" dropdown (e.g. Years, Turns).
+ * @param baseTimeUnit The "Base unit of time" dropdown.
  * @param startMonth The "Start Date" group's Month field.
  * @param startWeek The "Start Date" group's Week field.
  * @param startYear The "Start Date" group's Year field.
@@ -28,7 +28,7 @@ package com.kelvsyc.rifflet.civ3
  */
 data class GameTimeOptions(
     val useTimeLimit: Int,
-    val baseTimeUnit: Int,
+    val baseTimeUnit: GameBaseTimeUnit,
     val startMonth: Int,
     val startWeek: Int,
     val startYear: Int,
