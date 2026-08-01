@@ -1,6 +1,8 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.PrtoEntry
+import com.kelvsyc.rifflet.civ3.PrtoDomain
 import com.kelvsyc.rifflet.civ3.PrtoUnitStatistics
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
@@ -54,7 +56,7 @@ private fun prtoItemBinary(
     aiStrategies: Int = 0,
     availableTo: Int = -1,
     flags2: ByteString = ByteString.of(*ByteArray(8)),
-    type: Int = 0,
+    type: Int = 0, // Raw binary value before parser conversion to PrtoDomain
     otherStrategy: Int = -1,
     hpBonus: Int = 0,
     standardOrders: Int = 0,
@@ -163,7 +165,7 @@ class PrtoEntryParserTest : FunSpec({
             aiStrategies = 0,
             availableTo = -1,
             flags2 = ByteString.of(*ByteArray(8)),
-            type = 0,
+            type = PrtoDomain.LAND,
             otherStrategy = -1,
             standardOrders = 0,
             specialActions = 0,
@@ -269,6 +271,24 @@ class PrtoEntryParserTest : FunSpec({
         }
         shouldThrow<RiffletParseException> { PrtoEntryParser.parse(buffer, terrCount = 14) }
     }
+
+    test("type decodes each raw value to the matching PrtoDomain") {
+        val item = prtoItemBinary(type = 0)
+        PrtoEntryParser.parse(item, terrCount = 14).type shouldBe PrtoDomain.LAND
+
+        val item2 = prtoItemBinary(type = 1)
+        PrtoEntryParser.parse(item2, terrCount = 14).type shouldBe PrtoDomain.SEA
+
+        val item3 = prtoItemBinary(type = 2)
+        PrtoEntryParser.parse(item3, terrCount = 14).type shouldBe PrtoDomain.AIR
+    }
+
+    test("an out-of-range type throws Civ3EnumDecodeException") {
+        val item = prtoItemBinary(type = 3)
+        val e = shouldThrow<Civ3EnumDecodeException> { PrtoEntryParser.parse(item, terrCount = 12) }
+        e.field shouldBe "PrtoEntry.type"
+        e.rawValue shouldBe 3
+    }
 })
 
 /** Builds a well-formed [PrtoEntry] with all-zero/empty values, for domain-invariant tests that
@@ -294,7 +314,7 @@ private fun wellFormedPrtoEntry(
     aiStrategies = 0,
     availableTo = 0,
     flags2 = flags2,
-    type = 0, otherStrategy = 0,
+    type = PrtoDomain.LAND, otherStrategy = 0,
     standardOrders = 0,
     specialActions = 0,
     workerActions = 0,

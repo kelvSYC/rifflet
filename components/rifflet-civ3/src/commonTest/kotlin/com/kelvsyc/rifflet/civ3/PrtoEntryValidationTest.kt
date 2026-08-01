@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import okio.ByteString
 
 private fun prtoEntry(
-    type: Int = 0,
+    type: PrtoDomain = PrtoDomain.LAND,
     abilities: Int = 0,
     aiStrategies: Int = 0,
     otherStrategy: Int = -1,
@@ -108,32 +108,6 @@ private fun fileWithPrtosAndRaces(prtos: List<PrtoEntry>, raceCount: Int): Civ3F
 )
 
 class PrtoEntryValidationTest : FunSpec({
-
-    test("returns no issues for every documented type value (0-2)") {
-        val file = fileWithPrtos((0..2).map { prtoEntry(type = it) })
-
-        validatePrtoDomain(file) shouldBe emptyList()
-    }
-
-    test("flags a type value outside the documented 0-2 range") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 3)))
-
-        validatePrtoDomain(file) shouldBe listOf(
-            ValidationIssue(
-                ValidationSeverity.ERROR,
-                Civ3SectionIds.PRTO,
-                0,
-                "type",
-                "type=3 is not a valid PrtoDomain index (0..2)",
-            ),
-        )
-    }
-
-    test("returns no issues when PRTO is absent") {
-        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
-
-        validatePrtoDomain(file) shouldBe emptyList()
-    }
 
     test("returns no issues when armyAbility and armyStrategy agree") {
         val bothSet = prtoEntry(abilities = 1 shl 18, aiStrategies = 1 shl 4)
@@ -484,7 +458,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("skips non-LAND entries even when a strategy is set without prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 1, aiStrategies = 1 shl 0)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 0)))
 
         validatePrtoLandStrategyPrerequisites(file) shouldBe emptyList()
     }
@@ -497,10 +471,10 @@ class PrtoEntryValidationTest : FunSpec({
 
     test("returns no issues when every sea strategy's prerequisites are satisfied") {
         val entries = listOf(
-            prtoEntry(type = 1, aiStrategies = 1 shl 8, attack = 1, defense = 1),
-            prtoEntry(type = 1, aiStrategies = 1 shl 10, specialActions = 1 shl 1),
-            prtoEntry(type = 1, aiStrategies = 1 shl 11, abilities = 1 shl 8, specialActions = 1 shl 1),
-            prtoEntry(type = 1, aiStrategies = 1 shl 17, abilities = 1 shl 24, specialActions = 1 shl 1),
+            prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 8, attack = 1, defense = 1),
+            prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 10, specialActions = 1 shl 1),
+            prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 11, abilities = 1 shl 8, specialActions = 1 shl 1),
+            prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 17, abilities = 1 shl 24, specialActions = 1 shl 1),
         )
         val file = fileWithPrtos(entries)
 
@@ -508,7 +482,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags navalPowerStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 1, aiStrategies = 1 shl 8)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 8)))
 
         validatePrtoSeaStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -522,7 +496,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags navalTransportStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 1, aiStrategies = 1 shl 10)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 10)))
 
         validatePrtoSeaStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -536,7 +510,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags navalCarrierStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 1, aiStrategies = 1 shl 11)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 11)))
 
         validatePrtoSeaStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -550,7 +524,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags navalMissileTransportStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 1, aiStrategies = 1 shl 17)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 17)))
 
         validatePrtoSeaStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -565,7 +539,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("skips non-SEA entries even when a sea strategy is set without prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 0, aiStrategies = 1 shl 8)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.LAND, aiStrategies = 1 shl 8)))
 
         validatePrtoSeaStrategyPrerequisites(file) shouldBe emptyList()
     }
@@ -579,21 +553,21 @@ class PrtoEntryValidationTest : FunSpec({
     test("returns no issues when every air strategy's prerequisites are satisfied") {
         val entries = listOf(
             prtoEntry(
-                type = 2,
+                type = PrtoDomain.AIR,
                 aiStrategies = 1 shl 6,
                 bombardStrength = 1,
                 operationalRange = 1,
                 airMissions = 1 shl 0,
             ),
             prtoEntry(
-                type = 2,
+                type = PrtoDomain.AIR,
                 aiStrategies = 1 shl 7,
                 attack = 1,
                 operationalRange = 1,
                 airMissions = 1 shl 2,
             ),
             prtoEntry(
-                type = 2,
+                type = PrtoDomain.AIR,
                 aiStrategies = 1 shl 9,
                 operationalRange = 1,
                 specialActions = (1 shl 5) or (1 shl 1),
@@ -605,7 +579,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags airBombardStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 2, aiStrategies = 1 shl 6)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.AIR, aiStrategies = 1 shl 6)))
 
         validatePrtoAirStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -620,7 +594,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags airDefenseStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 2, aiStrategies = 1 shl 7)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.AIR, aiStrategies = 1 shl 7)))
 
         validatePrtoAirStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -634,7 +608,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("flags airTransportStrategy set without its prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 2, aiStrategies = 1 shl 9)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.AIR, aiStrategies = 1 shl 9)))
 
         validatePrtoAirStrategyPrerequisites(file) shouldBe listOf(
             ValidationIssue(
@@ -648,7 +622,7 @@ class PrtoEntryValidationTest : FunSpec({
     }
 
     test("skips non-AIR entries even when an air strategy is set without prerequisites") {
-        val file = fileWithPrtos(listOf(prtoEntry(type = 0, aiStrategies = 1 shl 6)))
+        val file = fileWithPrtos(listOf(prtoEntry(type = PrtoDomain.LAND, aiStrategies = 1 shl 6)))
 
         validatePrtoAirStrategyPrerequisites(file) shouldBe emptyList()
     }

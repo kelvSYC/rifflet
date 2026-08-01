@@ -51,7 +51,7 @@ fun validateBarbarianUnitDomains(file: Civ3File): List<ValidationIssue> {
     fun check(field: String, index: Int, expected: PrtoDomain): ValidationIssue? {
         if (index == -1) return null
         val unit = prtos.getOrNull(index) ?: return null
-        if (unit.domainEnum == expected) return null
+        if (unit.type == expected) return null
         val expectedName = expected.name.lowercase().replaceFirstChar { it.uppercase() }
         return ValidationIssue(
             ValidationSeverity.ERROR,
@@ -59,7 +59,7 @@ fun validateBarbarianUnitDomains(file: Civ3File): List<ValidationIssue> {
             0,
             field,
             "$field=$index (${unit.name}) has type=${unit.type}, expected a $expectedName unit " +
-                "(type=${expected.ordinal})",
+                "(type=$expected)",
         )
     }
 

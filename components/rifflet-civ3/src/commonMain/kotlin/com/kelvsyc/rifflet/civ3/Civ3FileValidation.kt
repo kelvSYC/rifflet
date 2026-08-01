@@ -28,7 +28,6 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateCtznDefaultPrerequisite(file) },
     ValidationRule { file -> validateBldgSpaceshipPartBounds(file) },
     ValidationRule { file -> validateGovtCorruption(file) },
-    ValidationRule { file -> validatePrtoDomain(file) },
     ValidationRule { file -> validatePrtoArmyStrategyConsistency(file) },
     ValidationRule { file -> validatePrtoKingStrategyConsistency(file) },
     ValidationRule { file -> validatePrtoOtherStrategyBounds(file) },

@@ -95,7 +95,7 @@ data class PrtoEntry(
     val aiStrategies: Int,
     val availableTo: Int,
     val flags2: ByteString,
-    val type: Int,
+    val type: PrtoDomain,
     val otherStrategy: Int,
     val standardOrders: Int,
     val specialActions: Int,
