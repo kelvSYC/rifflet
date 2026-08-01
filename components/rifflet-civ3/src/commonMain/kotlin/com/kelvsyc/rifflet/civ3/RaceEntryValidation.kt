@@ -65,7 +65,7 @@ fun validateRaceBarbarianPlaceholder(file: Civ3File): List<ValidationIssue> {
         } else {
             null
         },
-        if (entry.cultureGroupEnum != RaceCultureGroup.NONE) {
+        if (entry.cultureGroup != RaceCultureGroup.NONE) {
             issue("cultureGroup", "no Culture Group (cultureGroup=-1, was ${entry.cultureGroup})")
         } else {
             null
@@ -132,26 +132,3 @@ fun validateRaceMinCount(file: Civ3File): List<ValidationIssue> {
     )
 }
 
-/**
- * Flags a [RaceEntry] whose [RaceEntry.cultureGroup] doesn't decode into a [RaceCultureGroup].
- * Returns no issues if the `RACE` section is absent from [file].
- *
- * Every real official file's civilizations (barbarian placeholder included) have a `cultureGroup`
- * value in the documented -1..4 range, with zero exceptions.
- */
-fun validateRaceCultureGroup(file: Civ3File): List<ValidationIssue> {
-    val section = file.sections.filterIsInstance<RaceSection>().singleOrNull() ?: return emptyList()
-    return section.entries.mapIndexedNotNull { index, entry ->
-        if (entry.cultureGroupEnum != null) {
-            null
-        } else {
-            ValidationIssue(
-                ValidationSeverity.ERROR,
-                Civ3SectionIds.RACE,
-                index,
-                "cultureGroup",
-                "cultureGroup=${entry.cultureGroup} is not a valid RaceCultureGroup index (-1..4)",
-            )
-        }
-    }
-}

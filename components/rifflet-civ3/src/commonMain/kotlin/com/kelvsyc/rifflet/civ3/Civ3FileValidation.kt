@@ -50,7 +50,6 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateGovtDefaultHasNoPrerequisite(file) },
     ValidationRule { file -> validateGovtTransitionHasNoPrerequisite(file) },
     ValidationRule { file -> validateRaceBarbarianPlaceholder(file) },
-    ValidationRule { file -> validateRaceCultureGroup(file) },
     ValidationRule { file -> validateRaceMaxCount(file) },
     ValidationRule { file -> validateRaceMinCount(file) },
     ValidationRule { file -> validateGoodBonusResourceDisabledFields(file) },

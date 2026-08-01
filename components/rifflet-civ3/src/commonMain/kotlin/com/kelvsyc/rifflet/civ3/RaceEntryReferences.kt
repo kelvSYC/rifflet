@@ -41,10 +41,3 @@ fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
  * too.
  */
 enum class RaceCultureGroup { NONE, AMERICAN, EUROPEAN, MEDITERRANEAN, MID_EAST, ASIAN }
-
-/**
- * Decodes [RaceEntry.cultureGroup] into [RaceCultureGroup], or `null` if the raw value is outside
- * the documented -1..4 range.
- */
-val RaceEntry.cultureGroupEnum: RaceCultureGroup?
-    get() = RaceCultureGroup.entries.getOrNull(cultureGroup + 1)

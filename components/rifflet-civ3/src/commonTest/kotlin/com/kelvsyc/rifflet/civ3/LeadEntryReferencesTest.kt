@@ -96,7 +96,7 @@ private fun validRaceEntry(): RaceEntry = RaceEntry(
     name = "Rome",
     noun = "",
     eras = emptyList(),
-    cultureGroup = 0,
+    cultureGroup = RaceCultureGroup.AMERICAN,
     civilizationGender = 0,
     personality = RacePersonality(favoriteGovernment = 0, shunnedGovernment = 0, aggressionLevel = 0),
     uniqueCivilizationCounter = 0,

@@ -1,10 +1,12 @@
 package com.kelvsyc.rifflet.internal.civ3
 
+import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import com.kelvsyc.rifflet.civ3.RaceEraFilenames
 import com.kelvsyc.rifflet.civ3.RaceGovernor
 import com.kelvsyc.rifflet.civ3.RaceLeader
 import com.kelvsyc.rifflet.civ3.RacePersonality
+import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -28,6 +30,7 @@ private fun raceItemBinary(
     unknown: ByteArray = ByteArray(4),
     includeUnitTypeForKing: Boolean = true,
     includeTrailingFields: Boolean = true,
+    cultureGroup: Int = 0,
 ): Buffer = Buffer().apply {
     writeIntLe(cityNames.size)
     cityNames.forEach { writePaddedField(it, 24) }
@@ -43,7 +46,7 @@ private fun raceItemBinary(
         writePaddedField(forward, 260)
         writePaddedField(reverse, 260)
     }
-    writeIntLe(0) // cultureGroup
+    writeIntLe(cultureGroup) // cultureGroup
     writeIntLe(0) // leaderGender
     writeIntLe(0) // civilizationGender
     writeIntLe(0) // aggressionLevel
@@ -87,7 +90,7 @@ class RaceEntryParserTest : FunSpec({
             name = "Rome",
             noun = "Romans",
             eras = listOf(RaceEraFilenames("anc_fwd", "anc_rev"), RaceEraFilenames("mid_fwd", "mid_rev")),
-            cultureGroup = 0,
+            cultureGroup = RaceCultureGroup.AMERICAN,
             civilizationGender = 0,
             personality = RacePersonality(favoriteGovernment = 0, shunnedGovernment = 0, aggressionLevel = 0),
             uniqueCivilizationCounter = 0,
@@ -195,5 +198,19 @@ class RaceEntryParserTest : FunSpec({
             writeIntLe(Int.MAX_VALUE) // numberOfScientificLeaders
         }
         shouldThrow<RiffletParseException> { RaceEntryParser.parse(buffer, erasCount = 0) }
+    }
+
+    test("cultureGroup decodes each raw value (-1..4) to the matching RaceCultureGroup") {
+        RaceCultureGroup.entries.forEachIndexed { ordinal, expected ->
+            val item = raceItemBinary(cultureGroup = ordinal - 1, eraFilenames = emptyList())
+            RaceEntryParser.parse(item, erasCount = 0).cultureGroup shouldBe expected
+        }
+    }
+
+    test("a cultureGroup raw value outside -1..4 throws Civ3EnumDecodeException") {
+        val item = raceItemBinary(cultureGroup = 5, eraFilenames = emptyList())
+        val e = shouldThrow<Civ3EnumDecodeException> { RaceEntryParser.parse(item, erasCount = 0) }
+        e.field shouldBe "RaceEntry.cultureGroup"
+        e.rawValue shouldBe 5
     }
 })

@@ -87,7 +87,7 @@ private fun validRaceEntry(name: String): RaceEntry = RaceEntry(
     name = name,
     noun = "",
     eras = emptyList(),
-    cultureGroup = -1,
+    cultureGroup = RaceCultureGroup.NONE,
     civilizationGender = 0,
     personality = RacePersonality(favoriteGovernment = -1, shunnedGovernment = -1, aggressionLevel = 0),
     uniqueCivilizationCounter = 0,

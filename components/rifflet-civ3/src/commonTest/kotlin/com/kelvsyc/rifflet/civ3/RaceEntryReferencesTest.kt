@@ -18,7 +18,7 @@ private fun validRaceEntry(
     name = "Rome",
     noun = "",
     eras = emptyList(),
-    cultureGroup = 0,
+    cultureGroup = RaceCultureGroup.AMERICAN,
     civilizationGender = 0,
     personality = RacePersonality(
         favoriteGovernment = favoriteGovernment,
