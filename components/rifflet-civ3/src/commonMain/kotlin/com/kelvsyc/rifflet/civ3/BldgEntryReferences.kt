@@ -60,12 +60,10 @@ fun BldgEntry.requiredResource2Good(goods: List<GoodEntry>): GoodEntry? =
     goods.getOrNull(requiredResources.requiredResource2)
 
 /**
- * Resolves [BldgUnitsProduced.unitProduced] against [prtos]. A `PRTO` section index — explicitly
- * documented by existing reverse-engineering work ("Unit produced (PRTO ref)"), not merely a
- * naming-based inference. Returns `null` outright if [BldgEntry.unitsProduced] itself is `null`
- * (a VANILLA/PTW building was never capable of specifying a produced unit at all) — distinct from
- * the previous flat-field behavior, which defaulted the absent field to `0` and could accidentally
- * resolve against index 0.
+ * Resolves [BldgUnitsProduced.unitProduced] against [prtos]. Returns `null` outright if
+ * [BldgEntry.unitsProduced] itself is `null` (a VANILLA/PTW building was never capable of
+ * specifying a produced unit at all) — distinct from the previous flat-field behavior, which
+ * defaulted the absent field to `0` and could accidentally resolve against index 0.
  */
 fun BldgEntry.unitProducedPrto(prtos: List<PrtoEntry>): PrtoEntry? =
     unitsProduced?.let { prtos.getOrNull(it.unitProduced) }

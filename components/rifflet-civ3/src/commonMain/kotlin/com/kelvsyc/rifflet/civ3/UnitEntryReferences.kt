@@ -13,8 +13,6 @@ fun UnitEntry.experienceLevelExpr(experienceLevels: List<ExprEntry>): ExprEntry?
     experienceLevels.getOrNull(experienceLevel)
 
 /**
- * Resolves [UnitEntry.unitType] against [prtos]. A `PRTO#` (unit prototype) reference —
- * explicitly documented by existing reverse-engineering work, not merely a naming-based
- * inference.
+ * Resolves [UnitEntry.unitType] against [prtos].
  */
 fun UnitEntry.unitTypePrto(prtos: List<PrtoEntry>): PrtoEntry? = prtos.getOrNull(unitType)

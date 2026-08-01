@@ -3,9 +3,10 @@ package com.kelvsyc.rifflet.civ3
 import okio.ByteString
 
 /**
- * One entry of the `WMAP` section: the file's world-map generation settings. In practice there
- * is always exactly one `WMAP` entry per file, per existing reverse-engineering documentation's
- * own "(1)" annotation on the section's item count.
+ * One entry of the `WMAP` section: the file's world-map generation settings.
+ *
+ * In practice there is always exactly one `WMAP` entry per file, per existing
+ * reverse-engineering documentation's own "(1)" annotation on the section's item count.
  *
  * @param resourceIds Likely `GOOD` section indices identifying which resources are available on
  *   this map — inferred from a separate reverse-engineered reference implementation's comment;

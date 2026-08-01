@@ -11,7 +11,7 @@ package com.kelvsyc.rifflet.civ3
  * @param allowCities The "Allow Cities" checkbox.
  * @param allowColonies The "Allow Colonies" checkbox.
  * @param impassable The "Impassable" checkbox — `null` in [Civ3FormatEra.VANILLA] files, which
- *   predate this and the other 4 checkboxes below.
+ *   predate this and the other 5 checkboxes below.
  * @param impassableByWheeled The "Impassable by Wheeled Units" checkbox — same era treatment as
  *   [impassable].
  * @param allowAirfields The "Allow Airfields" checkbox — same era treatment as [impassable].

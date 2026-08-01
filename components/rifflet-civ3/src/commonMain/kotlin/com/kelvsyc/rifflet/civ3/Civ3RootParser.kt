@@ -16,8 +16,10 @@ internal val BICX_MAGIC = ChunkId("BICX")
 
 /**
  * Parses a Civ3 BIC/BIX/BIQ file — compressed with PKWare DCL "Implode" or not — into a
- * [Civ3File]. Compression is auto-detected: if the leading 4 bytes are not a recognized file
- * magic, the whole source is treated as a PKWare Implode stream and decompressed before parsing.
+ * [Civ3File].
+ *
+ * Compression is auto-detected: if the leading 4 bytes are not a recognized file magic, the whole
+ * source is treated as a PKWare Implode stream and decompressed before parsing.
  *
  * This only checks whether the bytes obey the wire format's own shape — never whether the
  * resulting [Civ3File]'s contents make sense as a Civ3 scenario (a building whose required

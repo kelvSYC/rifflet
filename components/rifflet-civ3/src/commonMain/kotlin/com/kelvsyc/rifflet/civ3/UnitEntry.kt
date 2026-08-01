@@ -6,13 +6,12 @@ package com.kelvsyc.rifflet.civ3
  * @param legacyName [Civ3FormatEra.VANILLA]-era name field; unused in
  *   [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files per both reverse-engineering sources —
  *   see [name].
- * @param experienceLevel An `EXPR` section index, per the Conquests Rules Editor (not merely a
- *   naming-based inference).
+ * @param experienceLevel An `EXPR` section index, per the Conquests Rules Editor.
  * @param owner Meaning depends on [ownerType]: a `RACE` section index when Civ, a player index
  *   (0-based) when Player, or a barbarian tribe ID when Barbarian — same treatment as
  *   `SlocEntry.owner`/`ClnyEntry.owner`.
- * @param unitType A `PRTO#` (unit prototype) reference — explicitly documented by existing
- *   reverse-engineering work, not merely a naming-based inference.
+ * @param unitType A `PRTO#` (unit prototype) reference, per existing reverse-engineering
+ *   documentation of the BIX/BIQ format.
  * @param ptwName The [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era name field — authoritative
  *   when present; empty both when a [Civ3FormatEra.PTW]-era file wrote it blank and when a
  *   shorter [Civ3FormatEra.VANILLA]-era item omits it entirely — see [name].
