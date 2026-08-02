@@ -1097,7 +1097,15 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            WchrSection(listOf(WchrEntry(1, 1, BarbarianActivity.ROAMING, BarbarianActivity.ROAMING, 1, 1, 0, 0, 1, 1, 1, 1, 3))),
+            WchrSection(
+                listOf(
+                    WchrEntry(
+                        Climate.NORMAL, Climate.NORMAL, BarbarianActivity.ROAMING, BarbarianActivity.ROAMING,
+                        Landform.CONTINENTS, Landform.CONTINENTS, OceanCoverage.EIGHTY_PERCENT, OceanCoverage.EIGHTY_PERCENT,
+                        Temperature.TEMPERATE, Temperature.TEMPERATE, Age.FOUR_BILLION_YEARS, Age.FOUR_BILLION_YEARS, 3,
+                    ),
+                ),
+            ),
         )
     }
 
