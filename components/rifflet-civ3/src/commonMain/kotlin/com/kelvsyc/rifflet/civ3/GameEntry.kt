@@ -59,7 +59,7 @@ import okio.ByteString
  *   satisfy this property's own size invariant.
  * @param victoryPointLimits The `Victory Point Limits` tab, in its entirety — absent outside
  *   [Civ3FormatEra.CONQUESTS]. See [GameVictoryPointLimits].
- * @param unknown 5 bytes with zero documented behavior from either reverse-engineering source; preserved raw,
+ * @param unknown 5 bytes with zero documented behavior; preserved raw,
  *   not validated. Same treatment as `RaceEntry.unknown`. Absent from [Civ3FormatEra.PTW] files,
  *   read defensively.
  * @param lockedAlliance The `Locked Alliance` tab, in its entirety — absent outside
@@ -67,28 +67,26 @@ import okio.ByteString
  * @param plagueSettings The `Disasters!` tab's "Plague Information" groupbox — absent outside
  *   [Civ3FormatEra.CONQUESTS]. See [GamePlagueSettings]. Does not include [eruptionPeriod] (the
  *   same tab's separate "Volcanos" groupbox).
- * @param unknown2 264 bytes with zero documented *meaning* from either reverse-engineering source, though
- *   both sources agree on its byte sub-structure (a 4-byte int followed by a 260-byte string
- *   region) without confirming what either part represents; preserved raw as a single opaque
- *   region, not split, matching a separate reverse-engineered reference implementation's own
- *   grouping. Absent from [Civ3FormatEra.PTW]
- *   files, read defensively. The leading int defaults to `0` and the string region defaults to
- *   the literal ASCII text `"Unknown"` — reproduced identically across multiple unrelated real
- *   files, which argues against this being uninitialized memory (unlike the padding bytes that
- *   follow it, which vary and do look uninitialized). Structural position (directly between the
- *   plague fields and [eruptionPeriod]) is suggestive but unconfirmed: possibly a name field for
- *   Conquests' other catastrophe type (eruptions), analogous to `GamePlagueSettings.plagueName`.
- * @param mapVisible An unconditional 1-byte field per both reverse-engineering sources' original
- *   documentation — but absent from [Civ3FormatEra.PTW] files along with every other field from
+ * @param unknown2 264 bytes with zero documented *meaning*, though its byte sub-structure (a
+ *   4-byte int followed by a 260-byte string region) is documented without confirming what either
+ *   part represents; preserved raw as a single opaque region, not split, matching a separate
+ *   reverse-engineered reference implementation's own grouping. Absent from [Civ3FormatEra.PTW]
+ *   files, read defensively. The leading int is always
+ *   `0` or `1`, and the string region is always empty or the literal ASCII text `"Unknown"`,
+ *   including in files where [eruptionPeriod] is set to a non-default value — unlike the padding
+ *   bytes that follow it, which vary and look uninitialized, arguing against this field itself
+ *   being uninitialized memory.
+ * @param mapVisible An unconditional 1-byte field per existing reverse-engineering documentation
+ *   — but absent from [Civ3FormatEra.PTW] files along with every other field from
  *   [civAllianceStatuses] onward, so "unconditional" only holds for [Civ3FormatEra.CONQUESTS].
  *   Distinct from the BIX-only `mapVisible (long)` field this codebase does not parse (see the
  *   class-level note above).
- * @param unknown3 4 bytes with zero documented behavior from either reverse-engineering source; preserved
- *   raw, not validated. Absent from [Civ3FormatEra.PTW] files, read defensively. Defaults to
- *   `0xFFFFFFFF` (-1 as a signed Int) — matching Civ3's common "-1 = none/unset" sentinel
+ * @param unknown3 4 bytes with zero documented behavior; preserved
+ *   raw, not validated. Absent from [Civ3FormatEra.PTW] files, read defensively. Always `0` or
+ *   `0xFFFFFFFF` (-1 as a signed Int) — the `-1` matches Civ3's common "-1 = none/unset" sentinel
  *   convention used elsewhere in this format (e.g. `barbarianTribe`, `victoryPointLocation`),
- *   suggesting this may be a reference-like field (an index) rather than a flag or count field,
- *   which would more typically default to `0`. Not confirmed further.
+ *   though unlike those fields this one never takes any other value, so whether it's genuinely a
+ *   reference-like index or something else is unconfirmed.
  * @param eruptionPeriod The `Disasters!` tab's "Volcanos" groupbox "Max Eruption Period" field —
  *   the last field present in every [Civ3FormatEra.CONQUESTS] file regardless of the [mpTimers]
  *   cutoff below — but, like every field since [civAllianceStatuses], absent from

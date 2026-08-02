@@ -5,10 +5,15 @@ import okio.ByteString
 /**
  * One entry of the `LEAD` section: a player/leader slot definition.
  *
- * @param unknown 8 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown 8 bytes with zero documented behavior;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param customCivData Int-shaped boolean, likely corresponding to the Players tab's
- *   "Civilization Defaults" checkbox.
+ * @param customCivData Int-shaped boolean corresponding to the Players tab's "Civilization
+ *   Defaults" checkbox, inverted: `1` is the checkbox unchecked (this player's data is customized
+ *   away from the civ's defaults), and `0` is checked (using the civ's default data) — the field's
+ *   own name describes the presence of custom data, the logical negation of the checkbox's own
+ *   "use defaults" framing. A specific [civ] is a prerequisite for `customCivData=1`, since a
+ *   nonspecific civ (`-2`/random or `-3`/any) has no defaults to override in the first place; the
+ *   converse doesn't hold, since a specific [civ] can still use its own defaults.
  * @param startingTechnologyIds `TECH` section indices, per the Players tab's "Free Techs"
  *   listbox.
  * @param difficulty A `DIFF` section index; `-2` is the "Any" sentinel, meaning this starting
@@ -19,8 +24,11 @@ import okio.ByteString
  *   "Civilization" dropdown.
  * @param genderOfLeaderName Int-shaped boolean matching the Players tab's Gender radio buttons:
  *   0 = Male, 1 = Female.
- * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown2 4 bytes with zero documented behavior;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
+ * @param startEmbassies Int-shaped boolean matching the Players tab's "Starts with Embassies"
+ *   checkbox — stored as a raw `Byte`, unlike this entry's other Int-shaped booleans. Not
+ *   inverted, unlike [customCivData].
  */
 data class LeadEntry(
     val customCivData: Int,

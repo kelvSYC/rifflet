@@ -24,8 +24,7 @@ fun TileEntry.cityCity(cities: List<CityEntry>): CityEntry? = cities.getOrNull(c
 /**
  * [TileEntry.bonusGrassland] resolved for [era]: reads [TileEntry.c3cBonusGrassland] for
  * [Civ3FormatEra.CONQUESTS] files, where real per-tile bonus-terrain data lives, or the legacy
- * [TileEntry.bonusGrassland] otherwise. The [Civ3FormatEra.PTW] case is assumed to match
- * [Civ3FormatEra.VANILLA], not yet confirmed against real PTW data.
+ * [TileEntry.bonusGrassland] otherwise, including for [Civ3FormatEra.PTW] files.
  */
 fun TileEntry.bonusGrassland(era: Civ3FormatEra): Boolean =
     if (era == Civ3FormatEra.CONQUESTS) c3cBonusGrassland else bonusGrassland
@@ -100,13 +99,14 @@ fun TileEntry.barbarianCamp(era: Civ3FormatEra): Boolean =
 /**
  * This tile's base terrain type, as a `TERR` section index, resolved for [era]: the low nibble of
  * [TileEntry.c3cTerrain] for [Civ3FormatEra.CONQUESTS] files, where real per-tile terrain data
- * lives, or the low nibble of the legacy [TileEntry.terrain] otherwise.
+ * lives, or the low nibble of the legacy [TileEntry.terrain] otherwise. `null` when
+ * [TileEntry.c3cTerrain] itself is `null`.
  */
-fun TileEntry.baseTerrainIndex(era: Civ3FormatEra): Int =
-    (if (era == Civ3FormatEra.CONQUESTS) c3cTerrain else terrain).toInt() and 0x0F
+fun TileEntry.baseTerrainIndex(era: Civ3FormatEra): Int? =
+    if (era == Civ3FormatEra.CONQUESTS) c3cTerrain?.toInt()?.and(0x0F) else terrain.toInt() and 0x0F
 
 /**
  * Resolves [TileEntry.baseTerrainIndex] against [terrains].
  */
 fun TileEntry.baseTerrain(terrains: List<TerrEntry>, era: Civ3FormatEra): TerrEntry? =
-    terrains.getOrNull(baseTerrainIndex(era))
+    baseTerrainIndex(era)?.let { terrains.getOrNull(it) }

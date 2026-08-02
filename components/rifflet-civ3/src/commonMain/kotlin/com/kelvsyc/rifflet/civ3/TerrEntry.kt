@@ -26,10 +26,10 @@ import okio.ByteString
  *   the terrain this becomes when polluted.
  * @param allowances This terrain type's city/improvement/movement allowances. See
  *   [TerrAllowances].
- * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown 4 bytes with zero documented behavior;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param landmark This terrain type's Conquests-only landmark override. See [TerrLandmark].
- * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown2 4 bytes with zero documented behavior;
  *   preserved raw, not validated.
  * @param terrainFlags Mostly opaque — neither the earlier, BIC-format reverse-engineering
  *   documentation nor the later, fuller BIX/BIQ-format documentation names a single bit for this

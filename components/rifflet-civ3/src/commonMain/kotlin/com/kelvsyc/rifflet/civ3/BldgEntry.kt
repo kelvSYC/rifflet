@@ -35,7 +35,7 @@ import okio.ByteString
  * @param flavors Bitmask membership in the `FLAV` section's 7 flavor slots: bit *n* means this
  *   building belongs to Flavor(*n*+1). See `TechEntry.flavors`'s own KDoc for the identical
  *   scheme on advances and civilizations.
- * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown 4 bytes with zero documented behavior;
  *   preserved raw, not validated.
  * @param unitsProduced The unit this building produces each turn, if any — absent (`null`) from
  *   real VANILLA/PTW files. See [BldgUnitsProduced].

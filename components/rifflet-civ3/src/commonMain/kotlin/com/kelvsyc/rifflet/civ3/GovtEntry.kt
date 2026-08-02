@@ -8,19 +8,23 @@ import okio.ByteString
  *
  * @param defaultType Int-shaped boolean marking this entry as the Default government — the one a
  *   civ starts with before researching any government tech (Despotism, in every real file). Every
- *   real file has at most one such entry; a small number of real multiplayer scenarios have none
- *   at all.
+ *   real file has at most one such entry; a small number of real scenarios (Fall of Rome,
+ *   Napoleonic Europe, each present in both single-player and multiplayer file form) have none at
+ *   all — both give every playable civ a custom starting government via its own player settings
+ *   instead, sidestepping the missing default.
  * @param transitionType Int-shaped boolean marking this entry as the Transition government — the
  *   one a civ falls into after a revolution (Anarchy, in every real file). Every real file has
  *   exactly one such entry. [defaultType] and [transitionType] can both be set on the same entry.
  * @param requiresMaintenance Int-shaped boolean.
- * @param toggle1 `???` — observed: 0 = Republic/Democracy, 1 = other.
+ * @param toggle1 Vestigial — carries leftover, uninitialized memory content rather than real
+ *   government data. No control in the Governments editor's Flags or Espionage groupboxes
+ *   corresponds to it.
  * @param rulerTitles This government's ruler titles. See [GovtRulerTitles].
  * @param relationships The embedded dynamic array; its on-disk count (`numberOfGovernments`) is
  *   not stored separately — `relationships.size` is already that count.
- * @param toggle2 `???` — observed: -1 = Despotism/Communism, 0 = Anarchy/Monarchy,
- *   1 = Republic/Democracy.
- * @param toggle3 `???` — observed: 1 = Republic/Democracy, 0 = other.
+ * @param toggle2 Vestigial, matching [toggle1]; see [toggle3].
+ * @param toggle3 Vestigial, matching [toggle1]. [toggle2], [toggle3], and [unknown] occupy one
+ *   contiguous, uninitialized region of the struct.
  * @param corruption This government's Corruption and Waste severity — see [GovtCorruption] for
  *   what each value means, per the Governments editor's own radio group.
  * @param immuneTo An `ESPN` section index, or `-1` for "None" — see [immuneToEspn]. Per the
@@ -33,8 +37,9 @@ import okio.ByteString
  *   "Hurrying" dropdown.
  * @param prerequisiteTechnology A `TECH` section index, per the Governments editor's own
  *   "Prerequisite" dropdown.
- * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
- *   preserved raw, not validated.
+ * @param unknown 4 bytes with zero documented behavior.
+ *   Vestigial, along with [toggle2] and [toggle3] — see [toggle3]'s own KDoc. Preserved raw, not
+ *   validated.
  * @param unitSupportCosts This government's unit support costs. See [GovtUnitSupportCosts].
  * @param warWeariness See [GovtWarWeariness] for what each value means, per the Governments
  *   editor's own "War Weariness" dropdown.

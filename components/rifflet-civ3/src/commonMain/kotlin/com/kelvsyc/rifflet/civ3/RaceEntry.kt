@@ -26,7 +26,7 @@ import okio.ByteString
  *   civilization belongs to Flavor(*n*+1). The identical scheme as
  *   `TechEntry.flavors`/`BldgEntry.flavors` (see `TechEntry.flavors`'s own KDoc), matching the
  *   `FLAV` section's 7 flavor slots (see `FlavorEntry`).
- * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown 4 bytes with zero documented behavior;
  *   preserved raw, not validated.
  * @param diplomacyTextIndex Likely a dialogue/text-index reference (exact target undetermined);
  *   a separate reverse-engineered reference implementation's editor labels this control "Diplomacy

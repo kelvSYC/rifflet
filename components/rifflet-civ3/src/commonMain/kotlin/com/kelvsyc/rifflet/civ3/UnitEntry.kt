@@ -4,8 +4,8 @@ package com.kelvsyc.rifflet.civ3
  * One entry of the `UNIT` section: a placed unit instance.
  *
  * @param legacyName [Civ3FormatEra.VANILLA]-era name field; unused in
- *   [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files per both reverse-engineering sources —
- *   see [name].
+ *   [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files per existing reverse-engineering
+ *   documentation — see [name].
  * @param experienceLevel An `EXPR` section index, per the Conquests Rules Editor.
  * @param owner Meaning depends on [ownerType]: a `RACE` section index when Civ, a player index
  *   (0-based) when Player, or a barbarian tribe ID when Barbarian — same treatment as
@@ -29,8 +29,9 @@ data class UnitEntry(
     val useCivilizationKing: Int,
 ) {
     /** Resolved display name: prefers [ptwName] (authoritative for
-     * [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files, per both reverse-engineering sources),
-     * falling back to [legacyName] for [Civ3FormatEra.VANILLA]-era files where only that field
-     * is populated. Provisional heuristic, unconfirmed against real Civ3 install data. */
+     * [Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS]-era files, per existing reverse-engineering
+     * documentation), falling back to [legacyName] for [Civ3FormatEra.VANILLA]-era files where
+     * only that field is populated. Provisional heuristic, unconfirmed against real Civ3 install
+     * data. */
     val name: String get() = ptwName.ifBlank { legacyName }
 }
