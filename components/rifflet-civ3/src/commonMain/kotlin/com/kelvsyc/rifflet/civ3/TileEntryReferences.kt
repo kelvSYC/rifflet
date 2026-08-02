@@ -11,8 +11,8 @@ fun TileEntry.resourceGood(goods: List<GoodEntry>): GoodEntry? = goods.getOrNull
 fun TileEntry.colonyClny(colonies: List<ClnyEntry>): ClnyEntry? = colonies.getOrNull(colony.toInt())
 
 /**
- * Resolves [TileEntry.continent] against [continents]. Likely a `CONT` section index (naming
- * convention only); not confirmed by either reverse-engineering source.
+ * Resolves [TileEntry.continent] against [continents]. Every tile resolves to some entry — see
+ * [ContEntry]'s own KDoc for the partition/contiguity guarantees this always holds.
  */
 fun TileEntry.continentCont(continents: List<ContEntry>): ContEntry? = continents.getOrNull(continent.toInt())
 

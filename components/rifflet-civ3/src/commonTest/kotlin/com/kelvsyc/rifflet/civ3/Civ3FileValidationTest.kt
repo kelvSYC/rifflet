@@ -71,6 +71,7 @@ private fun tileEntry(
     terrain: Byte = 0,
     c3cTerrain: Byte = 0,
     fortress: Boolean = false,
+    continent: Int = 0,
 ): TileEntry = TileEntry(
     riverConnections = 0,
     border = 0,
@@ -85,7 +86,7 @@ private fun tileEntry(
     barbarianTribe = 0,
     colony = colony,
     city = city,
-    continent = 0,
+    continent = continent.toShort(),
     unknown2 = ByteString.of(*ByteArray(1)),
     victoryPointLocation = 0,
     ruin = 0,
@@ -181,6 +182,11 @@ private fun ctznEntry(defaultCitizen: Int = 0, prerequisite: Int = -1): CtznEntr
     taxes = 0,
     corruption = 0,
     construction = 0,
+)
+
+private fun contEntry(type: ContType = ContType.LAND, numberOfTiles: Int = 0): ContEntry = ContEntry(
+    type = type,
+    numberOfTiles = numberOfTiles,
 )
 
 private fun terrEntry(
@@ -1535,6 +1541,333 @@ class Civ3FileValidationTest : FunSpec({
         val file = fileWithSections(major = 12, listOf(BldgSection(listOf(bldgEntry(spaceshipPart = 0)))))
 
         validateBldgSpaceshipPartBounds(file) shouldBe emptyList()
+    }
+
+    test("validateTileContinentResolves returns no issues when every continent resolves") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(ContSection(listOf(contEntry())), TileSection(List(3) { tileEntry(continent = 0) })),
+        )
+
+        validateTileContinentResolves(file) shouldBe emptyList()
+    }
+
+    test("validateTileContinentResolves flags an out-of-range continent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(ContSection(listOf(contEntry())), TileSection(listOf(tileEntry(continent = 5)))),
+        )
+
+        validateTileContinentResolves(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                0,
+                "continent",
+                "TILE[0] has continent=5, which is not a valid CONT index (0..<1)",
+            ),
+        )
+    }
+
+    test("validateTileContinentResolves returns no issues when CONT is absent") {
+        val file = fileWithSections(major = 12, listOf(TileSection(listOf(tileEntry(continent = 5)))))
+
+        validateTileContinentResolves(file) shouldBe emptyList()
+    }
+
+    test("validateTileContinentResolves returns no issues when TILE is absent") {
+        val file = fileWithSections(major = 12, listOf(ContSection(listOf(contEntry()))))
+
+        validateTileContinentResolves(file) shouldBe emptyList()
+    }
+
+    test("validateContCardinality returns no issues when the sum matches TILE's entry count") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(ContSection(listOf(contEntry(numberOfTiles = 2), contEntry(numberOfTiles = 1))), TileSection(List(3) { tileEntry() })),
+        )
+
+        validateContCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateContCardinality flags a mismatch between the sum and TILE's entry count") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(ContSection(listOf(contEntry(numberOfTiles = 2))), TileSection(List(3) { tileEntry() })),
+        )
+
+        validateContCardinality(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CONT,
+                null,
+                "numberOfTiles",
+                "sum(CONT.numberOfTiles)=2 does not match TILE's 3 entries",
+            ),
+        )
+    }
+
+    test("validateContCardinality returns no issues when CONT is absent") {
+        val file = fileWithSections(major = 12, listOf(TileSection(List(3) { tileEntry() })))
+
+        validateContCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateContCardinality returns no issues when TILE is absent") {
+        val file = fileWithSections(major = 12, listOf(ContSection(listOf(contEntry(numberOfTiles = 2)))))
+
+        validateContCardinality(file) shouldBe emptyList()
+    }
+
+    test("validateContTypeNotMixed returns no issues when land and water ids are distinct") {
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0, continent = 0), // Land
+            tileEntry(c3cTerrain = 3, continent = 1), // Ocean
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                TerrSection(fourTerrTypes),
+                TileSection(tiles),
+                ContSection(listOf(contEntry(type = ContType.LAND), contEntry(type = ContType.WATER))),
+            ),
+        )
+
+        validateContTypeNotMixed(file) shouldBe emptyList()
+    }
+
+    test("validateContTypeNotMixed flags a continent id used by both land and water tiles") {
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0, continent = 0), // Land, continent 0
+            tileEntry(c3cTerrain = 3, continent = 0), // Ocean, also continent 0
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(TerrSection(fourTerrTypes), TileSection(tiles), ContSection(listOf(contEntry(type = ContType.LAND)))),
+        )
+
+        validateContTypeNotMixed(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CONT,
+                0,
+                "type",
+                "CONT[0] (LAND) is used by both a land tile and a water tile",
+            ),
+        )
+    }
+
+    test("validateContTypeNotMixed returns no issues when TERR is absent") {
+        val file = fileWithSections(major = 12, listOf(TileSection(listOf(tileEntry())), ContSection(listOf(contEntry()))))
+
+        validateContTypeNotMixed(file) shouldBe emptyList()
+    }
+
+    test("validateContTypeNotMixed returns no issues when TILE is absent") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(fourTerrTypes), ContSection(listOf(contEntry()))))
+
+        validateContTypeNotMixed(file) shouldBe emptyList()
+    }
+
+    test("validateContTypeNotMixed returns no issues when CONT is absent") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(fourTerrTypes), TileSection(listOf(tileEntry()))))
+
+        validateContTypeNotMixed(file) shouldBe emptyList()
+    }
+
+    test("validateAdjacentLandTilesShareContinent returns no issues when adjacent land tiles share continent") {
+        // 4x4 grid (see fourTerrTypes/wmapEntry usage above): all Land, all continent 0.
+        val tiles = List(8) { tileEntry(c3cTerrain = 0, continent = 0) }
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateAdjacentLandTilesShareContinent(file) shouldBe emptyList()
+    }
+
+    test("validateAdjacentLandTilesShareContinent flags adjacent land tiles with different continent ids") {
+        // Only TILE[0]=(0,0) and TILE[1]=(2,0) are Land (everything else Ocean, so it can't add
+        // unrelated violations of its own); they are adjacent (see the 4x4 coordinate table
+        // above) and each is the other's only land neighbor.
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0, continent = 0),
+            tileEntry(c3cTerrain = 0, continent = 1),
+            tileEntry(c3cTerrain = 3, continent = 2),
+            tileEntry(c3cTerrain = 3, continent = 2),
+            tileEntry(c3cTerrain = 3, continent = 2),
+            tileEntry(c3cTerrain = 3, continent = 2),
+            tileEntry(c3cTerrain = 3, continent = 2),
+            tileEntry(c3cTerrain = 3, continent = 2),
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateAdjacentLandTilesShareContinent(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                0,
+                "continent",
+                "TILE[0] at (0, 0) has continent=0, but its adjacent land TILE[1] has continent=1",
+            ),
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                1,
+                "continent",
+                "TILE[1] at (2, 0) has continent=1, but its adjacent land TILE[0] has continent=0",
+            ),
+        )
+    }
+
+    test("validateAdjacentLandTilesShareContinent returns no issues when WMAP is absent") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(fourTerrTypes), TileSection(List(8) { tileEntry() })))
+
+        validateAdjacentLandTilesShareContinent(file) shouldBe emptyList()
+    }
+
+    test("validateAdjacentLandTilesShareContinent returns no issues when TERR is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TileSection(List(8) { tileEntry() })),
+        )
+
+        validateAdjacentLandTilesShareContinent(file) shouldBe emptyList()
+    }
+
+    test("validateAdjacentLandTilesShareContinent returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes)),
+        )
+
+        validateAdjacentLandTilesShareContinent(file) shouldBe emptyList()
+    }
+
+    test("validateContinentContiguous returns no issues when every continent id is one connected group") {
+        val tiles = listOf(
+            tileEntry(continent = 0), tileEntry(continent = 0), tileEntry(continent = 1), tileEntry(continent = 1),
+            tileEntry(continent = 0), tileEntry(continent = 0), tileEntry(continent = 1), tileEntry(continent = 1),
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TileSection(tiles)),
+        )
+
+        validateContinentContiguous(file) shouldBe emptyList()
+    }
+
+    test("validateContinentContiguous flags a continent id split into disconnected pieces") {
+        // TILE[0]=(0,0) and TILE[7]=(3,3) both continent 0, but are not adjacent or otherwise
+        // connected via any chain of continent-0 tiles on this 4x4 grid.
+        val tiles = listOf(
+            tileEntry(continent = 0), tileEntry(continent = 1), tileEntry(continent = 1), tileEntry(continent = 1),
+            tileEntry(continent = 1), tileEntry(continent = 1), tileEntry(continent = 1), tileEntry(continent = 0),
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TileSection(tiles)),
+        )
+
+        validateContinentContiguous(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CONT,
+                0,
+                "type",
+                "CONT[0]'s tiles are split into more than one physically-disconnected group",
+            ),
+        )
+    }
+
+    test("validateContinentContiguous treats a wrap-only connection as contiguous") {
+        // On the 8x4 grid (see wrapTestTiles above), TILE[0]=(0,0) and TILE[3]=(6,0) are only
+        // adjacent via xWrapping. Assign them both continent 0 and everything else continent 1;
+        // with wrapping enabled this is one connected group, so no issue is expected.
+        val tiles = List(16) { i -> tileEntry(continent = if (i == 0 || i == 3) 0 else 1) }
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 8, height = 4, flags = 1 shl 0))), TileSection(tiles)),
+        )
+
+        validateContinentContiguous(file) shouldBe emptyList()
+    }
+
+    test("validateContinentContiguous returns no issues when WMAP is absent") {
+        val file = fileWithSections(major = 12, listOf(TileSection(List(8) { tileEntry() })))
+
+        validateContinentContiguous(file) shouldBe emptyList()
+    }
+
+    test("validateContinentContiguous returns no issues when TILE is absent") {
+        val file = fileWithSections(major = 12, listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4)))))
+
+        validateContinentContiguous(file) shouldBe emptyList()
+    }
+
+    test("validateWaterContinentTouchesLand returns no issues when every water id touches land") {
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0, continent = 0), // (0,0) Land
+            tileEntry(c3cTerrain = 3, continent = 1), // (2,0) Ocean, touches (0,0)
+            tileEntry(c3cTerrain = 0, continent = 0),
+            tileEntry(c3cTerrain = 0, continent = 0),
+            tileEntry(c3cTerrain = 0, continent = 0),
+            tileEntry(c3cTerrain = 0, continent = 0),
+            tileEntry(c3cTerrain = 0, continent = 0),
+            tileEntry(c3cTerrain = 0, continent = 0),
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateWaterContinentTouchesLand(file) shouldBe emptyList()
+    }
+
+    test("validateWaterContinentTouchesLand flags a water continent that never touches land") {
+        // All 8 tiles Ocean, continent 0: this water body never touches land at all.
+        val tiles = List(8) { tileEntry(c3cTerrain = 3, continent = 0) }
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateWaterContinentTouchesLand(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.CONT,
+                0,
+                "type",
+                "CONT[0] (Water) never directly touches a land tile",
+            ),
+        )
+    }
+
+    test("validateWaterContinentTouchesLand returns no issues when WMAP is absent") {
+        val file = fileWithSections(major = 12, listOf(TerrSection(fourTerrTypes), TileSection(List(8) { tileEntry() })))
+
+        validateWaterContinentTouchesLand(file) shouldBe emptyList()
+    }
+
+    test("validateWaterContinentTouchesLand returns no issues when TERR is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TileSection(List(8) { tileEntry() })),
+        )
+
+        validateWaterContinentTouchesLand(file) shouldBe emptyList()
+    }
+
+    test("validateWaterContinentTouchesLand returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes)),
+        )
+
+        validateWaterContinentTouchesLand(file) shouldBe emptyList()
     }
 
     test("validate() surfaces a cardinality rule's issue alongside the seed rule's") {

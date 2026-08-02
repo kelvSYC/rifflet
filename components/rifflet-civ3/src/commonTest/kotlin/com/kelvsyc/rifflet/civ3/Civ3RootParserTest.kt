@@ -1064,7 +1064,7 @@ class Civ3RootParserTest : FunSpec({
         }
         val file = Civ3RootParser.parse(source)
         file.sections shouldBe listOf(
-            ContSection(listOf(ContEntry(1, 42))),
+            ContSection(listOf(ContEntry(ContType.LAND, 42))),
         )
     }
 

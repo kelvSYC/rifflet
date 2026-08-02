@@ -60,6 +60,12 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateGoodBonusResourceDisabledFields(file) },
     ValidationRule { file -> validateCuredBySanitationRequiresCausesDisease(file) },
     ValidationRule { file -> validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file) },
+    ValidationRule { file -> validateTileContinentResolves(file) },
+    ValidationRule { file -> validateContCardinality(file) },
+    ValidationRule { file -> validateContTypeNotMixed(file) },
+    ValidationRule { file -> validateAdjacentLandTilesShareContinent(file) },
+    ValidationRule { file -> validateContinentContiguous(file) },
+    ValidationRule { file -> validateWaterContinentTouchesLand(file) },
 )
 
 /**
@@ -615,6 +621,195 @@ fun validateBldgSpaceshipPartBounds(file: Civ3File): List<ValidationIssue> {
             )
             else -> null
         }
+    }
+}
+
+/**
+ * Flags a [TileEntry.continent] that doesn't resolve, via [TileEntry.continentCont], to a `CONT`
+ * entry. Returns no issues if `CONT` or `TILE` is absent from [file].
+ */
+fun validateTileContinentResolves(file: Civ3File): List<ValidationIssue> {
+    val cont = file.sections.filterIsInstance<ContSection>().singleOrNull()?.entries ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    return tile.entries.mapIndexedNotNull { index, entry ->
+        if (entry.continentCont(cont) != null) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.TILE,
+            index,
+            "continent",
+            "TILE[$index] has continent=${entry.continent}, which is not a valid CONT index (0..<${cont.size})",
+        )
+    }
+}
+
+/**
+ * Flags a mismatch between the sum of every [ContEntry.numberOfTiles] and the `TILE` section's
+ * total entry count — see [ContEntry]'s own KDoc for the partition guarantee this checks. Returns
+ * no issues if `CONT` or `TILE` is absent from [file].
+ */
+fun validateContCardinality(file: Civ3File): List<ValidationIssue> {
+    val cont = file.sections.filterIsInstance<ContSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val sum = cont.entries.sumOf { it.numberOfTiles }
+    val tileCount = tile.entries.size
+    if (sum == tileCount) return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CONT,
+            null,
+            "numberOfTiles",
+            "sum(CONT.numberOfTiles)=$sum does not match TILE's $tileCount entries",
+        ),
+    )
+}
+
+/**
+ * Flags a `CONT` id used by both a land tile and a water tile — see [ContEntry]'s own KDoc for why
+ * this never happens in a real file. Returns no issues if `TERR`, `TILE`, or `CONT` is absent from
+ * [file].
+ */
+fun validateContTypeNotMixed(file: Civ3File): List<ValidationIssue> {
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val cont = file.sections.filterIsInstance<ContSection>().singleOrNull()?.entries ?: return emptyList()
+    val era = file.header.formatEra
+    val terrCount = terr.entries.size
+    if (terrCount < 3) return emptyList()
+    val coastIndex = terrCount - 3
+
+    val landIds = mutableSetOf<Int>()
+    val waterIds = mutableSetOf<Int>()
+    for (entry in tile.entries) {
+        val id = entry.continent.toInt()
+        if (entry.baseTerrainIndex(era) < coastIndex) landIds += id else waterIds += id
+    }
+    return landIds.intersect(waterIds).sorted().map { id ->
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CONT,
+            id,
+            "type",
+            "CONT[$id] (${cont.getOrNull(id)?.type}) is used by both a land tile and a water tile",
+        )
+    }
+}
+
+/**
+ * Flags two directly-adjacent land tiles — including diagonally, and across either map-wrap edge
+ * (see [WmapEntry.neighborTileIndices]) — with different [TileEntry.continent] values. A land
+ * continent is always exactly its physically-connected chunk of land — see [ContEntry]'s own
+ * KDoc. Returns no issues if `WMAP`, `TERR`, or `TILE` is absent from [file].
+ */
+fun validateAdjacentLandTilesShareContinent(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    val terrCount = terr.entries.size
+    if (terrCount < 3) return emptyList()
+    val coastIndex = terrCount - 3
+
+    return tile.entries.indices.mapNotNull { index ->
+        val entry = tile.entries[index]
+        if (entry.baseTerrainIndex(era) >= coastIndex) return@mapNotNull null
+        val (x, y) = wmap.tileCoordinates(index)
+        val ownContinent = entry.continent.toInt()
+        val mismatchedNeighbor = wmap.neighborTileIndices(x, y).firstOrNull { neighborIndex ->
+            val neighbor = tile.entries.getOrNull(neighborIndex) ?: return@firstOrNull false
+            neighbor.baseTerrainIndex(era) < coastIndex && neighbor.continent.toInt() != ownContinent
+        } ?: return@mapNotNull null
+
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.TILE,
+            index,
+            "continent",
+            "TILE[$index] at ($x, $y) has continent=$ownContinent, but its adjacent land TILE[$mismatchedNeighbor] " +
+                "has continent=${tile.entries[mismatchedNeighbor].continent}",
+        )
+    }
+}
+
+/**
+ * Flags a `CONT` id whose tiles form more than one physically-disconnected group — including
+ * diagonally, and across either map-wrap edge (see [WmapEntry.neighborTileIndices]). Every real
+ * continent id, land or water, is always internally contiguous — see [ContEntry]'s own KDoc.
+ * Returns no issues if `WMAP` or `TILE` is absent from [file].
+ */
+fun validateContinentContiguous(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+
+    val tilesByContinent = tile.entries.indices.groupBy { tile.entries[it].continent.toInt() }
+    val fragmentedIds = mutableListOf<Int>()
+    for ((continentId, indices) in tilesByContinent) {
+        val remaining = indices.toHashSet()
+        val queue = ArrayDeque<Int>()
+        val start = indices.first()
+        remaining.remove(start)
+        queue.add(start)
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            val (x, y) = wmap.tileCoordinates(current)
+            for (neighborIndex in wmap.neighborTileIndices(x, y)) {
+                if (remaining.remove(neighborIndex)) queue.add(neighborIndex)
+            }
+        }
+        if (remaining.isNotEmpty()) fragmentedIds += continentId
+    }
+    return fragmentedIds.sorted().map { id ->
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CONT,
+            id,
+            "type",
+            "CONT[$id]'s tiles are split into more than one physically-disconnected group",
+        )
+    }
+}
+
+/**
+ * Flags a water `CONT` id whose tiles never directly touch a land tile — including diagonally,
+ * and across either map-wrap edge (see [WmapEntry.neighborTileIndices]). Every real water
+ * continent touches land somewhere — see [ContEntry]'s own KDoc. Returns no issues if `WMAP`,
+ * `TERR`, or `TILE` is absent from [file].
+ */
+fun validateWaterContinentTouchesLand(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    val terrCount = terr.entries.size
+    if (terrCount < 3) return emptyList()
+    val coastIndex = terrCount - 3
+
+    val waterIdsSeen = mutableSetOf<Int>()
+    val waterIdsTouchingLand = mutableSetOf<Int>()
+    for (index in tile.entries.indices) {
+        val entry = tile.entries[index]
+        if (entry.baseTerrainIndex(era) < coastIndex) continue
+        val id = entry.continent.toInt()
+        waterIdsSeen += id
+        val (x, y) = wmap.tileCoordinates(index)
+        val touchesLand = wmap.neighborTileIndices(x, y).any { neighborIndex ->
+            val neighbor = tile.entries.getOrNull(neighborIndex) ?: return@any false
+            neighbor.baseTerrainIndex(era) < coastIndex
+        }
+        if (touchesLand) waterIdsTouchingLand += id
+    }
+    return (waterIdsSeen - waterIdsTouchingLand).sorted().map { id ->
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CONT,
+            id,
+            "type",
+            "CONT[$id] (Water) never directly touches a land tile",
+        )
     }
 }
 
