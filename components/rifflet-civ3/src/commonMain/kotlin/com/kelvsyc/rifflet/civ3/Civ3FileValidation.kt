@@ -460,7 +460,7 @@ fun validateLandNotDirectlyAdjacentToSeaOrOcean(file: Civ3File): List<Validation
     val oceanIndex = terrCount - 1
 
     return tile.entries.indices.mapNotNull { index ->
-        val terrIndex = tile.entries[index].baseTerrainIndex(era)
+        val terrIndex = tile.entries[index].baseTerrainIndex(era) ?: return@mapNotNull null
         if (terrIndex >= coastIndex) return@mapNotNull null
 
         val (x, y) = wmap.tileCoordinates(index)
@@ -710,7 +710,8 @@ fun validateContTypeNotMixed(file: Civ3File): List<ValidationIssue> {
     val waterIds = mutableSetOf<Int>()
     for (entry in tile.entries) {
         val id = entry.continent.toInt()
-        if (entry.baseTerrainIndex(era) < coastIndex) landIds += id else waterIds += id
+        val terrIndex = entry.baseTerrainIndex(era) ?: continue
+        if (terrIndex < coastIndex) landIds += id else waterIds += id
     }
     return landIds.intersect(waterIds).sorted().map { id ->
         ValidationIssue(
@@ -741,12 +742,14 @@ fun validateAdjacentLandTilesShareContinent(file: Civ3File): List<ValidationIssu
 
     return tile.entries.indices.mapNotNull { index ->
         val entry = tile.entries[index]
-        if (entry.baseTerrainIndex(era) >= coastIndex) return@mapNotNull null
+        val terrIndex = entry.baseTerrainIndex(era) ?: return@mapNotNull null
+        if (terrIndex >= coastIndex) return@mapNotNull null
         val (x, y) = wmap.tileCoordinates(index)
         val ownContinent = entry.continent.toInt()
         val mismatchedNeighbor = wmap.neighborTileIndices(x, y).firstOrNull { neighborIndex ->
             val neighbor = tile.entries.getOrNull(neighborIndex) ?: return@firstOrNull false
-            neighbor.baseTerrainIndex(era) < coastIndex && neighbor.continent.toInt() != ownContinent
+            val neighborTerrIndex = neighbor.baseTerrainIndex(era) ?: return@firstOrNull false
+            neighborTerrIndex < coastIndex && neighbor.continent.toInt() != ownContinent
         } ?: return@mapNotNull null
 
         ValidationIssue(
@@ -819,13 +822,15 @@ fun validateWaterContinentTouchesLand(file: Civ3File): List<ValidationIssue> {
     val waterIdsTouchingLand = mutableSetOf<Int>()
     for (index in tile.entries.indices) {
         val entry = tile.entries[index]
-        if (entry.baseTerrainIndex(era) < coastIndex) continue
+        val terrIndex = entry.baseTerrainIndex(era) ?: continue
+        if (terrIndex < coastIndex) continue
         val id = entry.continent.toInt()
         waterIdsSeen += id
         val (x, y) = wmap.tileCoordinates(index)
         val touchesLand = wmap.neighborTileIndices(x, y).any { neighborIndex ->
             val neighbor = tile.entries.getOrNull(neighborIndex) ?: return@any false
-            neighbor.baseTerrainIndex(era) < coastIndex
+            val neighborTerrIndex = neighbor.baseTerrainIndex(era) ?: return@any false
+            neighborTerrIndex < coastIndex
         }
         if (touchesLand) waterIdsTouchingLand += id
     }

@@ -23,14 +23,14 @@ import okio.ByteString
  *   implementation's explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors. Real
  *   [Civ3FormatEra.CONQUESTS] tile data across multiple independent files shows this field
  *   uniformly zero, with [c3cTerrain] carrying the actual per-tile terrain instead — see that
- *   field's own KDoc. Whether [terrain] carries real data in
- *   [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] files (where [c3cTerrain] doesn't exist) is
- *   assumed, not yet confirmed against real non-Conquests data. Preserved raw, not decomposed
+ *   field's own KDoc. Carries real per-tile data in [Civ3FormatEra.VANILLA] and
+ *   [Civ3FormatEra.PTW] files, the eras before [c3cTerrain] existed. Preserved raw, not decomposed
  *   into separate properties.
  * @param bonusFlags 1 byte with 4 named booleans at non-contiguous bit positions; see
  *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`. Real
  *   [Civ3FormatEra.CONQUESTS] tile data shows this field uniformly zero as well, with the same 4
- *   bit positions instead populated in [c3cBonuses] — see that field's own KDoc. Use
+ *   bit positions instead populated in [c3cBonuses] — see that field's own KDoc. Real in
+ *   [Civ3FormatEra.VANILLA] files too, by the same treatment as [terrain]. Use
  *   `TileEntryReferences.kt`'s era-aware resolver functions (e.g. `bonusGrassland(era)`) to read
  *   the right field regardless of which era a file is in.
  * @param riverConnections 1 byte with 4 named booleans; see [TileEntry.riverInNorth] and its
@@ -41,9 +41,8 @@ import okio.ByteString
  *   this field shares with [city].
  * @param city A reference to a placed `CITY` entry. See `TileEntryParser`'s KDoc for a
  *   byte-order detail this field shares with [colony].
- * @param continent Likely a `CONT` section index (naming convention only); not confirmed by
- *   either reverse-engineering source.
- * @param unknown2 1 byte with zero documented behavior from either reverse-engineering source;
+ * @param continent A `CONT` section index.
+ * @param unknown2 1 byte with zero documented behavior;
  *   confirmed absent only in the earliest [Civ3FormatEra.VANILLA] revision (`major=2`) — present
  *   from `major=3` onward (including [Civ3FormatEra.PTW] and [Civ3FormatEra.CONQUESTS]), read
  *   defensively; preserved raw, not validated.
@@ -59,13 +58,16 @@ import okio.ByteString
  *   [overlayFlags]'s 8 named booleans at the same positions — real per-tile data for this era
  *   lives here rather than in the vestigial [overlayFlags] — see [TileEntry.c3cRoad] and its
  *   sibling accessors. The remaining bits are preserved raw, not decomposed.
- * @param unknown3 1 byte with zero documented behavior from either reverse-engineering source;
+ * @param unknown3 1 byte with zero documented behavior;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
  * @param c3cTerrain A near-duplicate of [terrain]'s packed nibble pair, present only in
  *   [Civ3FormatEra.CONQUESTS] files (read defensively) — this is where real per-tile terrain data
- *   actually lives in [Civ3FormatEra.CONQUESTS] files (see [terrain]'s own KDoc).
- * @param unknown4 2 bytes with zero documented behavior from either reverse-engineering source;
+ *   actually lives in [Civ3FormatEra.CONQUESTS] files (see [terrain]'s own KDoc). `null` when
+ *   genuinely absent from the file, distinct from a real terrain index of `0` — both nibbles of
+ *   this field span the entire legitimate `TERR` index range in real data, including `0`, so no
+ *   raw byte value is available as an "absent" sentinel.
+ * @param unknown4 2 bytes with zero documented behavior;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
  * @param fogOfWar Present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
@@ -75,11 +77,11 @@ import okio.ByteString
  *   and bit 13 is new — [TileEntry.isLandmarkTile], marking this tile as its terrain type's
  *   landmark instance (matching `TerrEntry.landmarkEnabled` for the corresponding `TERR` entry).
  *   The remaining bits are preserved raw, not decomposed.
- * @param unknown5 2 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown5 2 bytes with zero documented behavior;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
- * @param unknown6 4 bytes, undocumented by any reverse-engineering source and not part of a
- *   separate reverse-engineered reference implementation's struct at all. Present only in a
+ * @param unknown6 4 bytes, undocumented, and not part of a separate reverse-engineered reference
+ *   implementation's struct at all. Present only in a
  *   small minority of [Civ3FormatEra.CONQUESTS] (`major=12`)
  *   files, always zero-valued. Requires the file's `VER#` header `minor=6`, but `minor=6` alone
  *   does not predict it — most `minor=6` [Civ3FormatEra.CONQUESTS] files lack this field, and the
@@ -107,7 +109,7 @@ data class TileEntry(
     val ruin: Int,
     val c3cOverlays: ByteString,
     val unknown3: ByteString,
-    val c3cTerrain: Byte,
+    val c3cTerrain: Byte?,
     val unknown4: ByteString,
     val fogOfWar: Short,
     val c3cBonuses: ByteString,

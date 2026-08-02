@@ -16,12 +16,12 @@ import okio.ByteString
  *   [RuleDefaultUnits].
  * @param defensiveBonuses The `General Settings` tab's "Defensive Bonuses" groupbox. See
  *   [RuleDefensiveBonuses].
- * @param unknown 8 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown 8 bytes with zero documented behavior;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param defaultMoneyResource A `GOOD` section index, per the Conquests Rules Editor.
- * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown2 4 bytes with zero documented behavior;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
- * @param unknown3 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown3 4 bytes with zero documented behavior;
  *   preserved raw, not validated. Same treatment as `RaceEntry.unknown`.
  * @param citySizeLevels The `General Settings` tab's "City Size Levels" groupbox. See
  *   [RuleCitySizeLevels].

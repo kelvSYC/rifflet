@@ -63,7 +63,7 @@ internal object TileEntryParser {
         val ruin = if (item.size >= 4L) item.readIntLe() else 0
         val c3cOverlays = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)
         val unknown3 = if (item.size >= 1L) item.readByteString(1L) else ByteString.of(0)
-        val c3cTerrain = if (item.size >= 1L) item.readByte() else 0.toByte()
+        val c3cTerrain = if (item.size >= 1L) item.readByte() else null
         val unknown4 = if (item.size >= 2L) item.readByteString(2L) else ByteString.of(0, 0)
         val fogOfWar = if (item.size >= 2L) item.readShortLe() else 0.toShort()
         val c3cBonuses = if (item.size >= 4L) item.readByteString(4L) else ByteString.of(0, 0, 0, 0)

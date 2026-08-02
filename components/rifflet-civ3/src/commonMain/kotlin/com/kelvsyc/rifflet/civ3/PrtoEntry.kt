@@ -27,11 +27,10 @@ import okio.ByteString
  *   instead. Not decomposed at the type level; no accessors exist for any part of it.
  * @param type This unit's domain — see [PrtoDomain] for what each value means, per the Conquests
  *   Rules Editor's "Class" control (Land/Sea/Air).
- * @param otherStrategy Despite the name inherited from prior reverse-engineering sources, this is
- *   not itself an AI-strategy bitmask: it is -1 for most entries, and a self-referencing `PRTO`
- *   section index — see [otherStrategyPrto] — for a trailing block of entries (indices 124-140 in
- *   the base Conquests ruleset). The same mechanism exists in real PTW files, so it predates
- *   Conquests entirely.
+ * @param otherStrategy Despite its name, not itself an AI-strategy bitmask: it is -1 for most
+ *   entries, and a self-referencing `PRTO` section index — see [otherStrategyPrto] — for a
+ *   trailing block of entries (indices 124-140 in the base Conquests ruleset). The same mechanism
+ *   exists in real PTW files, so it predates Conquests entirely.
  *
  *   Each such entry duplicates an earlier entry's name, stats, and [abilities], but pairs a
  *   different, thematically distinct [aiStrategies] value with it instead of its own — e.g.
@@ -62,11 +61,11 @@ import okio.ByteString
  *   [Civ3FormatEra.PTW] files always have 12 `TERR` entries, real [Civ3FormatEra.CONQUESTS] files
  *   always have 14 (Conquests added 2 new terrain types, marshes and volcanoes). Absent from
  *   [Civ3FormatEra.VANILLA] files, read defensively — see `PrtoEntryParser`.
- * @param unknown 16 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown 16 bytes with zero documented behavior;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files (the entire tail from here through [PrtoUnitStatistics.airDefense]
  *   is a [Civ3FormatEra.CONQUESTS]-era expansion), read defensively.
- * @param unknown2 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown2 4 bytes with zero documented behavior;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
  * @param enslaveResults A `PRTO` section self-reference, per the Conquests Rules Editor.
@@ -75,10 +74,10 @@ import okio.ByteString
  *   allow-list, despite the name. The Stealth Fighter's list, for example, excludes Leader,
  *   Princess, and King-ability units, with one known exception (Smoke-Jaguar). Absent from
  *   [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files, read defensively.
- * @param unknown3 8 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown3 8 bytes with zero documented behavior;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
- * @param unknown4 4 bytes with zero documented behavior from either reverse-engineering source;
+ * @param unknown4 4 bytes with zero documented behavior;
  *   preserved raw, not validated. Absent from [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, read defensively.
  */

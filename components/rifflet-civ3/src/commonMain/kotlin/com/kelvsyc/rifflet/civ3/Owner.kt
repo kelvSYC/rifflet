@@ -16,8 +16,8 @@ sealed interface Owner {
     data object Barbarian : Owner
 
     /**
-     * `ownerType == 3`: owned by a player, identified by a 0-based [index] — likely a `LEAD`
-     * section index, but not resolved further by this codebase and not confirmed.
+     * `ownerType == 3`: owned by a player, identified by a 0-based [index] into the `LEAD`
+     * section. See [leadLead] to resolve it.
      */
     data class Player(val index: Int) : Owner
 
@@ -48,3 +48,8 @@ internal fun resolveOwner(ownerType: Int, owner: Int, races: List<RaceEntry>): O
     3 -> Owner.Player(owner)
     else -> Owner.Unrecognized(ownerType, owner)
 }
+
+/**
+ * Resolves [Owner.Player.index] against [leads].
+ */
+fun Owner.Player.leadLead(leads: List<LeadEntry>): LeadEntry? = leads.getOrNull(index)
