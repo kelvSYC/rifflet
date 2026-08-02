@@ -52,7 +52,7 @@ private fun diffEntry(): DiffEntry = DiffEntry(
 private fun fileWithSections(major: Int, sections: List<Civ3Section>): Civ3File =
     Civ3File(Civ3Header(major = major, minor = 0, description = "", title = ""), sections)
 
-private fun wmapEntry(width: Int, height: Int): WmapEntry = WmapEntry(
+private fun wmapEntry(width: Int, height: Int, flags: Int = 0): WmapEntry = WmapEntry(
     resourceIds = emptyList(),
     numberOfContinents = 0,
     height = height,
@@ -62,7 +62,7 @@ private fun wmapEntry(width: Int, height: Int): WmapEntry = WmapEntry(
     width = width,
     unknown2 = ByteString.of(*ByteArray(128)),
     mapSeed = 0,
-    flags = 0,
+    flags = flags,
 )
 
 private fun tileEntry(
@@ -1040,6 +1040,175 @@ class Civ3FileValidationTest : FunSpec({
         )
 
         validateWheeledUnitNotOnImpassableByWheeledTerrain(file) shouldBe emptyList()
+    }
+
+    // 4 TERR entries: [0] Land, [1] Coast, [2] Sea, [3] Ocean.
+    // 4x4 WMAP (8 tiles): TILE[0]=(0,0) TILE[1]=(2,0) TILE[2]=(1,1) TILE[3]=(3,1)
+    //                     TILE[4]=(0,2) TILE[5]=(2,2) TILE[6]=(1,3) TILE[7]=(3,3)
+    val fourTerrTypes = listOf(terrEntry(name = "Land"), terrEntry(name = "Coast"), terrEntry(name = "Sea"), terrEntry(name = "Ocean"))
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean returns no issues when land only borders Coast") {
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0), // (0,0) Land
+            tileEntry(c3cTerrain = 1), // (2,0) Coast
+            tileEntry(c3cTerrain = 1), // (1,1) Coast
+            tileEntry(c3cTerrain = 2), // (3,1) Sea
+            tileEntry(c3cTerrain = 1), // (0,2) Coast
+            tileEntry(c3cTerrain = 3), // (2,2) Ocean
+            tileEntry(c3cTerrain = 1), // (1,3) Coast
+            tileEntry(c3cTerrain = 3), // (3,3) Ocean
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe emptyList()
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean flags land directly adjacent to Ocean") {
+        // Only (0,0) is Land next to (2,0)'s Ocean; the rest of (2,0)'s other neighbors are Coast
+        // so they don't add unrelated violations of their own.
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0), // (0,0) Land
+            tileEntry(c3cTerrain = 3), // (2,0) Ocean - directly adjacent to (0,0), no Coast between
+            tileEntry(c3cTerrain = 1), // (1,1) Coast
+            tileEntry(c3cTerrain = 1), // (3,1) Coast
+            tileEntry(c3cTerrain = 0), // (0,2) Land
+            tileEntry(c3cTerrain = 1), // (2,2) Coast
+            tileEntry(c3cTerrain = 0), // (1,3) Land
+            tileEntry(c3cTerrain = 0), // (3,3) Land
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                0,
+                "terrain",
+                "TILE[0] at (0, 0) has land terrain directly adjacent to Sea or Ocean, with no Coast in between",
+            ),
+        )
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean flags land directly adjacent to Sea") {
+        // Only (0,0) is Land next to (1,1)'s Sea; the rest of (1,1)'s other neighbors are Coast so
+        // they don't add unrelated violations of their own.
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 0), // (0,0) Land
+            tileEntry(c3cTerrain = 1), // (2,0) Coast
+            tileEntry(c3cTerrain = 2), // (1,1) Sea - directly adjacent to (0,0), no Coast between
+            tileEntry(c3cTerrain = 1), // (3,1) Coast
+            tileEntry(c3cTerrain = 1), // (0,2) Coast
+            tileEntry(c3cTerrain = 1), // (2,2) Coast
+            tileEntry(c3cTerrain = 1), // (1,3) Coast
+            tileEntry(c3cTerrain = 0), // (3,3) Land
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                0,
+                "terrain",
+                "TILE[0] at (0, 0) has land terrain directly adjacent to Sea or Ocean, with no Coast in between",
+            ),
+        )
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean does not flag a water tile itself") {
+        val tiles = listOf(
+            tileEntry(c3cTerrain = 3), // (0,0) Ocean
+            tileEntry(c3cTerrain = 3), // (2,0) Ocean
+            tileEntry(c3cTerrain = 3), // (1,1) Ocean
+            tileEntry(c3cTerrain = 3), // (3,1) Ocean
+            tileEntry(c3cTerrain = 3), // (0,2) Ocean
+            tileEntry(c3cTerrain = 3), // (2,2) Ocean
+            tileEntry(c3cTerrain = 3), // (1,3) Ocean
+            tileEntry(c3cTerrain = 3), // (3,3) Ocean
+        )
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes), TileSection(tiles)),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe emptyList()
+    }
+
+    // 8x4 WMAP (16 tiles), for a wraparound case a 4x4 map is too small to distinguish from a
+    // normal (non-wrap) adjacency. TILE[0]=(0,0) TILE[1]=(2,0) TILE[2]=(4,0) TILE[3]=(6,0)
+    // TILE[4]=(1,1) TILE[5]=(3,1) TILE[6]=(5,1) TILE[7]=(7,1) TILE[8]=(0,2) TILE[9]=(2,2)
+    // TILE[10]=(4,2) TILE[11]=(6,2) TILE[12]=(1,3) TILE[13]=(3,3) TILE[14]=(5,3) TILE[15]=(7,3)
+    // TILE[0](0,0) and TILE[3](6,0) are 3 columns apart and are not neighbors on a flat map, but
+    // become neighbors once xWrapping wraps x=0-2 around to x=width-2=6. TILE[2]/[6]/[7]/[11] are
+    // Coast — TILE[3]'s own (non-wrap) neighbors — so they don't add unrelated violations.
+    val wrapTestTerrainByIndex =
+        mapOf(0 to 0, 1 to 0, 2 to 1, 3 to 3, 4 to 0, 5 to 0, 6 to 1, 7 to 1, 8 to 0, 9 to 0, 10 to 0, 11 to 1, 12 to 0, 13 to 0, 14 to 0, 15 to 0)
+    val wrapTestTiles = List(16) { i -> tileEntry(c3cTerrain = wrapTestTerrainByIndex.getValue(i).toByte()) }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean detects a violation only visible via x-wrap") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(
+                WmapSection(listOf(wmapEntry(width = 8, height = 4, flags = 1 shl 0))),
+                TerrSection(fourTerrTypes),
+                TileSection(wrapTestTiles),
+            ),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.TILE,
+                0,
+                "terrain",
+                "TILE[0] at (0, 0) has land terrain directly adjacent to Sea or Ocean, with no Coast in between",
+            ),
+        )
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean does not flag the same pair without wrapping") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 8, height = 4))), TerrSection(fourTerrTypes), TileSection(wrapTestTiles)),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe emptyList()
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean returns no issues when WMAP is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(TerrSection(fourTerrTypes), TileSection(List(8) { tileEntry() })),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe emptyList()
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean returns no issues when TERR is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TileSection(List(8) { tileEntry() })),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe emptyList()
+    }
+
+    test("validateLandNotDirectlyAdjacentToSeaOrOcean returns no issues when TILE is absent") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WmapSection(listOf(wmapEntry(width = 4, height = 4))), TerrSection(fourTerrTypes)),
+        )
+
+        validateLandNotDirectlyAdjacentToSeaOrOcean(file) shouldBe emptyList()
     }
 
     test("validateClnyTileBackReference returns no issues when the TILE back-reference matches") {

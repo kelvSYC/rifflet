@@ -28,6 +28,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateFortressTerrainAllowsForts(file) },
     ValidationRule { file -> validateUnitNotOnImpassableTerrain(file) },
     ValidationRule { file -> validateWheeledUnitNotOnImpassableByWheeledTerrain(file) },
+    ValidationRule { file -> validateLandNotDirectlyAdjacentToSeaOrOcean(file) },
     ValidationRule { file -> validateClnyTileBackReference(file) },
     ValidationRule { file -> validateCtznDefaultCount(file) },
     ValidationRule { file -> validateCtznDefaultPrerequisite(file) },
@@ -397,6 +398,52 @@ fun validateWheeledUnitNotOnImpassableByWheeledTerrain(file: Civ3File): List<Val
                     "which is Impassable by Wheeled Units",
             )
         }
+    }
+}
+
+/**
+ * Flags a land tile immediately adjacent — including diagonally, and across either map-wrap edge
+ * (see [WmapEntry.neighborTileIndices]) — to a Sea or Ocean tile with no Coast tile in between.
+ * The Scenario/Rules Editor's terrain-painting tool never allows this: land only ever borders open
+ * water via an intervening Coast tile. Returns no issues if `WMAP`, `TERR`, or `TILE` is absent
+ * from [file].
+ *
+ * Terrain type is identified by fixed positional `TERR` index, not name (the Rules Editor's
+ * Terrain tab only allows Rename, never Add/Delete/reorder): the last 3 `TERR` entries are always
+ * Coast, Sea, and Ocean in that order, confirmed across every real file surveyed in all 3 format
+ * eras. Every other `TERR` entry — including the Conquests-only Marsh and Volcano — counts as land
+ * for this rule.
+ */
+fun validateLandNotDirectlyAdjacentToSeaOrOcean(file: Civ3File): List<ValidationIssue> {
+    val wmap = file.sections.filterIsInstance<WmapSection>().singleOrNull()?.entries?.singleOrNull()
+        ?: return emptyList()
+    val terr = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
+    val tile = file.sections.filterIsInstance<TileSection>().singleOrNull() ?: return emptyList()
+    val era = file.header.formatEra
+    val terrCount = terr.entries.size
+    if (terrCount < 3) return emptyList()
+    val coastIndex = terrCount - 3
+    val seaIndex = terrCount - 2
+    val oceanIndex = terrCount - 1
+
+    return tile.entries.indices.mapNotNull { index ->
+        val terrIndex = tile.entries[index].baseTerrainIndex(era)
+        if (terrIndex >= coastIndex) return@mapNotNull null
+
+        val (x, y) = wmap.tileCoordinates(index)
+        val adjacentToOpenWater = wmap.neighborTileIndices(x, y).any { neighborIndex ->
+            val neighborTerrIndex = tile.entries.getOrNull(neighborIndex)?.baseTerrainIndex(era)
+            neighborTerrIndex == seaIndex || neighborTerrIndex == oceanIndex
+        }
+        if (!adjacentToOpenWater) return@mapNotNull null
+
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.TILE,
+            index,
+            "terrain",
+            "TILE[$index] at ($x, $y) has land terrain directly adjacent to Sea or Ocean, with no Coast in between",
+        )
     }
 }
 

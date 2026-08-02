@@ -24,3 +24,35 @@ fun WmapEntry.resourceIdsGood(goods: List<GoodEntry>): List<GoodEntry?> =
  */
 fun WmapEntry.tileIndex(x: Int, y: Int): Int =
     (y / 2) * width + (if (y % 2 == 1) width / 2 else 0) + x / 2
+
+/**
+ * The `(x, y)` map coordinate of the tile at [index] within [TileSection.entries] — the inverse of
+ * [tileIndex].
+ */
+fun WmapEntry.tileCoordinates(index: Int): Pair<Int, Int> {
+    val row = index / width
+    val slot = index % width
+    return if (slot < width / 2) {
+        2 * slot to 2 * row
+    } else {
+        (2 * (slot - width / 2) + 1) to (2 * row + 1)
+    }
+}
+
+private val ISOMETRIC_NEIGHBOR_DELTAS = listOf(
+    // Diagonal in storage coordinates (the 4 cardinal compass directions visually).
+    -1 to -1, 1 to -1, -1 to 1, 1 to 1,
+    // Orthogonal in storage coordinates (the 4 diagonal compass directions visually).
+    -2 to 0, 2 to 0, 0 to -2, 0 to 2,
+)
+
+/**
+ * The `TILE` section indices of the tile at `(x, y)`'s up to 8 isometric neighbors, per
+ * [xWrapping]/[yWrapping]: a neighbor past a wrapping edge is computed modulo [width]/[height]; a
+ * neighbor past a non-wrapping edge is omitted (there is no tile there).
+ */
+fun WmapEntry.neighborTileIndices(x: Int, y: Int): List<Int> = ISOMETRIC_NEIGHBOR_DELTAS.mapNotNull { (dx, dy) ->
+    val nx = if (xWrapping) (x + dx).mod(width) else x + dx
+    val ny = if (yWrapping) (y + dy).mod(height) else y + dy
+    if (nx !in 0 until width || ny !in 0 until height) null else tileIndex(nx, ny)
+}
