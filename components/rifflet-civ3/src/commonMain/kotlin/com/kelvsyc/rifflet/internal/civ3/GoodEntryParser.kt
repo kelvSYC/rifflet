@@ -7,7 +7,7 @@ import okio.Buffer
 
 /**
  * Parses one `GOOD` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * Every field in this section is present regardless of [Civ3FormatEra].

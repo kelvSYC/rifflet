@@ -8,7 +8,7 @@ import com.kelvsyc.rifflet.core.RiffletParseException
  * Editor dropdown) holds a raw value outside that enum's documented range.
  *
  * [section]/[index] are `null` when first thrown from deep inside an `*EntryParser`, which
- * doesn't know its own position within its section's entry list — [Civ3RootParserImpl] enriches
+ * doesn't know its own position within its section's entry list — `Civ3RootParserImpl` enriches
  * the exception with both once it's caught at the section-parsing loop that does know them.
  */
 class Civ3EnumDecodeException private constructor(

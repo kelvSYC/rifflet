@@ -6,7 +6,7 @@ import okio.Buffer
 
 /**
  * Parses one `CTZN` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * The trailing two fields (`corruption`, `construction`) are read defensively: real

@@ -15,7 +15,7 @@ package com.kelvsyc.rifflet.civ3
  * @param attack The "Attack" field.
  * @param operationalRange The "Operational" field.
  * @param populationCost The "Pop. Cost" field.
- * @param rateOfFire The "Rate of [Fire]" field.
+ * @param rateOfFire The "Rate of Fire" field.
  * @param movement The "Moves" field.
  * @param upgradeTo A `PRTO` section self-reference, per the "Upgrade" dropdown.
  * @param hpBonus The "HP Bonus" field.

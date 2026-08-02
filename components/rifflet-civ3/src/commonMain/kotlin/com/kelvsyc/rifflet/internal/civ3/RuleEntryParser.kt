@@ -11,7 +11,7 @@ import okio.Buffer
 
 /**
  * Parses one `RULE` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * Both trailing fields are read defensively: [Civ3FormatEra.VANILLA] files have neither
@@ -21,7 +21,7 @@ import okio.Buffer
  * (a separate reverse-engineered reference implementation's struct comments the latter
  * `// Only in conquests`); [Civ3FormatEra.CONQUESTS]
  * files have both. Because the generic section loop in `Civ3RootParserImpl` already slices
- * [item] to the file's own declared length, `item.size` reliably reflects how many bytes
+ * `item` to the file's own declared length, `item.size` reliably reflects how many bytes
  * actually remain for this specific file.
  *
  * Both dynamic-array counts (`numberOfSpaceshipParts`, `numberOfCultureLevels`) are validated

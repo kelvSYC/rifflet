@@ -16,7 +16,7 @@ import okio.ByteString
  * region (the two sources' byte counts for the flags region between `requiredResource2` and
  * `numberOfArmiesRequired` reconcile exactly at 16 bytes, confirming that implementation's
  * consolidated `Flags[16]` grouping matches the four separate 4-byte binary-flag fields from
- * existing reverse-engineering documentation for the same region). Reads directly off [item], a
+ * existing reverse-engineering documentation for the same region). Reads directly off `item`, a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic section
  * loop.
  *

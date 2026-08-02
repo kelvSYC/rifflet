@@ -12,7 +12,8 @@ import okio.BufferedSource
  * flavorgroups" count is almost always 1.
  *
  * `numberOfFlavors` is validated via [requireSaneCount] before sizing [FlavGroupEntry.flavors] —
- * see that function's KDoc for why. `264L` is [FlavorEntry]'s own minimum possible byte width
+ * see that function's KDoc for why. `264L` is [com.kelvsyc.rifflet.civ3.FlavorEntry]'s own
+ * minimum possible byte width
  * (4-byte `unknown` + 256-byte `name` + a 4-byte relations count, with zero relations).
  *
  * Every field in this section is present regardless of [Civ3FormatEra].

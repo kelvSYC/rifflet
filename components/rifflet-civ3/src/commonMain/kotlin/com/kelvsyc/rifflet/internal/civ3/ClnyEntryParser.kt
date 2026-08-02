@@ -11,7 +11,7 @@ import okio.Buffer
  * cross-checked against a separate reverse-engineered reference implementation's
  * independently-maintained equivalent struct, which has no such inconsistency, confirms the
  * correct length is 20 bytes / 5 fields, not 16 — this parser and
- * [ClnyEntry] use the 20-byte, 5-field interpretation. Reads directly off [item], a
+ * [ClnyEntry] use the 20-byte, 5-field interpretation. Reads directly off `item`, a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
  *

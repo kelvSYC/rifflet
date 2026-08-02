@@ -8,7 +8,7 @@ import okio.ByteString
 /**
  * Parses one `TILE` item, per a separate reverse-engineered reference implementation's struct —
  * that implementation's own authors describe `TILE` as their least-complete, most tangled
- * struct. Reads directly off [item], a
+ * struct. Reads directly off `item`, a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
  *
@@ -21,7 +21,8 @@ import okio.ByteString
  * [Civ3FormatEra.VANILLA] alone — [Civ3FormatEra] itself only distinguishes
  * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW]/[Civ3FormatEra.CONQUESTS] at the major-version-range
  * level, so this section's `unknown2` cutoff is finer-grained than [Civ3FormatEra] alone conveys
- * — use the raw `major` value (via [Civ3Header.major]), not just [Civ3Header.formatEra], when
+ * — use the raw `major` value (via [com.kelvsyc.rifflet.civ3.Civ3Header.major]), not just
+ * [com.kelvsyc.rifflet.civ3.Civ3Header.formatEra], when
  * this level of precision matters. The same length-aware defensive parsing pattern is used by
  * `BldgEntryParser`/`CtznEntryParser`/`DiffEntryParser`/`ErasEntryParser`/`TechEntryParser`/
  * `UnitEntryParser`/`RuleEntryParser`.
@@ -35,7 +36,7 @@ import okio.ByteString
  * `city`). Verified
  * against two real map-editor exports (one PTW, one Conquests), each with one placed colony and
  * one placed city at known coordinates: computing each object's expected `TILE` array index from
- * its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` via [com.kelvsyc.rifflet.civ3.WmapEntry.tileIndex],
+ * its `SLOC`/`CLNY`/`CITY`-section-recorded `(x, y)` via [com.kelvsyc.rifflet.civ3.tileIndex],
  * the *first* `Short` at that tile identifies the placed `CITY` entry and the *second* identifies
  * the placed `CLNY` entry, in both files. `TileEntry`'s own field names (`colony`, `city`) match
  * their documented meaning; only the read order here is corrected, so downstream code

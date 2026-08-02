@@ -7,7 +7,7 @@ import okio.Buffer
  * Parses one government-relationship entry (byte layout per existing reverse-engineering
  * documentation of the BIX/BIQ format, second field's name corrected — see
  * [GovtRelationship]'s own KDoc), 12 bytes: `canBribe`, `propagandaModifier`,
- * `resistanceModifier`, each a little-endian `Int`. Reads directly off [item], continuing
+ * `resistanceModifier`, each a little-endian `Int`. Reads directly off `item`, continuing
  * whatever cursor position the caller (`GovtEntryParser`) has already reached on the shared
  * `GOVT` record `Buffer`.
  */

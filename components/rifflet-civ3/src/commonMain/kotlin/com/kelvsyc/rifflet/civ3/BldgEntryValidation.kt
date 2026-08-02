@@ -103,7 +103,8 @@ fun validateBldgSmallWonderHasNoHappinessReference(file: Civ3File): List<Validat
  * Every real official spaceship part is a plain Improvement (not a Wonder or Small Wonder),
  * requires exactly 1 of itself ([BldgEntry.numberOfRequiredBuildings]), has every combat value at
  * `0`, carries no [BldgEntry.numberOfArmiesRequired], renders no other building obsolete, and (on
- * [Civ3FormatEra.CONQUESTS] files, where [BldgEntry.unitProduced] is real data) produces no unit.
+ * [Civ3FormatEra.CONQUESTS] files, where [BldgUnitsProduced.unitProduced] is real data) produces
+ * no unit.
  */
 fun validateBldgSpaceshipPartInvariants(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
