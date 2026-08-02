@@ -17,6 +17,22 @@ private fun wsizEntry(): WsizEntry = WsizEntry(
     width = 0,
 )
 
+private fun wchrEntry(worldSize: Int = 0): WchrEntry = WchrEntry(
+    selectedClimate = Climate.NORMAL,
+    actualClimate = Climate.NORMAL,
+    selectedBarbarianActivity = BarbarianActivity.NO_BARBARIANS,
+    actualBarbarianActivity = BarbarianActivity.NO_BARBARIANS,
+    selectedLandform = Landform.CONTINENTS,
+    actualLandform = Landform.CONTINENTS,
+    selectedOceanCoverage = OceanCoverage.SEVENTY_PERCENT,
+    actualOceanCoverage = OceanCoverage.SEVENTY_PERCENT,
+    selectedTemperature = Temperature.TEMPERATE,
+    actualTemperature = Temperature.TEMPERATE,
+    selectedAge = Age.FOUR_BILLION_YEARS,
+    actualAge = Age.FOUR_BILLION_YEARS,
+    worldSize = worldSize,
+)
+
 private fun exprEntry(): ExprEntry = ExprEntry(name = "", baseHitPoints = 0, retreatBonus = 0)
 
 private fun erasEntry(): ErasEntry = ErasEntry(
@@ -404,6 +420,49 @@ class Civ3FileValidationTest : FunSpec({
 
     test("validateWmapCardinality returns no issues when WMAP is absent") {
         validateWmapCardinality(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
+    }
+
+    test("validateWorldSizeResolves returns no issues when worldSize is in range") {
+        val file = fileWithSections(major = 12, listOf(WchrSection(listOf(wchrEntry(worldSize = 4)))))
+
+        validateWorldSizeResolves(file) shouldBe emptyList()
+    }
+
+    test("validateWorldSizeResolves flags an out-of-range worldSize as a warning") {
+        val file = fileWithSections(
+            major = 12,
+            listOf(WsizSection(List(5) { wsizEntry() }), WchrSection(listOf(wchrEntry(worldSize = 5)))),
+        )
+
+        validateWorldSizeResolves(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.WARNING,
+                Civ3SectionIds.WCHR,
+                0,
+                "worldSize",
+                "WCHR[0] has worldSize=5, which is not a valid WSIZ index (0..<5)",
+            ),
+        )
+    }
+
+    test("validateWorldSizeResolves flags an out-of-range worldSize even when WSIZ is absent entirely") {
+        // Matches the 2 known real files: a bare map export with no embedded WSIZ section, whose
+        // default ruleset's own WSIZ would still have the usual 5 entries.
+        val file = fileWithSections(major = 12, listOf(WchrSection(listOf(wchrEntry(worldSize = 5)))))
+
+        validateWorldSizeResolves(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.WARNING,
+                Civ3SectionIds.WCHR,
+                0,
+                "worldSize",
+                "WCHR[0] has worldSize=5, which is not a valid WSIZ index (0..<5)",
+            ),
+        )
+    }
+
+    test("validateWorldSizeResolves returns no issues when WCHR is absent") {
+        validateWorldSizeResolves(fileWithSections(major = 12, emptyList())) shouldBe emptyList()
     }
 
     test("validateExprCardinality returns no issues for exactly 4 entries") {

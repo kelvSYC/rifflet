@@ -11,3 +11,51 @@ package com.kelvsyc.rifflet.civ3
  * no confirmed explanation for when or why it occurs.
  */
 enum class BarbarianActivity { NONE, NO_BARBARIANS, SEDENTARY, ROAMING, RESTLESS, RAGING, RANDOM }
+
+/**
+ * The 4 values of [WchrEntry.selectedClimate]/[WchrEntry.actualClimate], per the "Generate a Map"
+ * dialog's "Climate" dropdown. Ordinal position matches the raw file value directly — do not
+ * reorder these constants.
+ */
+enum class Climate { ARID, NORMAL, WET, RANDOM }
+
+/**
+ * The 4 values of [WchrEntry.selectedLandform]/[WchrEntry.actualLandform], per the "Generate a
+ * Map" dialog's "Landform" dropdown. Ordinal position matches the raw file value directly — do
+ * not reorder these constants.
+ */
+enum class Landform { ARCHIPELAGO, CONTINENTS, PANGAEA, RANDOM }
+
+/**
+ * The 4 values of [WchrEntry.selectedOceanCoverage]/[WchrEntry.actualOceanCoverage], per the
+ * "Generate a Map" dialog's "% Water Coverage" dropdown. Ordinal position matches the raw file
+ * value directly — do not reorder these constants.
+ */
+enum class OceanCoverage { EIGHTY_PERCENT, SEVENTY_PERCENT, SIXTY_PERCENT, RANDOM }
+
+/**
+ * The 4 values of [WchrEntry.selectedTemperature]/[WchrEntry.actualTemperature], per the
+ * "Generate a Map" dialog's "Temperature" dropdown. Ordinal position matches the raw file value
+ * directly — do not reorder these constants.
+ */
+enum class Temperature { COOL, TEMPERATE, WARM, RANDOM }
+
+/**
+ * The 4 values of [WchrEntry.selectedAge]/[WchrEntry.actualAge], per the "Generate a Map"
+ * dialog's "Age" dropdown. Ordinal position matches the raw file value directly — do not reorder
+ * these constants.
+ */
+enum class Age { THREE_BILLION_YEARS, FOUR_BILLION_YEARS, FIVE_BILLION_YEARS, RANDOM }
+
+/**
+ * Resolves [WchrEntry.worldSize] against [worldSizes] (a file's `WSIZ` section, always exactly 5
+ * entries in a real file). Real files confirm the raw value is a genuine index into this list —
+ * e.g. index `0` resolves to the entry named "Tiny" — not an independent value of its own.
+ *
+ * An out-of-range raw value (two real files have `5`, one past `WSIZ`'s last valid index) resolves
+ * to `null` here. The real map editor, when loading one of those two files, shows its own "Select
+ * World Size" control as blank — matching none of the 5 named presets — consistent with `null`
+ * being the right resolution, though the file format's own reason for allowing this value isn't
+ * otherwise confirmed.
+ */
+fun WchrEntry.worldSizeWsiz(worldSizes: List<WsizEntry>): WsizEntry? = worldSizes.getOrNull(worldSize)

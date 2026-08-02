@@ -14,6 +14,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateClearForestExclusiveToForest(file) },
     ValidationRule { file -> validateWsizCardinality(file) },
     ValidationRule { file -> validateWmapCardinality(file) },
+    ValidationRule { file -> validateWorldSizeResolves(file) },
     ValidationRule { file -> validateExprCardinality(file) },
     ValidationRule { file -> validateErasCardinality(file) },
     ValidationRule { file -> validateDiffCardinality(file) },
@@ -110,6 +111,32 @@ fun validateWmapCardinality(file: Civ3File): List<ValidationIssue> {
             "WMAP has ${section.entries.size} entries; every real official file has exactly 1",
         ),
     )
+}
+
+/**
+ * Flags a [WchrEntry.worldSize] outside `0..<5` (WARNING, not ERROR). Returns no issues if `WCHR`
+ * is absent from [file].
+ *
+ * `5` is the confirmed size of a real `WSIZ` section (see [validateWsizCardinality]) — checked
+ * directly, not by resolving against [file]'s own `WSIZ` section (via [WchrEntry.worldSizeWsiz]),
+ * since a bare map export can omit `WSIZ` entirely and still be built on a default ruleset whose
+ * own `WSIZ` has the usual 5 entries. A small number of real files (bare map exports with no
+ * `WSIZ` section of their own) have an out-of-range value here — see [WchrEntry.worldSize]'s own
+ * KDoc for what's actually confirmed about it. That's real, if unusual, so this is only a
+ * [ValidationSeverity.WARNING].
+ */
+fun validateWorldSizeResolves(file: Civ3File): List<ValidationIssue> {
+    val wchr = file.sections.filterIsInstance<WchrSection>().singleOrNull() ?: return emptyList()
+    return wchr.entries.mapIndexedNotNull { index, entry ->
+        if (entry.worldSize in 0 until 5) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.WARNING,
+            Civ3SectionIds.WCHR,
+            index,
+            "worldSize",
+            "WCHR[$index] has worldSize=${entry.worldSize}, which is not a valid WSIZ index (0..<5)",
+        )
+    }
 }
 
 /**
