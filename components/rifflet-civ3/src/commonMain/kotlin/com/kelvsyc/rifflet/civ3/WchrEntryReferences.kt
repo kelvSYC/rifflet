@@ -49,13 +49,12 @@ enum class Age { THREE_BILLION_YEARS, FOUR_BILLION_YEARS, FIVE_BILLION_YEARS, RA
 
 /**
  * Resolves [WchrEntry.worldSize] against [worldSizes] (a file's `WSIZ` section, always exactly 5
- * entries in a real file). Real files confirm the raw value is a genuine index into this list —
- * e.g. index `0` resolves to the entry named "Tiny" — not an independent value of its own.
+ * entries in a real file). The raw value is a genuine index into this list — e.g. index `0`
+ * resolves to the entry named "Tiny" — not an independent value of its own.
  *
- * An out-of-range raw value (two real files have `5`, one past `WSIZ`'s last valid index) resolves
- * to `null` here. The real map editor, when loading one of those two files, shows its own "Select
- * World Size" control as blank — matching none of the 5 named presets — consistent with `null`
- * being the right resolution, though the file format's own reason for allowing this value isn't
- * otherwise confirmed.
+ * An out-of-range raw value (past `WSIZ`'s last valid index) resolves to `null` here. The real map
+ * editor, when loading such a file, shows its own "Select World Size" control as blank — matching
+ * none of the 5 named presets — consistent with `null` being the right resolution, though the file
+ * format's own reason for allowing this value isn't otherwise confirmed.
  */
 fun WchrEntry.worldSizeWsiz(worldSizes: List<WsizEntry>): WsizEntry? = worldSizes.getOrNull(worldSize)

@@ -6,7 +6,7 @@ import okio.Buffer
 /**
  * Parses one `RACE_ERAS`-style filename pair (per existing reverse-engineering documentation of the BIX/BIQ format),
  * 520 bytes: `forwardFilename` (260 bytes), `reverseFilename` (260 bytes). Reads directly off
- * [item], continuing whatever cursor position the caller (`RaceEntryParser`) has already reached
+ * `item`, continuing whatever cursor position the caller (`RaceEntryParser`) has already reached
  * on the shared `RACE` record `Buffer`.
  */
 internal object RaceEraFilenamesParser {

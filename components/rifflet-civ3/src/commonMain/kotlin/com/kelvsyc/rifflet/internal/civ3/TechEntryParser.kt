@@ -7,13 +7,13 @@ import okio.ByteString
 
 /**
  * Parses one `TECH` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
- * Like `UnitEntryParser`, this checks [item]'s remaining size before reading its trailing
+ * Like `UnitEntryParser`, this checks `item`'s remaining size before reading its trailing
  * `unknown` field: a separate reverse-engineered reference implementation's struct includes this
  * field but existing reverse-engineering documentation omits it entirely. Because the generic
- * section loop in `Civ3RootParserImpl` already slices [item] to
+ * section loop in `Civ3RootParserImpl` already slices `item` to
  * the file's own declared length, `item.size` reliably reflects how many bytes actually remain
  * for this specific file.
  *

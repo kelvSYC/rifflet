@@ -14,10 +14,11 @@ private fun ByteString.toIntLe(): Int =
 
 /**
  * Named accessors for [TileEntry.overlayFlags]'s 8 documented bits, per existing
- * reverse-engineering documentation of the BIX/BIQ format. Real [Civ3FormatEra.CONQUESTS] tile
- * data shows this field is vestigial, exactly like [TileEntry.terrain] and [TileEntry.bonusFlags]
- * — the same 8 bits, at the same positions, are duplicated in the low byte of [c3cOverlays]
- * (see [c3cRoad] and its siblings below), which is where real per-tile data lives for that era.
+ * reverse-engineering documentation of the BIX/BIQ format. This field is vestigial in real
+ * [Civ3FormatEra.CONQUESTS] tile data, exactly like [TileEntry.terrain] and [TileEntry.bonusFlags]
+ * — the same 8 bits, at the same positions, are duplicated in the low byte of
+ * [TileEntry.c3cOverlays] (see [c3cRoad] and its siblings below), which is where real per-tile
+ * data lives for that era.
  * Use `TileEntryReferences.kt`'s era-aware resolver functions (e.g. `fortress(era)`) rather than
  * reading these directly.
  */
@@ -50,9 +51,6 @@ val TileEntry.riverInSouth: Boolean by BitCollection.byte.extensionBitFlag({ riv
 
 /**
  * Named accessors for [TileEntry.riverCrossingFlags]'s 8 documented bits (compass directions).
- * A forum correction confirmed by the original documentation's author swapped this field's
- * meaning with what was originally posted as "river source info" — these names reflect the
- * corrected (final) understanding.
  */
 val TileEntry.crossingN: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 0)
 val TileEntry.crossingNe: Boolean by BitCollection.byte.extensionBitFlag({ riverCrossingFlags }, 1)
@@ -76,8 +74,8 @@ val TileEntry.outpost: Boolean by BitCollection.int.extensionBitFlag({ c3cOverla
 /**
  * The [Civ3FormatEra.CONQUESTS]-tier equivalents of the legacy [road]/[railroad]/[mine]/
  * [irrigation]/[fortress]/[goodyHuts]/[pollution]/[barbarianCamp] (same bit positions, 0-7, in
- * [c3cOverlays]'s low byte instead of [TileEntry.overlayFlags]) — prefer `TileEntryReferences.kt`'s
- * era-aware resolver functions over reading these directly.
+ * [TileEntry.c3cOverlays]'s low byte instead of [TileEntry.overlayFlags]) — prefer
+ * `TileEntryReferences.kt`'s era-aware resolver functions over reading these directly.
  */
 val TileEntry.c3cRoad: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 0)
 val TileEntry.c3cRailroad: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 1)

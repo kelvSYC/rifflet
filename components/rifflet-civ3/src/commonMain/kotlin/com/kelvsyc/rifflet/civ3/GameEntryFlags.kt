@@ -53,6 +53,6 @@ val GameEntry.wonderVictoryEnabled: Boolean by BitCollection.int.extensionBitFla
  * [IndexOutOfBoundsException] like any `List` access — an out-of-range alliance number is a
  * caller error, not a data-quality concern, since [GameLockedAlliance.allianceWars]'s size is
  * already a structural invariant enforced by [GameLockedAlliance]'s own `init` block. Returns an
- * empty list if [lockedAlliance] is null (group absent from file).
+ * empty list if [GameEntry.lockedAlliance] is null (group absent from file).
  */
 fun GameEntry.allianceWarMatrix(): List<List<Int>> = lockedAlliance?.allianceWars?.chunked(5) ?: emptyList()

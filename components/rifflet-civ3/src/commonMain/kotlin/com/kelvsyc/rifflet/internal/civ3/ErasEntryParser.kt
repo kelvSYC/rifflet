@@ -7,7 +7,7 @@ import okio.ByteString
 
 /**
  * Parses one `ERAS` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * The trailing field (`unknown`) is read defensively: real [Civ3FormatEra.VANILLA] (`major=4`)

@@ -13,7 +13,7 @@ import okio.ByteString
 /**
  * Parses one `TERR` item, per existing reverse-engineering documentation of the BIX/BIQ format,
  * which reconciles exactly with a separate reverse-engineered reference implementation's struct
- * field-by-field. Reads directly off [item], a
+ * field-by-field. Reads directly off `item`, a
  * zero-copy-transferred [Buffer] already stripped of its own length prefix by the generic
  * section loop.
  *
@@ -23,7 +23,7 @@ import okio.ByteString
  * constant or a count-prefixed element list. The ceiling division is computed in `Long`
  * arithmetic specifically to avoid `Int` overflow when [TerrEntry.numberOfPossibleResources] is
  * within 7 of `Int.MAX_VALUE` (an `Int + Int` addition there would wrap to a large negative
- * number before the division ever ran). The result is validated against [item]'s actual
+ * number before the division ever ran). The result is validated against `item`'s actual
  * remaining size via [okio.BufferedSource.request] — the same technique [requireSaneCount] uses
  * — before [TerrEntry.possibleResources] is read, since this field's ceiling-division shape
  * doesn't fit `requireSaneCount`'s `count * minBytesPerElement` model directly.

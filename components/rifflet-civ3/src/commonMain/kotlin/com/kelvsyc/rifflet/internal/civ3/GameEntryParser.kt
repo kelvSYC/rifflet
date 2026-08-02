@@ -14,7 +14,7 @@ import okio.ByteString
 /**
  * Parses one `GAME` item, per existing reverse-engineering documentation of the BIX/BIQ format,
  * cross-validated against a separate reverse-engineered reference implementation's struct. Reads
- * directly off [item], a zero-copy-transferred [Buffer] already stripped of its own length
+ * directly off `item`, a zero-copy-transferred [Buffer] already stripped of its own length
  * prefix by the generic section loop.
  *
  * [GameEntry.numberOfPlayableCivs] is read once and reused (not re-read) to size two separate

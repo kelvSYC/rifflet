@@ -48,7 +48,8 @@ private val ISOMETRIC_NEIGHBOR_DELTAS = listOf(
 
 /**
  * The `TILE` section indices of the tile at `(x, y)`'s up to 8 isometric neighbors, per
- * [xWrapping]/[yWrapping]: a neighbor past a wrapping edge is computed modulo [width]/[height]; a
+ * [xWrapping]/[yWrapping]: a neighbor past a wrapping edge is computed modulo
+ * [WmapEntry.width]/[WmapEntry.height]; a
  * neighbor past a non-wrapping edge is omitted (there is no tile there).
  */
 fun WmapEntry.neighborTileIndices(x: Int, y: Int): List<Int> = ISOMETRIC_NEIGHBOR_DELTAS.mapNotNull { (dx, dy) ->

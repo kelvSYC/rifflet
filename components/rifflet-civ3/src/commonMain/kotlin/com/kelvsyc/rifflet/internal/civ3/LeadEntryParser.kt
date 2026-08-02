@@ -8,7 +8,7 @@ import okio.ByteString
 
 /**
  * Parses one `LEAD` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop. Reads its two dynamic arrays — [LeadEntry.startUnits] (a paired record
  * type, matching `GovtEntryParser`'s `relationships` read) and [LeadEntry.startingTechnologyIds]
  * (a flat `Int` list, matching `WmapEntryParser`/`CityEntryParser`) — with a preceding count

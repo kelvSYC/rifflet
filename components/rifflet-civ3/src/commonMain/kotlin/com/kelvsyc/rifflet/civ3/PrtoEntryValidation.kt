@@ -86,7 +86,7 @@ fun validatePrtoOtherStrategyBounds(file: Civ3File): List<ValidationIssue> {
  * section size. Returns no issues if `PRTO` or `RACE` is absent from [file].
  *
  * Every real official file's units have an `availableTo` bounded exactly to the file's own `RACE`
- * entry count, with zero exceptions.
+ * entry count.
  */
 fun validatePrtoAvailableToBounds(file: Civ3File): List<ValidationIssue> {
     val prto = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()

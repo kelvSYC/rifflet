@@ -9,7 +9,7 @@ import okio.Buffer
  * (the `name` field is 24 bytes, resolving a discrepancy between a separate reverse-engineered
  * reference implementation's struct declaration — 24 bytes — and its own buggy 30-byte accessor;
  * existing reverse-engineering documentation confirms 24 bytes). Reads directly
- * off [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * off `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * `numberOfBuildings` is validated via [requireSaneCount] before sizing

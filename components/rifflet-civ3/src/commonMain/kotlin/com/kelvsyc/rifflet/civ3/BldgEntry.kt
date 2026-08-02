@@ -17,15 +17,14 @@ import okio.ByteString
  * @param requirements This building's prerequisites (advance, other required building,
  *   government). See [BldgRequirements].
  * @param combatValues This building's combat modifiers. See [BldgCombatValues].
- * @param navalDefenseBonus 4 bytes with zero documented behavior from either reverse-engineering
- *   source; preserved raw, not validated. Despite its similar name, this is not part of
- *   [combatValues] — it doesn't correspond to any control in either the PTW or Conquests
- *   "Improvements and Wonders" tab.
+ * @param navalDefenseBonus 4 bytes with zero documented behavior; preserved raw, not validated.
+ *   Despite its similar name, this is not part of [combatValues] — it doesn't correspond to any
+ *   control in either the PTW or Conquests "Improvements and Wonders" tab.
  * @param happiness This building's happiness effect. See [BldgHappiness].
  * @param spaceshipPart `-1` if this building doesn't produce a spaceship part, or an index into
- *   `RuleEntry.spaceshipPartQuantities` identifying which part it produces — confirmed by real
- *   data (the Conquests base ruleset's 10 "SS ..." buildings each carry a distinct index 0-9,
- *   matching the General Settings tab's "Spaceship Parts" group's part dropdown/count).
+ *   `RuleEntry.spaceshipPartQuantities` identifying which part it produces — the Conquests base
+ *   ruleset's 10 "SS ..." buildings each carry a distinct index 0-9, matching the General Settings
+ *   tab's "Spaceship Parts" group's part dropdown/count.
  * @param requiredResources This building's required natural resources. See
  *   [BldgRequiredResources].
  * @param flags 16 bytes, four packed 4-byte named sub-fields per existing reverse-engineering

@@ -8,18 +8,18 @@ import okio.Buffer
 import okio.ByteString
 
 /**
- * Parses one `PRTO` item. Reads directly off [item], a zero-copy-transferred [Buffer] already
+ * Parses one `PRTO` item. Reads directly off `item`, a zero-copy-transferred [Buffer] already
  * stripped of its own length prefix by the generic section loop.
  *
- * [terrCount] comes from the already-parsed `TERR` section (see `Civ3RootParserImpl`'s
+ * `terrCount` comes from the already-parsed `TERR` section (see `Civ3RootParserImpl`'s
  * cross-section threading, the same pattern `RaceEntryParser` uses for `erasCount`) and sizes
  * [PrtoEntry.ignoreMovementCost]: real [Civ3FormatEra.VANILLA] and [Civ3FormatEra.PTW] files
  * always have 12 `TERR` entries, real [Civ3FormatEra.CONQUESTS] files always have 14 (Conquests
- * added 2 new terrain types, marshes and volcanoes). [terrCount] is validated via
+ * added 2 new terrain types, marshes and volcanoes). `terrCount` is validated via
  * [requireSaneCount] immediately upon entry, before it sizes [PrtoEntry.ignoreMovementCost] — see
  * that function's KDoc for why.
  *
- * [PrtoEntry.numberOfStealthTargets] (not stored on [PrtoEntry] directly —
+ * `numberOfStealthTargets` (not stored on [PrtoEntry] directly —
  * `stealthTargetUnitTypes.size` is already that count) is likewise validated via
  * [requireSaneCount] immediately after being read, before it sizes
  * [PrtoEntry.stealthTargetUnitTypes] in either of its two branches.

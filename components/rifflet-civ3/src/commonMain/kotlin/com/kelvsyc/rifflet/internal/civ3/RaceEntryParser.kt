@@ -11,16 +11,16 @@ import okio.ByteString
 
 /**
  * Parses one `RACE` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
- * generic section loop. [erasCount] comes from the already-parsed `ERAS` section (see
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * generic section loop. `erasCount` comes from the already-parsed `ERAS` section (see
  * `Civ3RootParserImpl`'s cross-section threading) and sizes the embedded `eras` array; none of
  * the four dynamic-array counts (`numberOfCities`, `numberOfGreatLeaders`, `erasCount`,
  * `numberOfScientificLeaders`) are stored on [RaceEntry] — each list's own `.size` is already
  * that count. `scientificLeaderNames` is the record's last field; nothing follows it.
  *
  * All four counts are validated via [requireSaneCount] before sizing their respective lists —
- * see that function's KDoc for why. `520L` is [RaceEraFilenames]' fixed width (two 260-byte
- * fields).
+ * see that function's KDoc for why. `520L` is [com.kelvsyc.rifflet.civ3.RaceEraFilenames]'s fixed
+ * width (two 260-byte fields).
  *
  * [RaceEntry.leader]'s 3 fields and [RaceEntry.personality]'s 3 fields are each read at their
  * original, non-contiguous file positions and assembled into the group object only once all 3

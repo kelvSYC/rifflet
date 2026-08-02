@@ -19,11 +19,9 @@ fun GovtEntry.prerequisiteTechnologyTech(techs: List<TechEntry>): TechEntry? =
  * it doesn't disable corruption in-game, and instead produces very high corruption in every city
  * but the capital, per community bug reports on the Rules Editor's Governments tab.
  *
- * [OFF] is also [Civ3FormatEra.CONQUESTS]-only: PTW's Governments tab has just the other 6
- * options in its "Corruption and Waste" radio group, with no `OFF` at all, and every real
- * PTW/vanilla government's `corruption` value is within 0-5, never 6. [Civ3FormatEra.VANILLA] is
- * assumed to match [Civ3FormatEra.PTW] here, per this codebase's usual treatment when no
- * dedicated vanilla-only source exists.
+ * [OFF] is also [Civ3FormatEra.CONQUESTS]-only: PTW's and [Civ3FormatEra.VANILLA]'s Governments
+ * tabs have just the other 6 options in their "Corruption and Waste" radio group, with no `OFF`
+ * at all, and every real PTW/vanilla government's `corruption` value is within 0-5, never 6.
  */
 enum class GovtCorruption { MINIMAL, NUISANCE, PROBLEMATIC, RAMPANT, CATASTROPHIC, COMMUNAL, OFF }
 

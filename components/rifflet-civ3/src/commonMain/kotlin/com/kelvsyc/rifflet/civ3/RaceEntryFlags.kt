@@ -19,10 +19,10 @@ val RaceEntry.agricultural: Boolean by BitCollection.int.extensionBitFlag({ bonu
 val RaceEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 7)
 
 /**
- * Named accessors for [RaceEntry.flavors]'s 7 documented bits (see that field's own KDoc for
- * how they were confirmed) — not to be confused with [RaceEntry.bonuses]'s similarly-labeled
- * "Flavor1".."Flavor7" checkboxes in the Conquests Rules Editor, which turned out to be a
- * red herring (see [bonuses]'s own KDoc).
+ * Named accessors for [RaceEntry.flavors]'s 7 documented bits — not to be confused with
+ * [RaceEntry.bonuses]'s similarly-labeled "Flavor1".."Flavor7" checkboxes in the Conquests Rules
+ * Editor, a wholly separate field with no relation to this one (see [RaceEntry.bonuses]'s own
+ * KDoc).
  */
 val RaceEntry.flavor1: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 0)
 val RaceEntry.flavor2: Boolean by BitCollection.int.extensionBitFlag({ flavors }, 1)

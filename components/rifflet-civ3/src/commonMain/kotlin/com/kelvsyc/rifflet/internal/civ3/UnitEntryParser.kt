@@ -6,14 +6,14 @@ import okio.Buffer
 
 /**
  * Parses one `UNIT` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop.
  *
  * Unlike every other `EntryParser` in this codebase (at the time this was written), this one
- * checks [item]'s remaining size before reading its two trailing fields (`ptwName`,
+ * checks `item`'s remaining size before reading its two trailing fields (`ptwName`,
  * `useCivilizationKing`): a [Civ3FormatEra.VANILLA] file predating the [Civ3FormatEra.PTW]
  * expansion may declare a shorter per-item length that omits them entirely, not merely leave
- * them blank. Because the generic section loop in `Civ3RootParserImpl` already slices [item] to
+ * them blank. Because the generic section loop in `Civ3RootParserImpl` already slices `item` to
  * the file's own declared length, `item.size` reliably reflects how many bytes actually remain
  * for this specific file — no special-casing at the section-loop level is needed, unlike `FLAV`.
  * [Civ3FormatEra.PTW] minor sensitivity was not separately tracked during the original

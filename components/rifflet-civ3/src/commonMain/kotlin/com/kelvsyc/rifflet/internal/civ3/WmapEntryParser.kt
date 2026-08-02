@@ -6,7 +6,7 @@ import okio.Buffer
 
 /**
  * Parses one `WMAP` item, per existing reverse-engineering documentation of the BIX/BIQ format. Reads directly off
- * [item], a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
+ * `item`, a zero-copy-transferred [Buffer] already stripped of its own length prefix by the
  * generic section loop — `WMAP` retains a normal length prefix, unlike `FLAV`.
  *
  * `numberOfResources` is validated via [requireSaneCount] before sizing

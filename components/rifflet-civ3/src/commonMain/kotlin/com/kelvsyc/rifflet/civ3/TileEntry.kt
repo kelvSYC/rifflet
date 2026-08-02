@@ -20,16 +20,16 @@ import okio.ByteString
  *   accessors in `TileEntryFlags.kt`.
  * @param terrain A packed nibble pair — low nibble is the base terrain (`TERR` index), high
  *   nibble is the overlay terrain (`TERR` index), per a separate reverse-engineered reference
- *   implementation's explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors. Real
- *   [Civ3FormatEra.CONQUESTS] tile data across multiple independent files shows this field
- *   uniformly zero, with [c3cTerrain] carrying the actual per-tile terrain instead — see that
- *   field's own KDoc. Carries real per-tile data in [Civ3FormatEra.VANILLA] and
+ *   implementation's explicit `BaseTerrain`/`OverlayTerrain` nibble-mask accessors. This field is
+ *   uniformly zero in real [Civ3FormatEra.CONQUESTS] tile data, with [c3cTerrain] carrying the
+ *   actual per-tile terrain instead — see that field's own KDoc. Carries real per-tile data in
+ *   [Civ3FormatEra.VANILLA] and
  *   [Civ3FormatEra.PTW] files, the eras before [c3cTerrain] existed. Preserved raw, not decomposed
  *   into separate properties.
  * @param bonusFlags 1 byte with 4 named booleans at non-contiguous bit positions; see
- *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`. Real
- *   [Civ3FormatEra.CONQUESTS] tile data shows this field uniformly zero as well, with the same 4
- *   bit positions instead populated in [c3cBonuses] — see that field's own KDoc. Real in
+ *   [TileEntry.bonusGrassland] and its sibling accessors in `TileEntryFlags.kt`. This field is
+ *   likewise uniformly zero in real [Civ3FormatEra.CONQUESTS] tile data, with the same 4 bit
+ *   positions instead populated in [c3cBonuses] — see that field's own KDoc. Real in
  *   [Civ3FormatEra.VANILLA] files too, by the same treatment as [terrain]. Use
  *   `TileEntryReferences.kt`'s era-aware resolver functions (e.g. `bonusGrassland(era)`) to read
  *   the right field regardless of which era a file is in.

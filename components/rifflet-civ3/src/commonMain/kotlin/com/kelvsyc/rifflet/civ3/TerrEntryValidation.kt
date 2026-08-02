@@ -68,7 +68,7 @@ fun validateClearForestExclusiveToForest(file: Civ3File): List<ValidationIssue> 
  * [TerrEntry.causesDisease]. Returns no issues if the `TERR` section is absent from [file].
  *
  * The Terrain editor tab's "Cured by Sanitation" checkbox is only enabled once "Causes Disease"
- * is checked — every real vanilla, PTW, and Conquests ruleset respects this, with zero exceptions.
+ * is checked — every real vanilla, PTW, and Conquests ruleset respects this.
  */
 fun validateCuredBySanitationRequiresCausesDisease(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()
@@ -99,7 +99,7 @@ private val LANDMARK_TERR_INDICES = setOf(0, 1, 2, 5, 6, 7, 12)
  * These 7 fixed-position terrain types are the only ones the Terrain editor tab offers landmark
  * information for — every other terrain type's landmark data is present in the file (the whole
  * `Landmark Information` panel is always read once a file is `CONQUESTS`-era) but structurally
- * disabled, with zero exceptions across every real Conquests ruleset checked.
+ * disabled.
  */
 fun validateLandmarkEnabledOnlyOnSupportedTerrainTypes(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<TerrSection>().singleOrNull() ?: return emptyList()

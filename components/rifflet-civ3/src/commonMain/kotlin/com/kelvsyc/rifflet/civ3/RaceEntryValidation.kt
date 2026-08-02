@@ -94,7 +94,7 @@ fun validateRaceBarbarianPlaceholder(file: Civ3File): List<ValidationIssue> {
  * `PrtoEntry.availableTo` addresses civilizations by `RACE` index as bits of a 32-bit `Int` (see
  * [availableToRaces]), which caps the format at 32 civilization slots (index 0's barbarian
  * placeholder plus 31 playable civilizations) — every real official file stays at or under that
- * ceiling, with zero exceptions.
+ * ceiling.
  */
 fun validateRaceMaxCount(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<RaceSection>().singleOrNull() ?: return emptyList()
