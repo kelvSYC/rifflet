@@ -77,3 +77,95 @@ fun PrtoEntry.availableToRaces(races: List<RaceEntry>): List<RaceEntry> =
  */
 enum class PrtoDomain { LAND, SEA, AIR }
 
+/**
+ * [PrtoEntry.buildColony] resolved for [era]: reads [PrtoEntry.vanillaBuildColony] for
+ * [Civ3FormatEra.VANILLA] files, where real per-unit Worker/Engineer Actions data lives, or the
+ * legacy [PrtoEntry.buildColony] otherwise.
+ */
+fun PrtoEntry.buildColony(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildColony else buildColony
+
+/**
+ * [PrtoEntry.buildCity] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.buildCity(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildCity else buildCity
+
+/**
+ * [PrtoEntry.buildRoad] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.buildRoad(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildRoad else buildRoad
+
+/**
+ * [PrtoEntry.buildRailroad] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.buildRailroad(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildRailroad else buildRailroad
+
+/**
+ * [PrtoEntry.buildFort] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.buildFort(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildFort else buildFort
+
+/**
+ * [PrtoEntry.buildMine] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.buildMine(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildMine else buildMine
+
+/**
+ * [PrtoEntry.irrigate] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.irrigate(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaIrrigate else irrigate
+
+/**
+ * [PrtoEntry.clearForest] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.clearForest(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaClearForest else clearForest
+
+/**
+ * [PrtoEntry.clearJungle] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.clearJungle(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaClearJungle else clearJungle
+
+/**
+ * [PrtoEntry.plantForest] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.plantForest(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaPlantForest else plantForest
+
+/**
+ * [PrtoEntry.clearPollution] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.clearPollution(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaClearPollution else clearPollution
+
+/**
+ * [PrtoEntry.automate] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.automate(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaAutomate else automate
+
+/**
+ * [PrtoEntry.joinCity] resolved for [era]. Same treatment as [buildColony]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.joinCity(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaJoinCity else joinCity
+
