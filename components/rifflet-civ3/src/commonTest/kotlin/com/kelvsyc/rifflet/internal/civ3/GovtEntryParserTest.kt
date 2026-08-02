@@ -3,9 +3,11 @@ package com.kelvsyc.rifflet.internal.civ3
 import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
 import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtEntry
+import com.kelvsyc.rifflet.civ3.GovtHurrying
 import com.kelvsyc.rifflet.civ3.GovtRelationship
 import com.kelvsyc.rifflet.civ3.GovtRulerTitles
 import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
+import com.kelvsyc.rifflet.civ3.GovtWarWeariness
 import com.kelvsyc.rifflet.core.RiffletParseException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -28,6 +30,8 @@ private fun govtItemBinary(
     relationships: List<Triple<Int, Int, Int>> = listOf(Triple(1, 20, 30), Triple(0, 5, 10)),
     unknown: ByteArray = ByteArray(4),
     corruption: Int = 0,
+    hurrying: Int = 0,
+    warWeariness: Int = 0,
     includeTrailingFields: Boolean = true,
 ): Buffer = Buffer().apply {
     writeIntLe(0) // defaultType
@@ -49,7 +53,7 @@ private fun govtItemBinary(
         writeIntLe(propagandaModifier)
         writeIntLe(resistanceModifier)
     }
-    writeIntLe(0) // hurrying
+    writeIntLe(hurrying)
     writeIntLe(0) // assimilationChance
     writeIntLe(0) // draftLimit
     writeIntLe(0) // militaryPoliceLimit
@@ -65,7 +69,7 @@ private fun govtItemBinary(
     writeIntLe(0) // freeUnitsPerCity
     writeIntLe(0) // freeUnitsPerMetropolis
     writeIntLe(0) // unitCost
-    writeIntLe(0) // warWeariness
+    writeIntLe(warWeariness)
     if (includeTrailingFields) {
         writeIntLe(0) // xenophobic
         writeIntLe(0) // forceResettle
@@ -96,7 +100,7 @@ class GovtEntryParserTest : FunSpec({
             diplomatsAre = 0,
             spiesAre = 0,
             relationships = listOf(GovtRelationship(1, 20, 30), GovtRelationship(0, 5, 10)),
-            hurrying = 0,
+            hurrying = GovtHurrying.CANNOT_HURRY,
             assimilationChance = 0,
             draftLimit = 0,
             militaryPoliceLimit = 0,
@@ -114,7 +118,7 @@ class GovtEntryParserTest : FunSpec({
                 freeUnitsPerMetropolis = 0,
                 unitCost = 0,
             ),
-            warWeariness = 0,
+            warWeariness = GovtWarWeariness.NONE,
             xenophobic = 0,
             forceResettle = 0,
         )
@@ -161,5 +165,33 @@ class GovtEntryParserTest : FunSpec({
         val e = shouldThrow<Civ3EnumDecodeException> { GovtEntryParser.parse(item) }
         e.field shouldBe "GovtEntry.corruption"
         e.rawValue shouldBe 7
+    }
+
+    test("hurrying decodes each raw value to the matching GovtHurrying") {
+        GovtHurrying.entries.forEachIndexed { raw, expected ->
+            val item = govtItemBinary(hurrying = raw)
+            GovtEntryParser.parse(item).hurrying shouldBe expected
+        }
+    }
+
+    test("an out-of-range hurrying throws Civ3EnumDecodeException") {
+        val item = govtItemBinary(hurrying = 3)
+        val e = shouldThrow<Civ3EnumDecodeException> { GovtEntryParser.parse(item) }
+        e.field shouldBe "GovtEntry.hurrying"
+        e.rawValue shouldBe 3
+    }
+
+    test("warWeariness decodes each raw value to the matching GovtWarWeariness") {
+        GovtWarWeariness.entries.forEachIndexed { raw, expected ->
+            val item = govtItemBinary(warWeariness = raw)
+            GovtEntryParser.parse(item).warWeariness shouldBe expected
+        }
+    }
+
+    test("an out-of-range warWeariness throws Civ3EnumDecodeException") {
+        val item = govtItemBinary(warWeariness = 3)
+        val e = shouldThrow<Civ3EnumDecodeException> { GovtEntryParser.parse(item) }
+        e.field shouldBe "GovtEntry.warWeariness"
+        e.rawValue shouldBe 3
     }
 })

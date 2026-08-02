@@ -23,11 +23,21 @@ import okio.ByteString
  * @param toggle3 `???` — observed: 1 = Republic/Democracy, 0 = other.
  * @param corruption This government's Corruption and Waste severity — see [GovtCorruption] for
  *   what each value means, per the Governments editor's own radio group.
+ * @param immuneTo An `ESPN` section index, or `-1` for "None" — see [immuneToEspn]. Per the
+ *   Governments editor's Espionage groupbox "Immune" dropdown.
+ * @param diplomatsAre An `EXPR` section index — see [diplomatsAreExpr]. Per the Governments
+ *   editor's Espionage groupbox "Diplomats Are" dropdown.
+ * @param spiesAre An `EXPR` section index — see [spiesAreExpr]. Per the Governments editor's
+ *   Espionage groupbox "Spies Are" dropdown.
+ * @param hurrying See [GovtHurrying] for what each value means, per the Governments editor's own
+ *   "Hurrying" dropdown.
  * @param prerequisiteTechnology A `TECH` section index, per the Governments editor's own
  *   "Prerequisite" dropdown.
  * @param unknown 4 bytes with zero documented behavior from either reverse-engineering source;
  *   preserved raw, not validated.
  * @param unitSupportCosts This government's unit support costs. See [GovtUnitSupportCosts].
+ * @param warWeariness See [GovtWarWeariness] for what each value means, per the Governments
+ *   editor's own "War Weariness" dropdown.
  */
 data class GovtEntry(
     val defaultType: Int,
@@ -44,7 +54,7 @@ data class GovtEntry(
     val diplomatsAre: Int,
     val spiesAre: Int,
     val relationships: List<GovtRelationship>,
-    val hurrying: Int,
+    val hurrying: GovtHurrying,
     val assimilationChance: Int,
     val draftLimit: Int,
     val militaryPoliceLimit: Int,
@@ -56,7 +66,7 @@ data class GovtEntry(
     val toggle3: Int,
     val unknown: ByteString,
     val unitSupportCosts: GovtUnitSupportCosts,
-    val warWeariness: Int,
+    val warWeariness: GovtWarWeariness,
     val xenophobic: Int,
     val forceResettle: Int,
 ) {

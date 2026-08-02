@@ -31,7 +31,7 @@ private fun govtEntry(
     diplomatsAre = 0,
     spiesAre = 0,
     relationships = emptyList(),
-    hurrying = 0,
+    hurrying = GovtHurrying.CANNOT_HURRY,
     assimilationChance = 0,
     draftLimit = 0,
     militaryPoliceLimit = 0,
@@ -49,7 +49,7 @@ private fun govtEntry(
         freeUnitsPerMetropolis = 0,
         unitCost = 0,
     ),
-    warWeariness = 0,
+    warWeariness = GovtWarWeariness.NONE,
     xenophobic = 0,
     forceResettle = 0,
 )
