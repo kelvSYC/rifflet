@@ -78,6 +78,128 @@ fun PrtoEntry.availableToRaces(races: List<RaceEntry>): List<RaceEntry> =
 enum class PrtoDomain { LAND, SEA, AIR }
 
 /**
+ * [PrtoEntry.skipTurn] resolved for [era]: reads [PrtoEntry.vanillaSkipTurn] for
+ * [Civ3FormatEra.VANILLA] files, where real per-unit Standard Orders data lives, or the legacy
+ * [PrtoEntry.skipTurn] otherwise.
+ */
+fun PrtoEntry.skipTurn(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaSkipTurn else skipTurn
+
+/**
+ * [PrtoEntry.wait] resolved for [era]. Same treatment as [skipTurn]'s era-resolved overload.
+ */
+fun PrtoEntry.wait(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaWait else wait
+
+/**
+ * [PrtoEntry.fortify] resolved for [era]. Same treatment as [skipTurn]'s era-resolved overload.
+ */
+fun PrtoEntry.fortify(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaFortify else fortify
+
+/**
+ * [PrtoEntry.disband] resolved for [era]. Same treatment as [skipTurn]'s era-resolved overload.
+ */
+fun PrtoEntry.disband(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaDisband else disband
+
+/**
+ * [PrtoEntry.goTo] resolved for [era]. Same treatment as [skipTurn]'s era-resolved overload.
+ */
+fun PrtoEntry.goTo(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaGoTo else goTo
+
+/**
+ * [PrtoEntry.load] resolved for [era]: reads [PrtoEntry.vanillaLoad] for [Civ3FormatEra.VANILLA]
+ * files, where real per-unit Special Actions data lives, or the legacy [PrtoEntry.load] otherwise.
+ */
+fun PrtoEntry.load(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaLoad else load
+
+/**
+ * [PrtoEntry.unload] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.unload(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaUnload else unload
+
+/**
+ * [PrtoEntry.airlift] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.airlift(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaAirlift else airlift
+
+/**
+ * [PrtoEntry.pillage] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.pillage(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaPillage else pillage
+
+/**
+ * [PrtoEntry.bombard] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.bombard(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBombard else bombard
+
+/**
+ * [PrtoEntry.airdrop] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.airdrop(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaAirdrop else airdrop
+
+/**
+ * [PrtoEntry.buildArmy] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.buildArmy(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBuildArmy else buildArmy
+
+/**
+ * [PrtoEntry.finishImprovements] resolved for [era]. Same treatment as [load]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.finishImprovements(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaFinishImprovements else finishImprovements
+
+/**
+ * [PrtoEntry.upgradeUnit] resolved for [era]. Same treatment as [load]'s era-resolved overload.
+ */
+fun PrtoEntry.upgradeUnit(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaUpgradeUnit else upgradeUnit
+
+/**
+ * [PrtoEntry.bombing] resolved for [era]: reads [PrtoEntry.vanillaBombing] for
+ * [Civ3FormatEra.VANILLA] files, where real per-unit Air Missions data lives, or the legacy
+ * [PrtoEntry.bombing] otherwise.
+ */
+fun PrtoEntry.bombing(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaBombing else bombing
+
+/**
+ * [PrtoEntry.recon] resolved for [era]. Same treatment as [bombing]'s era-resolved overload.
+ */
+fun PrtoEntry.recon(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaRecon else recon
+
+/**
+ * [PrtoEntry.interception] resolved for [era]. Same treatment as [bombing]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.interception(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaInterception else interception
+
+/**
+ * [PrtoEntry.rebase] resolved for [era]. Same treatment as [bombing]'s era-resolved overload.
+ */
+fun PrtoEntry.rebase(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaRebase else rebase
+
+/**
+ * [PrtoEntry.precisionBombing] resolved for [era]. Same treatment as [bombing]'s era-resolved
+ * overload.
+ */
+fun PrtoEntry.precisionBombing(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.VANILLA) vanillaPrecisionBombing else precisionBombing
+
+/**
  * [PrtoEntry.buildColony] resolved for [era]: reads [PrtoEntry.vanillaBuildColony] for
  * [Civ3FormatEra.VANILLA] files, where real per-unit Worker/Engineer Actions data lives, or the
  * legacy [PrtoEntry.buildColony] otherwise.

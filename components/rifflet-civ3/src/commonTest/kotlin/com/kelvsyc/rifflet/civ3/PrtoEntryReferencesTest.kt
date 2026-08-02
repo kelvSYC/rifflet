@@ -14,8 +14,11 @@ private fun validPrtoEntry(
     otherStrategy: Int = 0,
     aiStrategies: Int = 0,
     availableTo: Int = 0,
+    standardOrders: Int = 0,
     workerActions: Int = 0,
+    airMissions: Int = 0,
     flags2Bits: Int = 0,
+    flags2HighBits: Int = 0,
 ): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
         zoneOfControl = 0, bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0,
@@ -38,14 +41,17 @@ private fun validPrtoEntry(
         ((flags2Bits shr 8) and 0xFF).toByte(),
         ((flags2Bits shr 16) and 0xFF).toByte(),
         ((flags2Bits shr 24) and 0xFF).toByte(),
-        0, 0, 0, 0,
+        (flags2HighBits and 0xFF).toByte(),
+        ((flags2HighBits shr 8) and 0xFF).toByte(),
+        ((flags2HighBits shr 16) and 0xFF).toByte(),
+        ((flags2HighBits shr 24) and 0xFF).toByte(),
     ),
     type = PrtoDomain.LAND,
     otherStrategy = otherStrategy,
-    standardOrders = 0,
+    standardOrders = standardOrders,
     specialActions = 0,
     workerActions = workerActions,
-    airMissions = 0,
+    airMissions = airMissions,
     flags4 = ByteString.of(*ByteArray(4)),
     ignoreMovementCost = ByteString.of(),
     unknown = ByteString.of(*ByteArray(16)),
@@ -209,5 +215,25 @@ class PrtoEntryWorkerActionEraResolversTest : FunSpec({
         val conquestsOnly = validPrtoEntry(flags2Bits = 0, workerActions = 1 shl 12)
         conquestsOnly.joinCity(Civ3FormatEra.VANILLA) shouldBe false
         conquestsOnly.joinCity(Civ3FormatEra.CONQUESTS) shouldBe true
+    }
+
+    test("skipTurn(era) reads flags2 for VANILLA, standardOrders otherwise") {
+        val vanillaOnly = validPrtoEntry(flags2Bits = 1 shl 0, standardOrders = 0)
+        vanillaOnly.skipTurn(Civ3FormatEra.VANILLA) shouldBe true
+        vanillaOnly.skipTurn(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        val conquestsOnly = validPrtoEntry(flags2Bits = 0, standardOrders = 1 shl 0)
+        conquestsOnly.skipTurn(Civ3FormatEra.VANILLA) shouldBe false
+        conquestsOnly.skipTurn(Civ3FormatEra.CONQUESTS) shouldBe true
+    }
+
+    test("bombing(era) reads flags2 for VANILLA, airMissions otherwise") {
+        val vanillaOnly = validPrtoEntry(flags2HighBits = 1 shl 0, airMissions = 0)
+        vanillaOnly.bombing(Civ3FormatEra.VANILLA) shouldBe true
+        vanillaOnly.bombing(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        val conquestsOnly = validPrtoEntry(flags2HighBits = 0, airMissions = 1 shl 0)
+        conquestsOnly.bombing(Civ3FormatEra.VANILLA) shouldBe false
+        conquestsOnly.bombing(Civ3FormatEra.CONQUESTS) shouldBe true
     }
 })
