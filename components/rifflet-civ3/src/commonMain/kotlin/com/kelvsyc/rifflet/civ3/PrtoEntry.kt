@@ -11,8 +11,8 @@ import okio.ByteString
  * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor. Same treatment
  *   applies to [requiredResource2], [requiredResource3].
  * @param abilities The Units editor's Abilities checkboxes (Wheeled, Foot Unit, Blitz, Radar,
- *   Amphibious, Stealth, King, ...) plus a handful of single-unit-anchor traits (Nuclear Weapon,
- *   Army, Leader, ...). See `PrtoEntryFlags.kt` for the individual named accessors.
+ *   Amphibious, Stealth, King, ...) plus a few traits each tied to a single specific unit (Nuclear
+ *   Weapon, Army, Leader, ...). See `PrtoEntryFlags.kt` for the individual named accessors.
  * @param aiStrategies The Units editor's 20 AI Strategy checkboxes (Offense, Defense, Explore,
  *   Artillery, Naval Power, ..., Army, Leader, King). See `PrtoEntryFlags.kt` for the individual
  *   named accessors.

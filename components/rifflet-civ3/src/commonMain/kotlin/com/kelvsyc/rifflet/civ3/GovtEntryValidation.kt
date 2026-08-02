@@ -32,9 +32,9 @@ fun validateGovtCorruption(file: Civ3File): List<ValidationIssue> {
  * Flags a `GOVT` section with more than one [GovtEntry.defaultType] entry (ERROR), or none at all
  * (WARNING). Returns no issues if the `GOVT` section is absent from [file].
  *
- * Every real official file has at most one Default government (Despotism), with zero exceptions.
- * A small number of real multiplayer scenarios have none at all (Despotism removed entirely), so
- * a missing Default is only a [ValidationSeverity.WARNING], not an [ValidationSeverity.ERROR].
+ * Every real official file has at most one Default government (Despotism). A small number of real
+ * multiplayer scenarios have none at all (Despotism removed entirely), so a missing Default is
+ * only a [ValidationSeverity.WARNING], not an [ValidationSeverity.ERROR].
  */
 fun validateGovtDefaultCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<GovtSection>().singleOrNull() ?: return emptyList()
@@ -66,8 +66,8 @@ fun validateGovtDefaultCardinality(file: Civ3File): List<ValidationIssue> {
  * Flags a `GOVT` section without exactly one [GovtEntry.transitionType] entry. Returns no issues
  * if the `GOVT` section is absent from [file].
  *
- * Every real official file has exactly one Transition government (Anarchy), with zero exceptions
- * — even the handful of real multiplayer scenarios missing a Default government still carry one.
+ * Every real official file has exactly one Transition government (Anarchy) — even the real
+ * multiplayer scenarios missing a Default government still carry one.
  */
 fun validateGovtTransitionCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<GovtSection>().singleOrNull() ?: return emptyList()

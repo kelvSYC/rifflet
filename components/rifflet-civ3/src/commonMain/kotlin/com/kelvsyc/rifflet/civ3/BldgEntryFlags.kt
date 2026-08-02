@@ -87,8 +87,7 @@ val BldgEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ otherCh
  * this sub-field's byte range even though the Rules Editor presents it (and every bit here) in
  * the same combined "Wonders and Small Wonders" grid regardless of whether the building's own
  * category is Wonder or Small Wonder. Bit 9, [ptwRequiredGoodsMustBeInCityRadius], is the
- * [Civ3FormatEra.PTW]-tier location of [BldgEntry.requiredGoodsMustBeInCityRadius] — confirmed
- * via a real PTW file's Iron Works entry, which sets this bit and not `improvements` bit 31.
+ * [Civ3FormatEra.PTW]-tier location of [BldgEntry.requiredGoodsMustBeInCityRadius].
  */
 val BldgEntry.smallWonders: Int get() = flags.toIntLe(8)
 

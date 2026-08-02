@@ -36,9 +36,8 @@ val PrtoEntry.flags4Bits: Int get() = flags4.toIntLe(0)
  * 0-4 are 5 of [PrtoEntry.standardOrders]'s 7 checkboxes ([vanillaSkipTurn] and its sibling
  * accessors), bits 5-13 are 9 of [PrtoEntry.specialActions]'s checkboxes ([vanillaLoad] and its
  * siblings), and bits 14-26 are the Worker/Engineer Actions grid ([vanillaBuildColony] and its
- * siblings) — each packed in the same bit order its later-era counterpart uses, confirmed by
- * comparing the same real unit (e.g. Settler, Worker) across independent VANILLA and CONQUESTS
- * files. Bits 32-63 of [PrtoEntry.flags2] are a computed echo of specific low bits (e.g. bit 38
+ * siblings) — each packed in the same bit order its later-era counterpart uses. Bits 32-63 of
+ * [PrtoEntry.flags2] are a computed echo of specific low bits (e.g. bit 38
  * always equals bit 9), the same phenomenon as [flags4Bits] for CONQUESTS, not independent data —
  * see [flags2HighBits] for the one exception (a real Air Missions block).
  */
@@ -157,10 +156,10 @@ val PrtoEntry.nuclearWeaponAbility: Boolean by BitCollection.int.extensionBitFla
 val PrtoEntry.hiddenNationalityAbility: Boolean by BitCollection.int.extensionBitFlag({ abilities }, 17)
 
 /**
- * Marks the unit as the Army unit type, matching [RuleEntry.buildArmyUnit]'s target: a unit that
- * can absorb several other units into a single stack fighting as one. [armyStrategy] (bit 4 of
- * [aiStrategies]) is a distinct, real AI Strategies checkbox that happens to share this same
- * population — not a redundant echo of this ability.
+ * Marks the unit as the Army unit type, matching [RuleDefaultUnits.buildArmyUnit]'s target: a unit
+ * that can absorb several other units into a single stack fighting as one. [armyStrategy] (bit 4
+ * of [PrtoEntry.aiStrategies]) is a distinct, real AI Strategies checkbox that happens to share
+ * this same population — not a redundant echo of this ability.
  */
 val PrtoEntry.armyAbility: Boolean by BitCollection.int.extensionBitFlag({ abilities }, 18)
 
@@ -231,8 +230,8 @@ val PrtoEntry.lethalSeaBombardmentAbility: Boolean by BitCollection.int.extensio
  * The Units editor's Abilities → "King" checkbox. Marks the unit as a civ's leaderhead/King
  * figure — a per-civ marker, not a narrower "royalty" concept. Places the unit at the bottom of a
  * defending stack (attacked last) and makes it unbuildable. [kingStrategy] (bit 19 of
- * [aiStrategies]) is a distinct, real AI Strategies checkbox that happens to share this same
- * population — not a redundant echo of this ability.
+ * [PrtoEntry.aiStrategies]) is a distinct, real AI Strategies checkbox that happens to share this
+ * same population — not a redundant echo of this ability.
  */
 val PrtoEntry.kingAbility: Boolean by BitCollection.int.extensionBitFlag({ abilities }, 29)
 
@@ -328,8 +327,8 @@ val PrtoEntry.airdrop: Boolean by BitCollection.int.extensionBitFlag({ specialAc
 
 /**
  * The Units editor's Special Actions → "Upgrade Unit" checkbox. Lets the unit be upgraded along
- * the tech-based upgrade chain starting at [PrtoEntry.upgradeTo] — a unit can skip multiple tiers
- * of that chain in a single upgrade if the further techs are already available.
+ * the tech-based upgrade chain starting at [PrtoUnitStatistics.upgradeTo] — a unit can skip
+ * multiple tiers of that chain in a single upgrade if the further techs are already available.
  */
 val PrtoEntry.upgradeUnit: Boolean by BitCollection.int.extensionBitFlag({ specialActions }, 8)
 
@@ -520,9 +519,9 @@ val PrtoEntry.buildBarricade: Boolean by BitCollection.int.extensionBitFlag({ wo
 
 /**
  * The Units editor's AI Strategies → Land "Defense" checkbox. Named `defenseStrategy` rather
- * than `defense` to avoid colliding with [PrtoEntry.defense] (the numeric defense stat). See
- * [PrtoEntry.otherStrategy]'s KDoc and [effectiveAiStrategies] for why a unit's Defense strategy
- * can live on a separate `PRTO` entry from its Offense strategy.
+ * than `defense` to avoid colliding with [PrtoUnitStatistics.defense] (the numeric defense stat).
+ * See [PrtoEntry.otherStrategy]'s KDoc and [effectiveAiStrategies] for why a unit's Defense
+ * strategy can live on a separate `PRTO` entry from its Offense strategy.
  */
 val PrtoEntry.defenseStrategy: Boolean by BitCollection.int.extensionBitFlag({ aiStrategies }, 1)
 
@@ -555,8 +554,8 @@ val PrtoEntry.airBombardStrategy: Boolean by BitCollection.int.extensionBitFlag(
 
 /**
  * The Units editor's AI Strategies → Air "Defense" checkbox. Named `airDefenseStrategy` rather
- * than `airDefense` to avoid colliding with [PrtoEntry.airDefense] (the numeric stat). Distinct
- * from [interception] (an Air Mission).
+ * than `airDefense` to avoid colliding with [PrtoUnitStatistics.airDefense] (the numeric stat).
+ * Distinct from [interception] (an Air Mission).
  */
 val PrtoEntry.airDefenseStrategy: Boolean by BitCollection.int.extensionBitFlag({ aiStrategies }, 7)
 
@@ -612,8 +611,8 @@ val PrtoEntry.settleStrategy: Boolean by BitCollection.int.extensionBitFlag({ ai
 
 /**
  * The Units editor's AI Strategies → "Army" checkbox — true only for the Army unit. A distinct,
- * real checkbox that shares its population with [armyAbility] (bit 18 of [abilities]) rather than
- * being a redundant echo of it.
+ * real checkbox that shares its population with [armyAbility] (bit 18 of [PrtoEntry.abilities])
+ * rather than being a redundant echo of it.
  */
 val PrtoEntry.armyStrategy: Boolean by BitCollection.int.extensionBitFlag({ aiStrategies }, 4)
 
@@ -624,8 +623,8 @@ val PrtoEntry.leaderStrategy: Boolean by BitCollection.int.extensionBitFlag({ ai
 
 /**
  * The Units editor's AI Strategies → "King" checkbox — true only on King-ability units. A
- * distinct, real checkbox that shares its population with [kingAbility] (bit 29 of [abilities])
- * rather than being a redundant echo of it.
+ * distinct, real checkbox that shares its population with [kingAbility] (bit 29 of
+ * [PrtoEntry.abilities]) rather than being a redundant echo of it.
  */
 val PrtoEntry.kingStrategy: Boolean by BitCollection.int.extensionBitFlag({ aiStrategies }, 19)
 
