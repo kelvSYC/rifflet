@@ -141,6 +141,17 @@ class TileEntryReferencesTest : FunSpec({
         c3cEntry.bonusGrassland(Civ3FormatEra.VANILLA) shouldBe false
     }
 
+    test("playerStart(era) reads the legacy field for VANILLA/PTW and c3cBonuses for CONQUESTS") {
+        val entry = validTileEntry(bonusFlags = (1 shl 3).toByte(), c3cBonuses = ByteString.of(0, 0, 0, 0))
+        entry.playerStart(Civ3FormatEra.VANILLA) shouldBe true
+        entry.playerStart(Civ3FormatEra.PTW) shouldBe true
+        entry.playerStart(Civ3FormatEra.CONQUESTS) shouldBe false
+
+        val c3cEntry = validTileEntry(bonusFlags = 0, c3cBonuses = ByteString.of((1 shl 3).toByte(), 0, 0, 0))
+        c3cEntry.playerStart(Civ3FormatEra.CONQUESTS) shouldBe true
+        c3cEntry.playerStart(Civ3FormatEra.VANILLA) shouldBe false
+    }
+
     test("snowCappedMountains(era) reads the legacy field for VANILLA/PTW and c3cBonuses for CONQUESTS") {
         val entry = validTileEntry(bonusFlags = (1 shl 4).toByte())
         entry.snowCappedMountains(Civ3FormatEra.PTW) shouldBe true

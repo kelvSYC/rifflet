@@ -89,15 +89,14 @@ val TileEntry.c3cPollution: Boolean by BitCollection.int.extensionBitFlag({ c3cO
 val TileEntry.c3cBarbarianCamp: Boolean by BitCollection.int.extensionBitFlag({ c3cOverlays.toIntLe() }, 7)
 
 /**
- * Named accessors for 4 of [TileEntry.c3cBonuses]'s 32 bits (see that field's own KDoc). Bits
- * 0/4/5 are the [Civ3FormatEra.CONQUESTS]-tier equivalents of the legacy [bonusGrassland]/
- * [snowCappedMountains]/[pineForest] (same bit positions, different field) — prefer
- * `TileEntryReferences.kt`'s era-aware resolver functions over reading these directly. Bit 13,
- * [isLandmarkTile], has no legacy equivalent. The [bonusFlags]-tier equivalent of bit 3
- * ([playerStart]) is not yet confirmed to have a [Civ3FormatEra.CONQUESTS] counterpart in
- * [c3cBonuses] — no accessor is added for it pending real data with a placed starting position.
+ * Named accessors for 5 of [TileEntry.c3cBonuses]'s 32 bits (see that field's own KDoc). Bits
+ * 0/3/4/5 are the [Civ3FormatEra.CONQUESTS]-tier equivalents of the legacy [bonusGrassland]/
+ * [playerStart]/[snowCappedMountains]/[pineForest] (same bit positions, different field) —
+ * prefer `TileEntryReferences.kt`'s era-aware resolver functions over reading these directly.
+ * Bit 13, [isLandmarkTile], has no legacy equivalent.
  */
 val TileEntry.c3cBonusGrassland: Boolean by BitCollection.int.extensionBitFlag({ c3cBonuses.toIntLe() }, 0)
+val TileEntry.c3cPlayerStart: Boolean by BitCollection.int.extensionBitFlag({ c3cBonuses.toIntLe() }, 3)
 val TileEntry.c3cSnowCappedMountains: Boolean by BitCollection.int.extensionBitFlag({ c3cBonuses.toIntLe() }, 4)
 val TileEntry.c3cPineForest: Boolean by BitCollection.int.extensionBitFlag({ c3cBonuses.toIntLe() }, 5)
 val TileEntry.isLandmarkTile: Boolean by BitCollection.int.extensionBitFlag({ c3cBonuses.toIntLe() }, 13)

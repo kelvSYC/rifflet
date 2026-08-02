@@ -189,8 +189,7 @@ fun validateErasCardinality(file: Civ3File): List<ValidationIssue> {
  * PTW's Difficulty Levels tab has only a Rename control, and its 6 difficulty levels run
  * Chieftain through Deity. Conquests additionally shipped Demigod and Sid, and its tab adds Add
  * but not Delete, so a scenario may only grow past the baseline, never shrink below it.
- * [Civ3FormatEra.VANILLA] is assumed to match PTW — no real vanilla-era `DIFF` sample was
- * available to check directly.
+ * [Civ3FormatEra.VANILLA] matches PTW's baseline of 6.
  */
 fun validateDiffCardinality(file: Civ3File): List<ValidationIssue> {
     val section = file.sections.filterIsInstance<DiffSection>().singleOrNull() ?: return emptyList()

@@ -22,8 +22,8 @@ val BldgEntry.improvements: Int get() = flags.toIntLe(0)
  * Named accessors for [BldgEntry.improvements]'s 30 documented bits. Bit 7 ([resistantToBribery])
  * is labeled "Resistant to Propaganda" in the Conquests Rules Editor, not "Resistant to
  * Bribery" — a naming mismatch, not a missing bit. [requiredGoodsMustBeInCityRadius] (bit 31) is
- * the [Civ3FormatEra.CONQUESTS]-tier location of this flag; [Civ3FormatEra.PTW] (and, unconfirmed,
- * [Civ3FormatEra.VANILLA]) instead use [ptwRequiredGoodsMustBeInCityRadius] (`smallWonders` bit
+ * the [Civ3FormatEra.CONQUESTS]-tier location of this flag; [Civ3FormatEra.PTW] and
+ * [Civ3FormatEra.VANILLA] instead use [ptwRequiredGoodsMustBeInCityRadius] (`smallWonders` bit
  * 9) — see `BldgEntryReferences.kt`'s era-aware `requiredGoodsMustBeInCityRadius(era)` resolver.
  */
 val BldgEntry.centerOfEmpire: Boolean by BitCollection.int.extensionBitFlag({ improvements }, 0)

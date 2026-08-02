@@ -4,6 +4,12 @@ import com.kelvsyc.rifflet.core.ChunkId
 
 /**
  * The severity of a [ValidationIssue].
+ *
+ * Both levels report the same kind of thing — a value the real Civ3 editors would never let you
+ * build — so neither implies anything about whether the game engine itself would tolerate it at
+ * runtime, which is a separate, generally unconfirmed question. [ERROR] means every real official
+ * file matches the constraint without exception. [WARNING] means the constraint holds in general
+ * but at least one real official file is a confirmed exception to it.
  */
 enum class ValidationSeverity { ERROR, WARNING }
 
