@@ -30,6 +30,13 @@ fun TileEntry.bonusGrassland(era: Civ3FormatEra): Boolean =
     if (era == Civ3FormatEra.CONQUESTS) c3cBonusGrassland else bonusGrassland
 
 /**
+ * [TileEntry.playerStart] resolved for [era]. Same treatment as [TileEntry.bonusGrassland]'s
+ * era-resolved overload.
+ */
+fun TileEntry.playerStart(era: Civ3FormatEra): Boolean =
+    if (era == Civ3FormatEra.CONQUESTS) c3cPlayerStart else playerStart
+
+/**
  * [TileEntry.snowCappedMountains] resolved for [era]. Same treatment as
  * [TileEntry.bonusGrassland]'s era-resolved overload.
  */

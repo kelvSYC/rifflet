@@ -71,12 +71,12 @@ import okio.ByteString
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.
  * @param fogOfWar Present only in [Civ3FormatEra.CONQUESTS] files, read defensively.
- * @param c3cBonuses 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively. 4
- *   of its 32 bits are named: bits 0/4/5 match the legacy [bonusFlags] scheme exactly
- *   ([TileEntry.c3cBonusGrassland]/[TileEntry.c3cSnowCappedMountains]/[TileEntry.c3cPineForest]),
- *   and bit 13 is new — [TileEntry.isLandmarkTile], marking this tile as its terrain type's
- *   landmark instance (matching `TerrEntry.landmarkEnabled` for the corresponding `TERR` entry).
- *   The remaining bits are preserved raw, not decomposed.
+ * @param c3cBonuses 4 bytes, present only in [Civ3FormatEra.CONQUESTS] files, read defensively. 5
+ *   of its 32 bits are named: bits 0/3/4/5 match the legacy [bonusFlags] scheme exactly
+ *   ([TileEntry.c3cBonusGrassland]/[TileEntry.c3cPlayerStart]/[TileEntry.c3cSnowCappedMountains]/
+ *   [TileEntry.c3cPineForest]), and bit 13 is new — [TileEntry.isLandmarkTile], marking this tile
+ *   as its terrain type's landmark instance (matching `TerrEntry.landmarkEnabled` for the
+ *   corresponding `TERR` entry). The remaining bits are preserved raw, not decomposed.
  * @param unknown5 2 bytes with zero documented behavior;
  *   present only in [Civ3FormatEra.CONQUESTS] files, read defensively; preserved raw, not
  *   validated.

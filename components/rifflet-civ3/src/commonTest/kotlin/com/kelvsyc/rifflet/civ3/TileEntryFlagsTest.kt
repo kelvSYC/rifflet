@@ -114,6 +114,7 @@ class TileEntryC3cBonusesFlagsTest : FunSpec({
 
     val properties: List<Pair<Int, (TileEntry) -> Boolean>> = listOf(
         0 to TileEntry::c3cBonusGrassland,
+        3 to TileEntry::c3cPlayerStart,
         4 to TileEntry::c3cSnowCappedMountains,
         5 to TileEntry::c3cPineForest,
         13 to TileEntry::isLandmarkTile,
