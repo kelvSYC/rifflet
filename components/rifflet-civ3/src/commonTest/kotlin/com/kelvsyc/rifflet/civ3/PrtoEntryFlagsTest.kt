@@ -18,6 +18,8 @@ private fun validPrtoEntry(
     specialActions: Int = 0,
     workerActions: Int = 0,
     airMissions: Int = 0,
+    flags2Bits: Int = 0,
+    flags2HighBits: Int = 0,
     flags4Bits: Int = 0,
 ): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
@@ -36,7 +38,7 @@ private fun validPrtoEntry(
     abilities = abilities,
     aiStrategies = aiStrategies,
     availableTo = 0,
-    flags2 = ByteString.of(*ByteArray(8)),
+    flags2 = ByteString.of(*(bytesFor(flags2Bits) + bytesFor(flags2HighBits)).toByteArray()),
     type = PrtoDomain.LAND,
     otherStrategy = 0,
     standardOrders = standardOrders,
@@ -292,6 +294,111 @@ class PrtoEntryWorkerActionsTest : FunSpec({
     }
 })
 
+class PrtoEntryVanillaStandardOrdersTest : FunSpec({
+
+    val properties: List<Pair<Int, (PrtoEntry) -> Boolean>> = listOf(
+        0 to PrtoEntry::vanillaSkipTurn,
+        1 to PrtoEntry::vanillaWait,
+        2 to PrtoEntry::vanillaFortify,
+        3 to PrtoEntry::vanillaDisband,
+        4 to PrtoEntry::vanillaGoTo,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validPrtoEntry(flags2Bits = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validPrtoEntry(flags2Bits = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validPrtoEntry(flags2Bits = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class PrtoEntryVanillaSpecialActionsTest : FunSpec({
+
+    val properties: List<Pair<Int, (PrtoEntry) -> Boolean>> = listOf(
+        5 to PrtoEntry::vanillaLoad,
+        6 to PrtoEntry::vanillaUnload,
+        7 to PrtoEntry::vanillaAirlift,
+        8 to PrtoEntry::vanillaPillage,
+        9 to PrtoEntry::vanillaBombard,
+        10 to PrtoEntry::vanillaAirdrop,
+        11 to PrtoEntry::vanillaBuildArmy,
+        12 to PrtoEntry::vanillaFinishImprovements,
+        13 to PrtoEntry::vanillaUpgradeUnit,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validPrtoEntry(flags2Bits = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validPrtoEntry(flags2Bits = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validPrtoEntry(flags2Bits = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
+class PrtoEntryVanillaWorkerActionsTest : FunSpec({
+
+    val properties: List<Pair<Int, (PrtoEntry) -> Boolean>> = listOf(
+        14 to PrtoEntry::vanillaBuildColony,
+        15 to PrtoEntry::vanillaBuildCity,
+        16 to PrtoEntry::vanillaBuildRoad,
+        17 to PrtoEntry::vanillaBuildRailroad,
+        18 to PrtoEntry::vanillaBuildFort,
+        19 to PrtoEntry::vanillaBuildMine,
+        20 to PrtoEntry::vanillaIrrigate,
+        21 to PrtoEntry::vanillaClearForest,
+        22 to PrtoEntry::vanillaClearJungle,
+        23 to PrtoEntry::vanillaPlantForest,
+        24 to PrtoEntry::vanillaClearPollution,
+        25 to PrtoEntry::vanillaAutomate,
+        26 to PrtoEntry::vanillaJoinCity,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validPrtoEntry(flags2Bits = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validPrtoEntry(flags2Bits = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validPrtoEntry(flags2Bits = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
+    }
+})
+
 class PrtoEntryAirMissionsTest : FunSpec({
 
     val properties: List<Pair<Int, (PrtoEntry) -> Boolean>> = listOf(
@@ -331,5 +438,50 @@ class PrtoEntryFlags4BitsTest : FunSpec({
 
     test("flags4Bits extracts the entire (4-byte) flags4 field as a little-endian Int") {
         validPrtoEntry(flags4Bits = 0x01020304).flags4Bits shouldBe 0x01020304
+    }
+})
+
+class PrtoEntryFlags2LowBitsTest : FunSpec({
+
+    test("flags2LowBits extracts the low 4 bytes of the 8-byte flags2 field as a little-endian Int") {
+        validPrtoEntry(flags2Bits = 0x01020304).flags2LowBits shouldBe 0x01020304
+    }
+})
+
+class PrtoEntryFlags2HighBitsTest : FunSpec({
+
+    test("flags2HighBits extracts the high 4 bytes of the 8-byte flags2 field as a little-endian Int") {
+        validPrtoEntry(flags2HighBits = 0x01020304).flags2HighBits shouldBe 0x01020304
+    }
+})
+
+class PrtoEntryVanillaAirMissionsTest : FunSpec({
+
+    val properties: List<Pair<Int, (PrtoEntry) -> Boolean>> = listOf(
+        0 to PrtoEntry::vanillaBombing,
+        1 to PrtoEntry::vanillaRecon,
+        2 to PrtoEntry::vanillaInterception,
+        3 to PrtoEntry::vanillaRebase,
+        4 to PrtoEntry::vanillaPrecisionBombing,
+    )
+
+    test("each bit maps to exactly its own named property") {
+        for ((bit, _) in properties) {
+            val entry = validPrtoEntry(flags2HighBits = 1 shl bit)
+            for ((otherBit, otherProperty) in properties) {
+                otherProperty(entry) shouldBe (otherBit == bit)
+            }
+        }
+    }
+
+    test("all named bits set") {
+        val allBits = properties.fold(0) { acc, (bit, _) -> acc or (1 shl bit) }
+        val entry = validPrtoEntry(flags2HighBits = allBits)
+        properties.forEach { (_, property) -> property(entry) shouldBe true }
+    }
+
+    test("all named bits clear") {
+        val entry = validPrtoEntry(flags2HighBits = 0)
+        properties.forEach { (_, property) -> property(entry) shouldBe false }
     }
 })

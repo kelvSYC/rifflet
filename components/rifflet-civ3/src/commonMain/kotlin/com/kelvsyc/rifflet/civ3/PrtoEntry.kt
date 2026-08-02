@@ -24,7 +24,9 @@ import okio.ByteString
  *   Special Actions, Worker/Engineer Actions, and Air Missions live, packed together rather than
  *   in the later separate fields ([standardOrders] etc.); it is all zero in real
  *   [Civ3FormatEra.PTW] and [Civ3FormatEra.CONQUESTS] files, which use those separate fields
- *   instead. Not decomposed at the type level; no accessors exist for any part of it.
+ *   instead. Bits 0-36 are decoded — see [vanillaSkipTurn] and its sibling accessors in
+ *   `PrtoEntryFlags.kt`. Bits 37-63 are unused or duplicate other bits (see [flags2LowBits]'s own
+ *   KDoc); no accessor exists for that range.
  * @param type This unit's domain — see [PrtoDomain] for what each value means, per the Conquests
  *   Rules Editor's "Class" control (Land/Sea/Air).
  * @param otherStrategy Despite its name, not itself an AI-strategy bitmask: it is -1 for most

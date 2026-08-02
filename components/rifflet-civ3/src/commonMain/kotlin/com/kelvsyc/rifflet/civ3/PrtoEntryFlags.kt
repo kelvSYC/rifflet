@@ -31,6 +31,19 @@ private fun ByteString.toIntLe(offset: Int): Int =
  */
 val PrtoEntry.flags4Bits: Int get() = flags4.toIntLe(0)
 
+/**
+ * The low 32 bits of [PrtoEntry.flags2] as an Int. In real [Civ3FormatEra.VANILLA] files, bits
+ * 0-4 are 5 of [PrtoEntry.standardOrders]'s 7 checkboxes ([vanillaSkipTurn] and its sibling
+ * accessors), bits 5-13 are 9 of [PrtoEntry.specialActions]'s checkboxes ([vanillaLoad] and its
+ * siblings), and bits 14-26 are the Worker/Engineer Actions grid ([vanillaBuildColony] and its
+ * siblings) — each packed in the same bit order its later-era counterpart uses, confirmed by
+ * comparing the same real unit (e.g. Settler, Worker) across independent VANILLA and CONQUESTS
+ * files. Bits 32-63 of [PrtoEntry.flags2] are a computed echo of specific low bits (e.g. bit 38
+ * always equals bit 9), the same phenomenon as [flags4Bits] for CONQUESTS, not independent data —
+ * see [flags2HighBits] for the one exception (a real Air Missions block).
+ */
+val PrtoEntry.flags2LowBits: Int get() = flags2.toIntLe(0)
+
 // --- Abilities (unit-class characteristics) ---
 
 /**
@@ -268,6 +281,19 @@ val PrtoEntry.disband: Boolean by BitCollection.int.extensionBitFlag({ standardO
  */
 val PrtoEntry.sentry: Boolean by BitCollection.int.extensionBitFlag({ standardOrders }, 6)
 
+// --- Standard Orders, real [Civ3FormatEra.VANILLA] data (packed into [flags2LowBits]) ---
+//
+// [PrtoEntry.standardOrders] is genuinely `0` in real VANILLA files — that era packs 5 of its 7
+// checkboxes into [flags2LowBits] bits 0-4 instead, in the same bit order; [explore] and [sentry]
+// have no VANILLA counterpart. See `PrtoEntryReferences.kt`'s era-aware resolver functions (e.g.
+// `skipTurn(era)`) to read the right field regardless of which era a file is in.
+
+val PrtoEntry.vanillaSkipTurn: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 0)
+val PrtoEntry.vanillaWait: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 1)
+val PrtoEntry.vanillaFortify: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 2)
+val PrtoEntry.vanillaDisband: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 3)
+val PrtoEntry.vanillaGoTo: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 4)
+
 // --- Special Actions ---
 
 /**
@@ -352,6 +378,23 @@ val PrtoEntry.finishImprovements: Boolean by BitCollection.int.extensionBitFlag(
  */
 val PrtoEntry.startsScienceAge: Boolean by BitCollection.int.extensionBitFlag({ specialActions }, 21)
 
+// --- Special Actions, real [Civ3FormatEra.VANILLA] data (packed into [flags2LowBits]) ---
+//
+// [PrtoEntry.specialActions] is genuinely `0` in real VANILLA files — that era packs 9 of its
+// checkboxes into [flags2LowBits] bits 5-13 instead, in the same bit order as their
+// [PrtoEntry.specialActions] counterparts. See `PrtoEntryReferences.kt`'s era-aware resolver
+// functions (e.g. `load(era)`) to read the right field regardless of which era a file is in.
+
+val PrtoEntry.vanillaLoad: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 5)
+val PrtoEntry.vanillaUnload: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 6)
+val PrtoEntry.vanillaAirlift: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 7)
+val PrtoEntry.vanillaPillage: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 8)
+val PrtoEntry.vanillaBombard: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 9)
+val PrtoEntry.vanillaAirdrop: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 10)
+val PrtoEntry.vanillaBuildArmy: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 11)
+val PrtoEntry.vanillaFinishImprovements: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 12)
+val PrtoEntry.vanillaUpgradeUnit: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 13)
+
 // --- Special Actions: the Worker/Engineer Actions grid ([PrtoEntry.workerActions]) ---
 //
 // Several of these bits are also echoed in [flags4Bits] — see the internal note below for the
@@ -431,6 +474,27 @@ val PrtoEntry.automate: Boolean by BitCollection.int.extensionBitFlag({ workerAc
  * population into an existing city, as opposed to [buildCity]'s founding a new one.
  */
 val PrtoEntry.joinCity: Boolean by BitCollection.int.extensionBitFlag({ workerActions }, 12)
+
+// --- Worker/Engineer Actions, real [Civ3FormatEra.VANILLA] data (packed into [flags2LowBits]) ---
+//
+// [PrtoEntry.workerActions] is genuinely `0` in real VANILLA files — that era packs this same
+// 13-checkbox grid into [flags2LowBits] bits 14-26 instead, in the same bit order. See
+// `PrtoEntryReferences.kt`'s era-aware resolver functions (e.g. `buildColony(era)`) to read the
+// right field regardless of which era a file is in.
+
+val PrtoEntry.vanillaBuildColony: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 14)
+val PrtoEntry.vanillaBuildCity: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 15)
+val PrtoEntry.vanillaBuildRoad: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 16)
+val PrtoEntry.vanillaBuildRailroad: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 17)
+val PrtoEntry.vanillaBuildFort: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 18)
+val PrtoEntry.vanillaBuildMine: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 19)
+val PrtoEntry.vanillaIrrigate: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 20)
+val PrtoEntry.vanillaClearForest: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 21)
+val PrtoEntry.vanillaClearJungle: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 22)
+val PrtoEntry.vanillaPlantForest: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 23)
+val PrtoEntry.vanillaClearPollution: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 24)
+val PrtoEntry.vanillaAutomate: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 25)
+val PrtoEntry.vanillaJoinCity: Boolean by BitCollection.int.extensionBitFlag({ flags2LowBits }, 26)
 
 /**
  * The Units editor's Worker/Engineer Actions → "Build Airfield" checkbox.
@@ -596,6 +660,26 @@ val PrtoEntry.rebase: Boolean by BitCollection.int.extensionBitFlag({ airMission
  */
 val PrtoEntry.precisionBombing: Boolean by BitCollection.int.extensionBitFlag({ airMissions }, 4)
 
+// --- Air Missions, real [Civ3FormatEra.VANILLA] data (packed into [flags2HighBits]) ---
+//
+// [PrtoEntry.airMissions] is genuinely `0` in real VANILLA files — that era packs its 5 checkboxes
+// into [PrtoEntry.flags2] bits 32-36 instead, in the same bit order. See `PrtoEntryReferences.kt`'s
+// era-aware resolver functions (e.g. `bombing(era)`) to read the right field regardless of which
+// era a file is in.
+
+/**
+ * The high 32 bits of [PrtoEntry.flags2] as an Int — bits 32-36 (Int positions 0-4) are the Air
+ * Missions block ([vanillaBombing] and its sibling accessors); the rest is unused or a duplicate
+ * of specific low bits (see [flags2LowBits]'s own KDoc).
+ */
+val PrtoEntry.flags2HighBits: Int get() = flags2.toIntLe(4)
+
+val PrtoEntry.vanillaBombing: Boolean by BitCollection.int.extensionBitFlag({ flags2HighBits }, 0)
+val PrtoEntry.vanillaRecon: Boolean by BitCollection.int.extensionBitFlag({ flags2HighBits }, 1)
+val PrtoEntry.vanillaInterception: Boolean by BitCollection.int.extensionBitFlag({ flags2HighBits }, 2)
+val PrtoEntry.vanillaRebase: Boolean by BitCollection.int.extensionBitFlag({ flags2HighBits }, 3)
+val PrtoEntry.vanillaPrecisionBombing: Boolean by BitCollection.int.extensionBitFlag({ flags2HighBits }, 4)
+
 // --- Internal note: bits not yet confirmed, deliberately left without accessors ---
 //
 // Do not add a bit accessor until one candidate is isolated to a single bit with real-data
@@ -702,7 +786,8 @@ val PrtoEntry.precisionBombing: Boolean by BitCollection.int.extensionBitFlag({ 
 // Tower Builder" units revealed [buildOutpost] and [buildRadarTower] had been swapped (an
 // unverified guess from before either had a real single-unit anchor) — now corrected.
 //
-// ## flags2 — full bit layout penciled in per Apolyton; most positions not independently provable
+// ## flags2 — fully decoded for real VANILLA data (bits 11/12 inferred from the surrounding
+// pattern, not independently anchored; bits 27-31/37/51-63 unused; bits 38-50 pure duplicates)
 // Confirmed via real vanilla files (civ3mod.bic and both real "Earth" scenario files, all
 // major=4/minor=1) cross-checked against a real PTW file (civ3X.bix, major=11/minor=18): in
 // [Civ3FormatEra.VANILLA], flags2 is where Standard Orders, Special Actions, Worker/Engineer
@@ -727,43 +812,67 @@ val PrtoEntry.precisionBombing: Boolean by BitCollection.int.extensionBitFlag({ 
 // Missions (Bombing, Recon, Interception, Re-base, Precision Bombing), 37 unused, 38-50 a
 // flags4-style synthetic-commands mix, 51-63 unused.
 //
-// Individually confirmed by the sweep (exact, unique match across all 77 real entries):
-// - Bit 4: [goTo].
-// - Bit 6: [unload].
-// - Bit 9: [bombard].
-// - Bit 10: [airdrop].
-// - Bit 15: [buildCity].
-// - Bit 26: [joinCity].
+// Individually confirmed (exact, unique match): bits 4/6/9/10/15/26/32-36 via the original 77-entry
+// sweep; bits 0-3/5/7/8/9/10/13/14/16-25 via a later, much larger community scenario/mod
+// preservation archive (see below) matching 149 shared real unit names across independent VANILLA
+// and CONQUESTS files.
+// - Bit 0: [vanillaSkipTurn]. Bit 1: [vanillaWait]. Bit 2: [vanillaFortify].
+//   Bit 3: [vanillaDisband]. All four: zero mismatches across all 149 matched names.
+// - Bit 4: [vanillaGoTo]. Zero mismatches.
+// - Bit 5: [vanillaLoad]. 146/149 matched; the remainder plausibly genuine per-mod ruleset
+//   differences for this context-dependent action, not evidence against the position.
+// - Bit 6: [vanillaUnload]. Zero mismatches.
+// - Bit 7: [vanillaAirlift]. 142/149 matched.
+// - Bit 8: [vanillaPillage]. 147/149 matched.
+// - Bit 9: [vanillaBombard]. 144/149 matched.
+// - Bit 10: [vanillaAirdrop]. Zero mismatches.
+// - Bit 11: [vanillaBuildArmy]. Bit 12: [vanillaFinishImprovements]. Zero mismatches against the
+//   combined Build Army/Finish Improvements value — but see the note below on this pair.
+// - Bit 13: [vanillaUpgradeUnit]. 125/149 matched — the weakest of this range, still a clear
+//   majority; Upgrade Unit eligibility is a common target for unit-balance mods.
+// - Bit 14: [vanillaBuildColony].
+// - Bit 15: [vanillaBuildCity].
+// - Bit 16: [vanillaBuildRoad].
+// - Bit 17: [vanillaBuildRailroad].
+// - Bit 18: [vanillaBuildFort].
+// - Bit 19: [vanillaBuildMine].
+// - Bit 20: [vanillaIrrigate].
+// - Bit 21: [vanillaClearForest].
+// - Bit 22: [vanillaClearJungle].
+// - Bit 23: [vanillaPlantForest].
+// - Bit 24: [vanillaClearPollution].
+// - Bit 25: [vanillaAutomate].
+// - Bit 26: [vanillaJoinCity].
 // - Bits 32-36: [bombing], [recon], [interception], [rebase], [precisionBombing] — Air Missions
 //   is the one sub-range fully closed bit-by-bit.
 //
-// Not distinguishable from real data, but penciled in at their Apolyton-claimed position (credible
-// given how the confirmed bits above land exactly where that same ordering predicts, but not
-// independently provable the same way):
-// - Bits 0-3: Skip Turn, Wait, Fortify, Disband — all 77 real entries have all four set, a
-//   tautology no correlation can break.
-// - Bits 5, 7, 8, 13: Load, Airlift, Pillage, Upgrade Unit — each sits at its expected sequential
-//   slot, but its value doesn't exactly match the same-named Conquests unit's boolean (plausibly a
-//   genuine ruleset-to-ruleset difference in availability for these context-dependent actions, not
-//   evidence against the position itself).
-// - Bits 11-12: Build Army, Finish Improvements — tied to each other; only the Leader entry has
-//   either bit set, and it has both, so which specific bit is which action can't be told apart.
-// - Bits 14, 16-25: Build Colony, Build Road, Build Railroad, Build Fort, Build Mine, Irrigate,
-//   Clear Forest, Clear Jungle, Plant Forest, Clear Pollution, Automate — the sole real vanilla
-//   Worker entry has all 11 of these bits set simultaneously and no other entry has any of them
-//   set, so they're completely indistinguishable from real data alone. The same cluster problem
-//   [flags4] hit before a purpose-built test scenario existed to split it apart; no vanilla
-//   equivalent of that scenario is known to exist.
+// Bits 0-3, 5, 7, 8, 13, and 14/16-25 were originally in the "not distinguishable" list, either
+// because the initial 77-entry corpus had every real entry agreeing on bits 0-3 (a tautology no
+// correlation can break) or because the sole real vanilla Worker entry had all 11 Worker/Engineer
+// Actions bits set simultaneously with no other entry setting any of them — the same all-or-nothing
+// tie [flags4] hit before its own purpose-built test scenario existed. A community scenario/mod
+// preservation archive (hundreds of independent real VANILLA-era files, not available to the
+// original sweep) broke both ties: matching the same real unit by name across independent VANILLA
+// and CONQUESTS files gave an exact or overwhelming-majority bit-for-bit match against the
+// corresponding [PrtoEntry.standardOrders]/[PrtoEntry.specialActions]/[PrtoEntry.workerActions]
+// booleans, in each field's own already-confirmed bit order, for every one of these positions.
+//
+// Bits 11-12 (Build Army, Finish Improvements) remain tied to each other even in this much larger
+// corpus — no real entry (of either era) has ever set exactly one without the other, so which
+// specific bit is which action still can't be told apart directly. The assignment above rests on
+// the same structural argument as the rest of this range: bits 5, 7, 8, 9, 10, and 13 all confirm
+// [PrtoEntry.specialActions]'s own bit order holds unbroken through this stretch, and 11/12 sit
+// exactly where that ordering places Build Army and Finish Improvements.
 //
 // Bits 27-31, 37, and 51-63 are confirmed unused (zero across the entire matched corpus). The
 // 38-50 range decomposes exactly like [flags4]'s own structure: bit 38 is an exact match for bit 9
-// (Bombard); bits 39-48 (10 bits) are all mutually identical to each other and confined to the
-// sole real Worker entry — the same cluster problem as bits 14/16-25 above; bit 49 is an exact
-// match for bit 32 (Bombing); bit 50 is an exact match for bit 36 (Precision Bombing).
+// (Bombard); bits 39-48 (10 bits) are each an exact mirror of one of the now-confirmed bits within
+// 16-25 (not independently provable which maps to which, since they're pure duplicates rather than
+// distinct data — same as bit 38/bit 9); bit 49 is an exact match for bit 32 (Bombing); bit 50 is
+// an exact match for bit 36 (Precision Bombing).
 //
-// No accessor exists for any part of flags2: it only carries real data on
-// [Civ3FormatEra.VANILLA] files, and most of the bit assignments above are penciled in rather than
-// independently confirmed.
+// Named accessors exist for every confirmed bit above (see [vanillaSkipTurn] and its siblings) and
+// [flags2LowBits] for raw access to the rest, which remains unused/duplicate data with no accessor.
 //
 // Separately, on real Conquests-era files specifically: flags2 is zero on every entry carried over
 // unmodified from the original ruleset (e.g. this corpus's Settler and Worker), but a real
@@ -774,5 +883,4 @@ val PrtoEntry.precisionBombing: Boolean by BitCollection.int.extensionBitFlag({ 
 // or similar) when a unit is touched in the modern editor, rather than encoding anything about the
 // unit itself. Consistent with Princess and Lincoln (both plausibly hand-edited into their
 // scenarios) also carrying nonzero flags2, each with its own large, regular ~32-bit pattern (bits
-// set in pairs every 4 positions), while ordinary carried-over Conquests-era units don't. No
-// accessor exists for any part of flags2.
+// set in pairs every 4 positions), while ordinary carried-over Conquests-era units don't.

@@ -112,8 +112,16 @@ fun validatePrtoAvailableToBounds(file: Civ3File): List<ValidationIssue> {
 /**
  * Flags a [PrtoDomain.LAND] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
- * absent from [file], and skips every entry whose [PrtoEntry.type] isn't [PrtoDomain.LAND]
- * (Sea and Air strategies have their own, different prerequisites).
+ * absent from [file], if [file] is [Civ3FormatEra.VANILLA] (see below), and skips every entry
+ * whose [PrtoEntry.type] isn't [PrtoDomain.LAND] (Sea and Air strategies have their own, different
+ * prerequisites).
+ *
+ * Most of these prerequisites read [PrtoEntry.load]/[PrtoEntry.capture]/[PrtoEntry.buildColony]
+ * and similar accessors backed by [PrtoEntry.specialActions]/[PrtoEntry.workerActions], which are
+ * genuinely `0` in every real [Civ3FormatEra.VANILLA] file — that era packs the same data into the
+ * raw, undecomposed [PrtoEntry.flags2] instead (see that field's own KDoc), so this rule would
+ * otherwise flag real vanilla units as violating prerequisites their real editor state can't
+ * actually be checked against.
  *
  * The real Units editor grays out each Land AI Strategy checkbox until its unit meets that
  * checkbox's own prerequisites:
@@ -138,6 +146,7 @@ fun validatePrtoAvailableToBounds(file: Civ3File): List<ValidationIssue> {
  * - [kingStrategy]: [kingAbility], not [disband].
  */
 fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
+    if (file.header.formatEra == Civ3FormatEra.VANILLA) return emptyList()
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
         if (entry.type != PrtoDomain.LAND) return@flatMapIndexed emptyList()
@@ -303,9 +312,11 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
 /**
  * Flags a [PrtoDomain.SEA] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
- * absent from [file], and skips every entry whose [PrtoEntry.type] isn't [PrtoDomain.SEA]
- * (Land and Air strategies have their own, different prerequisites; see
- * [validatePrtoLandStrategyPrerequisites]).
+ * absent from [file], if [file] is [Civ3FormatEra.VANILLA] (all of these prerequisites read
+ * [PrtoEntry.airMissions]/[PrtoEntry.specialActions]-backed accessors, which are genuinely `0` in
+ * that era — see [validatePrtoLandStrategyPrerequisites]'s own KDoc for why), and skips every
+ * entry whose [PrtoEntry.type] isn't [PrtoDomain.SEA] (Land and Air strategies have their own,
+ * different prerequisites; see [validatePrtoLandStrategyPrerequisites]).
  *
  * The real Units editor grays out each Sea AI Strategy checkbox until its unit meets that
  * checkbox's own prerequisites:
@@ -315,6 +326,7 @@ fun validatePrtoLandStrategyPrerequisites(file: Civ3File): List<ValidationIssue>
  * - [navalMissileTransportStrategy]: [transportsOnlyTacticalMissilesAbility], [unload].
  */
 fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
+    if (file.header.formatEra == Civ3FormatEra.VANILLA) return emptyList()
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
         if (entry.type != PrtoDomain.SEA) return@flatMapIndexed emptyList()
@@ -368,9 +380,11 @@ fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
 /**
  * Flags a [PrtoDomain.AIR] [PrtoEntry] whose AI Strategy checkbox is set despite failing that
  * checkbox's own real Units editor prerequisites. Returns no issues if the `PRTO` section is
- * absent from [file], and skips every entry whose [PrtoEntry.type] isn't [PrtoDomain.AIR]
- * (Land and Sea strategies have their own, different prerequisites; see
- * [validatePrtoLandStrategyPrerequisites]).
+ * absent from [file], if [file] is [Civ3FormatEra.VANILLA] (all of these prerequisites read
+ * [PrtoEntry.airMissions]/[PrtoEntry.specialActions]-backed accessors, which are genuinely `0` in
+ * that era — see [validatePrtoLandStrategyPrerequisites]'s own KDoc for why), and skips every
+ * entry whose [PrtoEntry.type] isn't [PrtoDomain.AIR] (Land and Sea strategies have their own,
+ * different prerequisites; see [validatePrtoLandStrategyPrerequisites]).
  *
  * The real Units editor grays out each Air AI Strategy checkbox until its unit meets that
  * checkbox's own prerequisites:
@@ -382,6 +396,7 @@ fun validatePrtoSeaStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
  *   [unload].
  */
 fun validatePrtoAirStrategyPrerequisites(file: Civ3File): List<ValidationIssue> {
+    if (file.header.formatEra == Civ3FormatEra.VANILLA) return emptyList()
     val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
         if (entry.type != PrtoDomain.AIR) return@flatMapIndexed emptyList()

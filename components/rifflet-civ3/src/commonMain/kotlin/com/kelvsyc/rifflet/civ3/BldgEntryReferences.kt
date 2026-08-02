@@ -72,9 +72,7 @@ fun BldgEntry.unitProducedPrto(prtos: List<PrtoEntry>): PrtoEntry? =
  * [BldgEntry.requiredGoodsMustBeInCityRadius] resolved for [era]: reads
  * [BldgEntry.ptwRequiredGoodsMustBeInCityRadius] (`smallWonders` bit 9) for
  * [Civ3FormatEra.VANILLA]/[Civ3FormatEra.PTW] files, or the [Civ3FormatEra.CONQUESTS]-tier
- * [BldgEntry.requiredGoodsMustBeInCityRadius] (`improvements` bit 31) otherwise. The
- * [Civ3FormatEra.VANILLA] case is assumed to match [Civ3FormatEra.PTW], not yet confirmed
- * against real vanilla data.
+ * [BldgEntry.requiredGoodsMustBeInCityRadius] (`improvements` bit 31) otherwise.
  */
 fun BldgEntry.requiredGoodsMustBeInCityRadius(era: Civ3FormatEra): Boolean =
     if (era == Civ3FormatEra.CONQUESTS) requiredGoodsMustBeInCityRadius else ptwRequiredGoodsMustBeInCityRadius

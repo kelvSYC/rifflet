@@ -469,6 +469,15 @@ class PrtoEntryValidationTest : FunSpec({
         validatePrtoLandStrategyPrerequisites(file) shouldBe emptyList()
     }
 
+    test("returns no issues for land strategy prerequisites on a VANILLA file, even with an offending entry") {
+        val file = Civ3File(
+            Civ3Header(major = 4, minor = 1, description = "", title = ""),
+            listOf(PrtoSection(listOf(prtoEntry(aiStrategies = 1 shl 0)))),
+        )
+
+        validatePrtoLandStrategyPrerequisites(file) shouldBe emptyList()
+    }
+
     test("returns no issues when every sea strategy's prerequisites are satisfied") {
         val entries = listOf(
             prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 8, attack = 1, defense = 1),
@@ -546,6 +555,15 @@ class PrtoEntryValidationTest : FunSpec({
 
     test("returns no issues for sea strategy prerequisites when PRTO is absent") {
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validatePrtoSeaStrategyPrerequisites(file) shouldBe emptyList()
+    }
+
+    test("returns no issues for sea strategy prerequisites on a VANILLA file, even with an offending entry") {
+        val file = Civ3File(
+            Civ3Header(major = 4, minor = 1, description = "", title = ""),
+            listOf(PrtoSection(listOf(prtoEntry(type = PrtoDomain.SEA, aiStrategies = 1 shl 8)))),
+        )
 
         validatePrtoSeaStrategyPrerequisites(file) shouldBe emptyList()
     }
@@ -629,6 +647,15 @@ class PrtoEntryValidationTest : FunSpec({
 
     test("returns no issues for air strategy prerequisites when PRTO is absent") {
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validatePrtoAirStrategyPrerequisites(file) shouldBe emptyList()
+    }
+
+    test("returns no issues for air strategy prerequisites on a VANILLA file, even with an offending entry") {
+        val file = Civ3File(
+            Civ3Header(major = 4, minor = 1, description = "", title = ""),
+            listOf(PrtoSection(listOf(prtoEntry(type = PrtoDomain.AIR, aiStrategies = 1 shl 6)))),
+        )
 
         validatePrtoAirStrategyPrerequisites(file) shouldBe emptyList()
     }
