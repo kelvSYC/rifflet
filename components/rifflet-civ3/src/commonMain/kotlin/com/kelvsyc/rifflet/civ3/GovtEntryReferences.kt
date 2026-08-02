@@ -26,3 +26,37 @@ fun GovtEntry.prerequisiteTechnologyTech(techs: List<TechEntry>): TechEntry? =
  * dedicated vanilla-only source exists.
  */
 enum class GovtCorruption { MINIMAL, NUISANCE, PROBLEMATIC, RAMPANT, CATASTROPHIC, COMMUNAL, OFF }
+
+/**
+ * The 3 values of [GovtEntry.hurrying], per the Governments editor's "Hurrying" dropdown. Ordinal
+ * position matches the raw file value directly — do not reorder these constants.
+ */
+enum class GovtHurrying { CANNOT_HURRY, FORCED_LABOR, PAID_LABOR }
+
+/**
+ * The 3 values of [GovtEntry.warWeariness], per the Governments editor's "War Weariness"
+ * dropdown. Ordinal position matches the raw file value directly — do not reorder these
+ * constants.
+ */
+enum class GovtWarWeariness { NONE, LOW, HIGH }
+
+/**
+ * Resolves [GovtEntry.diplomatsAre] against [experienceLevels] — an `EXPR` section index, per the
+ * Governments editor's Espionage groupbox "Diplomats Are" dropdown (Conscript/Regular/Veteran/
+ * Elite, same values as [UnitEntry.experienceLevel]).
+ */
+fun GovtEntry.diplomatsAreExpr(experienceLevels: List<ExprEntry>): ExprEntry? = experienceLevels.getOrNull(diplomatsAre)
+
+/**
+ * Resolves [GovtEntry.spiesAre] against [experienceLevels] — an `EXPR` section index, same
+ * treatment as [diplomatsAreExpr].
+ */
+fun GovtEntry.spiesAreExpr(experienceLevels: List<ExprEntry>): ExprEntry? = experienceLevels.getOrNull(spiesAre)
+
+/**
+ * Resolves [GovtEntry.immuneTo] against [espionageMissions] — an `ESPN` section index, per the
+ * Governments editor's Espionage groupbox "Immune" dropdown ("None" or a specific espionage
+ * mission this government's cities can't have performed against them). `-1` is "None" and
+ * naturally resolves to `null` here, the same as any other out-of-range value.
+ */
+fun GovtEntry.immuneToEspn(espionageMissions: List<EspnEntry>): EspnEntry? = espionageMissions.getOrNull(immuneTo)

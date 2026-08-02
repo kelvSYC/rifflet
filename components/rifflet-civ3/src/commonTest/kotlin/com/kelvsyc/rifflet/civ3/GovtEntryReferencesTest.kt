@@ -4,7 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-private fun validGovtEntry(prerequisiteTechnology: Int = 0): GovtEntry = GovtEntry(
+private fun validGovtEntry(
+    prerequisiteTechnology: Int = 0,
+    immuneTo: Int = 0,
+    diplomatsAre: Int = 0,
+    spiesAre: Int = 0,
+): GovtEntry = GovtEntry(
     defaultType = 0,
     transitionType = 0,
     requiresMaintenance = 0,
@@ -20,11 +25,11 @@ private fun validGovtEntry(prerequisiteTechnology: Int = 0): GovtEntry = GovtEnt
         male4 = "", female4 = "",
     ),
     corruption = GovtCorruption.MINIMAL,
-    immuneTo = 0,
-    diplomatsAre = 0,
-    spiesAre = 0,
+    immuneTo = immuneTo,
+    diplomatsAre = diplomatsAre,
+    spiesAre = spiesAre,
     relationships = emptyList(),
-    hurrying = 0,
+    hurrying = GovtHurrying.CANNOT_HURRY,
     assimilationChance = 0,
     draftLimit = 0,
     militaryPoliceLimit = 0,
@@ -42,9 +47,19 @@ private fun validGovtEntry(prerequisiteTechnology: Int = 0): GovtEntry = GovtEnt
         freeUnitsPerMetropolis = 0,
         unitCost = 0,
     ),
-    warWeariness = 0,
+    warWeariness = GovtWarWeariness.NONE,
     xenophobic = 0,
     forceResettle = 0,
+)
+
+private fun validExprEntry(): ExprEntry = ExprEntry(name = "", baseHitPoints = 0, retreatBonus = 0)
+
+private fun validEspnEntry(): EspnEntry = EspnEntry(
+    description = "",
+    name = "",
+    civilopediaEntry = "",
+    missionFlags = 0,
+    baseCost = 0,
 )
 
 private fun validTechEntry(): TechEntry = TechEntry(
@@ -70,5 +85,23 @@ class GovtEntryReferencesTest : FunSpec({
         val tech = validTechEntry()
         validGovtEntry(prerequisiteTechnology = 0).prerequisiteTechnologyTech(listOf(tech)) shouldBe tech
         validGovtEntry(prerequisiteTechnology = 5).prerequisiteTechnologyTech(emptyList()) shouldBe null
+    }
+
+    test("diplomatsAreExpr resolves against the EXPR list") {
+        val expr = validExprEntry()
+        validGovtEntry(diplomatsAre = 0).diplomatsAreExpr(listOf(expr)) shouldBe expr
+        validGovtEntry(diplomatsAre = 5).diplomatsAreExpr(emptyList()) shouldBe null
+    }
+
+    test("spiesAreExpr resolves against the EXPR list") {
+        val expr = validExprEntry()
+        validGovtEntry(spiesAre = 0).spiesAreExpr(listOf(expr)) shouldBe expr
+        validGovtEntry(spiesAre = 5).spiesAreExpr(emptyList()) shouldBe null
+    }
+
+    test("immuneToEspn resolves against the ESPN list") {
+        val espn = validEspnEntry()
+        validGovtEntry(immuneTo = 0).immuneToEspn(listOf(espn)) shouldBe espn
+        validGovtEntry(immuneTo = -1).immuneToEspn(listOf(espn)) shouldBe null
     }
 })

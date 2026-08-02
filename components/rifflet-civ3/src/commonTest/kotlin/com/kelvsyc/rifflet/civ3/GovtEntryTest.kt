@@ -25,7 +25,7 @@ private fun validGovtEntry(unknown: ByteString = ByteString.of(0, 0, 0, 0)) = Go
     diplomatsAre = 0,
     spiesAre = 0,
     relationships = emptyList(),
-    hurrying = 0,
+    hurrying = GovtHurrying.CANNOT_HURRY,
     assimilationChance = 0,
     draftLimit = 0,
     militaryPoliceLimit = 0,
@@ -43,7 +43,7 @@ private fun validGovtEntry(unknown: ByteString = ByteString.of(0, 0, 0, 0)) = Go
         freeUnitsPerMetropolis = 0,
         unitCost = 0,
     ),
-    warWeariness = 0,
+    warWeariness = GovtWarWeariness.NONE,
     xenophobic = 0,
     forceResettle = 0,
 )

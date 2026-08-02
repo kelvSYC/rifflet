@@ -3,8 +3,10 @@ package com.kelvsyc.rifflet.internal.civ3
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtEntry
+import com.kelvsyc.rifflet.civ3.GovtHurrying
 import com.kelvsyc.rifflet.civ3.GovtRulerTitles
 import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
+import com.kelvsyc.rifflet.civ3.GovtWarWeariness
 import okio.Buffer
 
 /**
@@ -49,7 +51,7 @@ internal object GovtEntryParser {
         val spiesAre = item.readIntLe()
         val numberOfGovernments = item.requireSaneCount(item.readIntLe(), 12L, "GovtEntry.relationships")
         val relationships = List(numberOfGovernments) { GovtRelationshipParser.parse(item) }
-        val hurrying = item.readIntLe()
+        val hurrying = decodeEnum("GovtEntry.hurrying", item.readIntLe(), GovtHurrying.entries)
         val assimilationChance = item.readIntLe()
         val draftLimit = item.readIntLe()
         val militaryPoliceLimit = item.readIntLe()
@@ -65,7 +67,7 @@ internal object GovtEntryParser {
         val freeUnitsPerCity = item.readIntLe()
         val freeUnitsPerMetropolis = item.readIntLe()
         val unitCost = item.readIntLe()
-        val warWeariness = item.readIntLe()
+        val warWeariness = decodeEnum("GovtEntry.warWeariness", item.readIntLe(), GovtWarWeariness.entries)
         val xenophobic = if (item.size >= 4L) item.readIntLe() else 0
         val forceResettle = if (item.size >= 4L) item.readIntLe() else 0
         return GovtEntry(
