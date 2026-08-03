@@ -18,13 +18,10 @@ import okio.ByteString
  * @param requiresMaintenance Int-shaped boolean.
  * @param toggle1 Vestigial — carries leftover, uninitialized memory content rather than real
  *   government data. No control in the Governments editor's Flags or Espionage groupboxes
- *   corresponds to it.
+ *   corresponds to it. 4 raw bytes, not an `Int` — there's no numeric meaning to preserve.
  * @param rulerTitles This government's ruler titles. See [GovtRulerTitles].
  * @param relationships The embedded dynamic array; its on-disk count (`numberOfGovernments`) is
  *   not stored separately — `relationships.size` is already that count.
- * @param toggle2 Vestigial, matching [toggle1]; see [toggle3].
- * @param toggle3 Vestigial, matching [toggle1]. [toggle2], [toggle3], and [unknown] occupy one
- *   contiguous, uninitialized region of the struct.
  * @param corruption This government's Corruption and Waste severity — see [GovtCorruption] for
  *   what each value means, per the Governments editor's own radio group.
  * @param immuneTo An `ESPN` section index, or `-1` for "None" — see [immuneToEspn]. Per the
@@ -37,9 +34,8 @@ import okio.ByteString
  *   "Hurrying" dropdown.
  * @param prerequisiteTechnology A `TECH` section index, per the Governments editor's own
  *   "Prerequisite" dropdown.
- * @param unknown 4 bytes with zero documented behavior.
- *   Vestigial, along with [toggle2] and [toggle3] — see [toggle3]'s own KDoc. Preserved raw, not
- *   validated.
+ * @param unknown 12 contiguous bytes with zero documented behavior, matching [toggle1]'s
+ *   vestigial, uninitialized-memory nature. Preserved raw, not validated.
  * @param unitSupportCosts This government's unit support costs. See [GovtUnitSupportCosts].
  * @param warWeariness See [GovtWarWeariness] for what each value means, per the Governments
  *   editor's own "War Weariness" dropdown.
@@ -48,7 +44,7 @@ data class GovtEntry(
     val defaultType: Int,
     val transitionType: Int,
     val requiresMaintenance: Int,
-    val toggle1: Int,
+    val toggle1: ByteString,
     val tilePenalty: Int,
     val tradeBonus: Int,
     val name: String,
@@ -67,8 +63,6 @@ data class GovtEntry(
     val prerequisiteTechnology: Int,
     val scienceRateCap: Int,
     val workerRate: Int,
-    val toggle2: Int,
-    val toggle3: Int,
     val unknown: ByteString,
     val unitSupportCosts: GovtUnitSupportCosts,
     val warWeariness: GovtWarWeariness,
@@ -76,6 +70,7 @@ data class GovtEntry(
     val forceResettle: Int,
 ) {
     init {
-        require(unknown.size == 4) { "GovtEntry.unknown must be exactly 4 bytes, was ${unknown.size}" }
+        require(toggle1.size == 4) { "GovtEntry.toggle1 must be exactly 4 bytes, was ${toggle1.size}" }
+        require(unknown.size == 12) { "GovtEntry.unknown must be exactly 12 bytes, was ${unknown.size}" }
     }
 }

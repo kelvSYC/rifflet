@@ -32,7 +32,7 @@ internal object GovtEntryParser {
         val defaultType = item.readIntLe()
         val transitionType = item.readIntLe()
         val requiresMaintenance = item.readIntLe()
-        val toggle1 = item.readIntLe()
+        val toggle1 = item.readByteString(4L)
         val tilePenalty = item.readIntLe()
         val tradeBonus = item.readIntLe()
         val name = item.readByteString(64L).truncateAtFirstNull()
@@ -59,9 +59,7 @@ internal object GovtEntryParser {
         val prerequisiteTechnology = item.readIntLe()
         val scienceRateCap = item.readIntLe()
         val workerRate = item.readIntLe()
-        val toggle2 = item.readIntLe()
-        val toggle3 = item.readIntLe()
-        val unknown = item.readByteString(4L)
+        val unknown = item.readByteString(12L)
         val freeUnits = item.readIntLe()
         val freeUnitsPerTown = item.readIntLe()
         val freeUnitsPerCity = item.readIntLe()
@@ -93,8 +91,6 @@ internal object GovtEntryParser {
             prerequisiteTechnology = prerequisiteTechnology,
             scienceRateCap = scienceRateCap,
             workerRate = workerRate,
-            toggle2 = toggle2,
-            toggle3 = toggle3,
             unknown = unknown,
             unitSupportCosts = GovtUnitSupportCosts(
                 freeUnits, freeUnitsPerTown, freeUnitsPerCity, freeUnitsPerMetropolis, unitCost,

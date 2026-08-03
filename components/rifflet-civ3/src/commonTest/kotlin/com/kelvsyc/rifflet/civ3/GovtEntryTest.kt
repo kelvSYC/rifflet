@@ -5,11 +5,14 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
 
-private fun validGovtEntry(unknown: ByteString = ByteString.of(0, 0, 0, 0)) = GovtEntry(
+private fun validGovtEntry(
+    toggle1: ByteString = ByteString.of(*ByteArray(4)),
+    unknown: ByteString = ByteString.of(*ByteArray(12)),
+) = GovtEntry(
     defaultType = 0,
     transitionType = 0,
     requiresMaintenance = 1,
-    toggle1 = 0,
+    toggle1 = toggle1,
     tilePenalty = 0,
     tradeBonus = 0,
     name = "Despotism",
@@ -33,8 +36,6 @@ private fun validGovtEntry(unknown: ByteString = ByteString.of(0, 0, 0, 0)) = Go
     prerequisiteTechnology = 0,
     scienceRateCap = 0,
     workerRate = 0,
-    toggle2 = -1,
-    toggle3 = 0,
     unknown = unknown,
     unitSupportCosts = GovtUnitSupportCosts(
         freeUnits = 0,
@@ -50,8 +51,16 @@ private fun validGovtEntry(unknown: ByteString = ByteString.of(0, 0, 0, 0)) = Go
 
 class GovtEntryTest : FunSpec({
 
-    test("a 4-byte unknown field is accepted") {
-        validGovtEntry().unknown.size shouldBe 4
+    test("a 4-byte toggle1 field is accepted") {
+        validGovtEntry().toggle1.size shouldBe 4
+    }
+
+    test("a toggle1 field of any other size throws IllegalArgumentException") {
+        shouldThrow<IllegalArgumentException> { validGovtEntry(toggle1 = ByteString.of(1, 2)) }
+    }
+
+    test("a 12-byte unknown field is accepted") {
+        validGovtEntry().unknown.size shouldBe 12
     }
 
     test("an unknown field of any other size throws IllegalArgumentException") {
