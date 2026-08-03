@@ -7,7 +7,7 @@ import com.kelvsyc.kotlin.core.traits.integral.int
 /**
  * Named accessors for [RaceEntry.bonuses]'s 8 documented bits (civilization traits) — the first
  * 6 documented by the original vanilla-era reverse-engineering documentation, [agricultural] and
- * [seaFaring] added in a Conquests-era correction to that same documentation.
+ * [seafaring] added in a Conquests-era correction to that same documentation.
  */
 val RaceEntry.militaristic: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 0)
 val RaceEntry.commercial: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 1)
@@ -16,7 +16,7 @@ val RaceEntry.scientific: Boolean by BitCollection.int.extensionBitFlag({ bonuse
 val RaceEntry.religious: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 4)
 val RaceEntry.industrious: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 5)
 val RaceEntry.agricultural: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 6)
-val RaceEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 7)
+val RaceEntry.seafaring: Boolean by BitCollection.int.extensionBitFlag({ bonuses }, 7)
 
 /**
  * Named accessors for [RaceEntry.flavors]'s 7 documented bits — not to be confused with

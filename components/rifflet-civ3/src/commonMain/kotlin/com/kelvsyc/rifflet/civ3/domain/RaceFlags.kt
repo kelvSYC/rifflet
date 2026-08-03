@@ -15,7 +15,7 @@ var Race.scientific: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonu
 var Race.religious: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonuses }, { bonuses = it }, 4)
 var Race.industrious: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonuses }, { bonuses = it }, 5)
 var Race.agricultural: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonuses }, { bonuses = it }, 6)
-var Race.seaFaring: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonuses }, { bonuses = it }, 7)
+var Race.seafaring: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonuses }, { bonuses = it }, 7)
 
 /**
  * Settable counterparts to [com.kelvsyc.rifflet.civ3.flavor1] and its 6 siblings.

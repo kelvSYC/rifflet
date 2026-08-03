@@ -45,7 +45,7 @@ class RaceEntryBonusesFlagsTest : FunSpec({
         4 to RaceEntry::religious,
         5 to RaceEntry::industrious,
         6 to RaceEntry::agricultural,
-        7 to RaceEntry::seaFaring,
+        7 to RaceEntry::seafaring,
     )
 
     test("each bit maps to exactly its own named property") {

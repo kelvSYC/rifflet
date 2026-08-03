@@ -184,7 +184,7 @@ fun validateBldgSpaceshipPartInvariants(file: Civ3File): List<ValidationIssue> {
  *
  * Every real official spaceship part has `0` maintenance/culture/production/pollution, no
  * happiness effect, no [BldgEntry.improvements] flags, and no [BldgEntry.otherCharacteristics]
- * flags other than [BldgEntry.agricultural]/[BldgEntry.seaFaring] (which the Rules Editor lets a
+ * flags other than [BldgEntry.agricultural]/[BldgEntry.seafaring] (which the Rules Editor lets a
  * spaceship part carry despite them being meaningless there — likely a Conquests editor quirk).
  * Unlike [validateBldgSpaceshipPartInvariants]'s structural checks, this is only a
  * [ValidationSeverity.WARNING]: one real official PTW scenario repurposes several spaceship-part
@@ -197,7 +197,7 @@ fun validateBldgSpaceshipPartConventionalStats(file: Civ3File): List<ValidationI
     val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
     return section.entries.flatMapIndexed { index, entry ->
         if (entry.spaceshipPart == -1) return@flatMapIndexed emptyList()
-        val allowedCharacteristicBits = (1 shl 10) or (1 shl 11) // agricultural, seaFaring
+        val allowedCharacteristicBits = (1 shl 10) or (1 shl 11) // agricultural, seafaring
 
         fun issue(field: String, requirement: String) = ValidationIssue(
             ValidationSeverity.WARNING,
@@ -239,7 +239,7 @@ fun validateBldgSpaceshipPartConventionalStats(file: Civ3File): List<ValidationI
             if ((entry.otherCharacteristics and allowedCharacteristicBits.inv()) != 0) {
                 issue(
                     "otherCharacteristics",
-                    "no characteristic flags other than agricultural/seaFaring " +
+                    "no characteristic flags other than agricultural/seafaring " +
                         "(otherCharacteristics=${entry.otherCharacteristics})",
                 )
             } else {
