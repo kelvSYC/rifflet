@@ -69,4 +69,40 @@ class RaceFlagsTest : FunSpec({
         race.militaristic shouldBe false
         race.commercial shouldBe true
     }
+
+    test("flavor7 (highest flavors bit) is independently settable") {
+        val race = validRace()
+
+        race.flavor1 = true
+        race.flavor7 = true
+        race.flavor1 = false
+
+        race.flavor1 shouldBe false
+        race.flavor7 shouldBe true
+        race.flavors shouldBe (1 shl 6)
+    }
+
+    test("buildNeverCulture (highest buildNever bit, bit 14) is independently settable") {
+        val race = validRace()
+
+        race.buildNeverOffensiveLandUnits = true
+        race.buildNeverCulture = true
+        race.buildNeverOffensiveLandUnits = false
+
+        race.buildNeverOffensiveLandUnits shouldBe false
+        race.buildNeverCulture shouldBe true
+        race.governor.buildNever shouldBe (1 shl 14)
+    }
+
+    test("buildOftenCulture (highest buildOften bit, bit 14) is independently settable") {
+        val race = validRace()
+
+        race.buildOftenOffensiveLandUnits = true
+        race.buildOftenCulture = true
+        race.buildOftenOffensiveLandUnits = false
+
+        race.buildOftenOffensiveLandUnits shouldBe false
+        race.buildOftenCulture shouldBe true
+        race.governor.buildOften shouldBe (1 shl 14)
+    }
 })
