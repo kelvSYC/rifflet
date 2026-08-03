@@ -43,7 +43,7 @@ data class RaceEntry(
     val noun: String,
     val eras: List<RaceEraFilenames>,
     val cultureGroup: RaceCultureGroup,
-    val civilizationGender: Int,
+    val civilizationGender: Gender,
     val personality: RacePersonality,
     val uniqueCivilizationCounter: Int,
     val defaultColor: Int,

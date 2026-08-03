@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
+import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceGovernor
@@ -51,8 +52,8 @@ internal object RaceEntryParser {
         val validatedErasCount = item.requireSaneCount(erasCount, 520L, "RaceEntry.eras")
         val eras = List(validatedErasCount) { RaceEraFilenamesParser.parse(item) }
         val cultureGroup = decodeEnum("RaceEntry.cultureGroup", item.readIntLe(), RaceCultureGroup.entries) { it + 1 }
-        val leaderGender = item.readIntLe()
-        val civilizationGender = item.readIntLe()
+        val leaderGender = decodeEnum("RaceLeader.gender", item.readIntLe(), Gender.entries)
+        val civilizationGender = decodeEnum("RaceEntry.civilizationGender", item.readIntLe(), Gender.entries)
         val aggressionLevel = item.readIntLe()
         val uniqueCivilizationCounter = item.readIntLe()
         val shunnedGovernment = item.readIntLe()

@@ -18,8 +18,8 @@ private fun barbarianRaceEntry(
     greatLeaderNames: List<String> = emptyList(),
     scientificLeaderNames: List<String> = emptyList(),
     aggressionLevel: Int = 0,
-    leaderGender: Int = 0,
-    civilizationGender: Int = 0,
+    leaderGender: Gender = Gender.MALE,
+    civilizationGender: Gender = Gender.MALE,
     eras: List<RaceEraFilenames> = emptyList(),
     cultureGroup: RaceCultureGroup = RaceCultureGroup.NONE,
     governorSettings: Int = (1 shl 0) or (1 shl 4),
@@ -142,7 +142,7 @@ class RaceEntryValidationTest : FunSpec({
                 0,
                 "aggressionLevel/leaderGender/civilizationGender",
                 "the barbarian placeholder is expected to have default personality settings " +
-                    "(aggressionLevel=5, leaderGender=0, civilizationGender=0)",
+                    "(aggressionLevel=5, leaderGender=MALE, civilizationGender=MALE)",
             ),
         )
     }

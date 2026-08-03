@@ -41,3 +41,10 @@ fun RaceEntry.favoriteGovernmentGovt(governments: List<GovtEntry>): GovtEntry? =
  * too.
  */
 enum class RaceCultureGroup { NONE, AMERICAN, EUROPEAN, MEDITERRANEAN, MID_EAST, ASIAN }
+
+/**
+ * The 2 values of [RaceLeader.gender] and [RaceEntry.civilizationGender], per each field's own
+ * "Gender" radio group in the Civilizations editor tab. Ordinal position matches the raw file
+ * value directly — do not reorder these constants.
+ */
+enum class Gender { MALE, FEMALE }
