@@ -2,8 +2,6 @@ package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.PrtoEntry
 import com.kelvsyc.rifflet.civ3.RaceEntry
-import com.kelvsyc.rifflet.civ3.RaceGovernor as WireRaceGovernor
-import com.kelvsyc.rifflet.civ3.RacePersonality as WireRacePersonality
 import com.kelvsyc.rifflet.civ3.TechEntry
 
 /**
