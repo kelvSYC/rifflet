@@ -10,6 +10,7 @@ import com.kelvsyc.rifflet.civ3.GovtRulerTitles
 import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
 import com.kelvsyc.rifflet.civ3.GovtWarWeariness
 import com.kelvsyc.rifflet.civ3.TechEntry
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
@@ -98,6 +99,27 @@ private fun espnEntry(): EspnEntry = EspnEntry(
 )
 
 private fun exprEntry(): ExprEntry = ExprEntry(name = "", baseHitPoints = 0, retreatBonus = 0)
+
+private fun validGovernmentFor(name: String): Government = Government(
+    name = name,
+    civilopediaEntry = "",
+    rulerTitles = GovtRulerTitles(
+        male1 = "", female1 = "",
+        male2 = "", female2 = "",
+        male3 = "", female3 = "",
+        male4 = "", female4 = "",
+    ),
+    corruption = GovtCorruption.MINIMAL,
+    hurrying = GovtHurrying.CANNOT_HURRY,
+    unitSupportCosts = GovtUnitSupportCosts(
+        freeUnits = 0,
+        freeUnitsPerTown = 0,
+        freeUnitsPerCity = 0,
+        freeUnitsPerMetropolis = 0,
+        unitCost = 0,
+    ),
+    warWeariness = GovtWarWeariness.NONE,
+)
 
 class GovtEntryMappingTest : FunSpec({
 
@@ -206,5 +228,114 @@ class GovtEntryMappingTest : FunSpec({
 
         government1.relationships shouldBe mapOf(government1 to relationship1, government2 to relationship2)
         government2.relationships shouldBe mapOf(government1 to relationship2, government2 to relationship1)
+    }
+
+    test("toDomain().toWire() round-trips a full GOVT section") {
+        val rulerTitles = GovtRulerTitles(
+            male1 = "Chief", female1 = "Chieftess",
+            male2 = "", female2 = "",
+            male3 = "", female3 = "",
+            male4 = "", female4 = "",
+        )
+        val relationship1 = GovtRelationship(canBribe = 0, propagandaModifier = 5, resistanceModifier = 10)
+        val relationship2 = GovtRelationship(canBribe = 1, propagandaModifier = 15, resistanceModifier = 20)
+        val tech = techEntry()
+        val espn = espnEntry()
+        val expr = exprEntry()
+        val entry1 = govtEntry(
+            name = "Despotism",
+            rulerTitles = rulerTitles,
+            defaultType = 1,
+            prerequisiteTechnology = 0,
+            immuneTo = 0,
+            diplomatsAre = 0,
+            spiesAre = 0,
+            relationships = listOf(relationship1, relationship2),
+            toggle1 = 111,
+        )
+        val entry2 = govtEntry(name = "Anarchy", relationships = listOf(relationship2, relationship1))
+        val original = listOf(entry1, entry2)
+
+        val roundTripped = original.toDomain(listOf(tech), listOf(espn), listOf(expr))
+            .toWire(listOf(tech), listOf(espn), listOf(expr))
+
+        roundTripped shouldBe original
+    }
+
+    test("toWire defaults missing relationship entries to zero") {
+        val government1 = validGovernmentFor("Despotism")
+        val government2 = validGovernmentFor("Anarchy")
+        // government1's relationships map is left empty entirely.
+
+        val wire = listOf(government1, government2).toWire(emptyList(), emptyList(), emptyList())
+
+        wire[0].relationships shouldBe listOf(
+            GovtRelationship(canBribe = 0, propagandaModifier = 0, resistanceModifier = 0),
+            GovtRelationship(canBribe = 0, propagandaModifier = 0, resistanceModifier = 0),
+        )
+    }
+
+    test("toWire ignores relationship entries for governments outside the encoded roster") {
+        val government1 = validGovernmentFor("Despotism")
+        val outsider = validGovernmentFor("Outsider")
+        val relationship = GovtRelationship(canBribe = 1, propagandaModifier = 1, resistanceModifier = 1)
+        government1.relationships[outsider] = relationship
+        government1.relationships[government1] = relationship
+
+        val wire = listOf(government1).toWire(emptyList(), emptyList(), emptyList())
+
+        wire.single().relationships shouldBe listOf(relationship)
+    }
+
+    test("toWire throws on a prerequisiteTechnology not present in the passed techs list") {
+        val government = validGovernmentFor("Despotism")
+        government.prerequisiteTechnology = techEntry()
+
+        shouldThrow<IllegalArgumentException> { listOf(government).toWire(emptyList(), emptyList(), emptyList()) }
+    }
+
+    test("toWire throws on an immuneTo not present in the passed espionageMissions list") {
+        val government = validGovernmentFor("Despotism")
+        government.immuneTo = espnEntry()
+
+        shouldThrow<IllegalArgumentException> { listOf(government).toWire(emptyList(), emptyList(), emptyList()) }
+    }
+
+    test("toWire throws on a diplomatsAre not present in the passed experienceLevels list") {
+        val government = validGovernmentFor("Despotism")
+        government.diplomatsAre = exprEntry()
+
+        shouldThrow<IllegalArgumentException> { listOf(government).toWire(emptyList(), emptyList(), emptyList()) }
+    }
+
+    test("toWire throws on a spiesAre not present in the passed experienceLevels list") {
+        val government = validGovernmentFor("Despotism")
+        government.spiesAre = exprEntry()
+
+        shouldThrow<IllegalArgumentException> { listOf(government).toWire(emptyList(), emptyList(), emptyList()) }
+    }
+
+    test("toWire allows cross-composition from independent toDomain() calls") {
+        val tech = techEntry()
+        val fileATechs = listOf(tech)
+        val fileBGovtEntry = govtEntry(name = "Anarchy")
+        val fileBGovernment = listOf(fileBGovtEntry).toDomain(emptyList(), emptyList(), emptyList()).single()
+        fileBGovernment.prerequisiteTechnology = tech
+
+        val wire = listOf(fileBGovernment).toWire(fileATechs, emptyList(), emptyList())
+
+        wire.single().prerequisiteTechnology shouldBe 0
+    }
+
+    test("toggle1/2/3 round-trip raw, non-boolean values unchanged") {
+        val entry = govtEntry(toggle1 = 7, toggle2 = -1, toggle3 = 12345)
+
+        val roundTripped = listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList())
+            .single()
+
+        roundTripped.toggle1 shouldBe 7
+        roundTripped.toggle2 shouldBe -1
+        roundTripped.toggle3 shouldBe 12345
     }
 })
