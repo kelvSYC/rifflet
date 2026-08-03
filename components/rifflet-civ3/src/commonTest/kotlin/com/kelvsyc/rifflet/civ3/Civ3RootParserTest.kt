@@ -133,7 +133,7 @@ private fun govtItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // defaultType
     writeIntLe(0) // transitionType
     writeIntLe(1) // requiresMaintenance
-    writeIntLe(0) // toggle1
+    write(ByteArray(4)) // toggle1
     writeIntLe(0) // tilePenalty
     writeIntLe(0) // tradeBonus
     writeString("Despotism", Charsets.US_ASCII)
@@ -156,9 +156,8 @@ private fun govtItemBody(): Buffer = Buffer().apply {
     writeIntLe(0) // prerequisiteTechnology
     writeIntLe(0) // scienceRateCap
     writeIntLe(0) // workerRate
-    writeIntLe(-1) // toggle2
-    writeIntLe(0) // toggle3
-    write(ByteArray(4)) // unknown
+    writeIntLe(-1) // unknown[0:4]
+    write(ByteArray(8)) // unknown[4:12]
     writeIntLe(0) // freeUnits
     writeIntLe(0) // freeUnitsPerTown
     writeIntLe(0) // freeUnitsPerCity
@@ -844,7 +843,7 @@ class Civ3RootParserTest : FunSpec({
                         defaultType = 0,
                         transitionType = 0,
                         requiresMaintenance = 1,
-                        toggle1 = 0,
+                        toggle1 = ByteString.of(*ByteArray(4)),
                         tilePenalty = 0,
                         tradeBonus = 0,
                         name = "Despotism",
@@ -868,9 +867,7 @@ class Civ3RootParserTest : FunSpec({
                         prerequisiteTechnology = 0,
                         scienceRateCap = 0,
                         workerRate = 0,
-                        toggle2 = -1,
-                        toggle3 = 0,
-                        unknown = ByteString.of(0, 0, 0, 0),
+                        unknown = ByteString.of(-1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0),
                         unitSupportCosts = GovtUnitSupportCosts(
                             freeUnits = 0,
                             freeUnitsPerTown = 0,
@@ -893,7 +890,7 @@ class Civ3RootParserTest : FunSpec({
             writeIntLe(0) // defaultType
             writeIntLe(0) // transitionType
             writeIntLe(1) // requiresMaintenance
-            writeIntLe(0) // toggle1
+            write(ByteArray(4)) // toggle1
             writeIntLe(0) // tilePenalty
             writeIntLe(0) // tradeBonus
             writeString("Despotism", Charsets.US_ASCII)
@@ -918,9 +915,8 @@ class Civ3RootParserTest : FunSpec({
             writeIntLe(0) // prerequisiteTechnology
             writeIntLe(0) // scienceRateCap
             writeIntLe(0) // workerRate
-            writeIntLe(-1) // toggle2
-            writeIntLe(0) // toggle3
-            write(ByteArray(4)) // unknown
+            writeIntLe(-1) // unknown[0:4]
+            write(ByteArray(8)) // unknown[4:12]
             writeIntLe(0) // freeUnits
             writeIntLe(0) // freeUnitsPerTown
             writeIntLe(0) // freeUnitsPerCity

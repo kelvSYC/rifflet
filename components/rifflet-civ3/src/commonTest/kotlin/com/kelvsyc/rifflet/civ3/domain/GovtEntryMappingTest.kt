@@ -19,7 +19,7 @@ private fun govtEntry(
     defaultType: Int = 0,
     transitionType: Int = 0,
     requiresMaintenance: Int = 0,
-    toggle1: Int = 0,
+    toggle1: ByteString = ByteString.of(*ByteArray(4)),
     tilePenalty: Int = 0,
     tradeBonus: Int = 0,
     name: String = "",
@@ -43,9 +43,7 @@ private fun govtEntry(
     prerequisiteTechnology: Int = -1,
     scienceRateCap: Int = 0,
     workerRate: Int = 0,
-    toggle2: Int = 0,
-    toggle3: Int = 0,
-    unknown: ByteString = ByteString.of(0, 0, 0, 0),
+    unknown: ByteString = ByteString.of(*ByteArray(12)),
     unitSupportCosts: GovtUnitSupportCosts = GovtUnitSupportCosts(
         freeUnits = 0,
         freeUnitsPerTown = 0,
@@ -79,8 +77,6 @@ private fun govtEntry(
     prerequisiteTechnology = prerequisiteTechnology,
     scienceRateCap = scienceRateCap,
     workerRate = workerRate,
-    toggle2 = toggle2,
-    toggle3 = toggle3,
     unknown = unknown,
     unitSupportCosts = unitSupportCosts,
     warWeariness = warWeariness,
@@ -149,10 +145,8 @@ class GovtEntryMappingTest : FunSpec({
             rulerTitlePairsUsed = 1,
             scienceRateCap = 60,
             workerRate = 1,
-            toggle1 = 111,
-            toggle2 = 222,
-            toggle3 = 333,
-            unknown = ByteString.of(9, 9, 9, 9),
+            toggle1 = ByteString.of(1, 2, 3, 4),
+            unknown = ByteString.of(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16),
         )
 
         val government = listOf(entry).toDomain(emptyList(), emptyList(), emptyList()).single()
@@ -172,10 +166,8 @@ class GovtEntryMappingTest : FunSpec({
         government.rulerTitlePairsUsed shouldBe 1
         government.scienceRateCap shouldBe 60
         government.workerRate shouldBe 1
-        government.toggle1 shouldBe 111
-        government.toggle2 shouldBe 222
-        government.toggle3 shouldBe 333
-        government.unknown shouldBe ByteString.of(9, 9, 9, 9)
+        government.toggle1 shouldBe ByteString.of(1, 2, 3, 4)
+        government.unknown shouldBe ByteString.of(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
     }
 
     test("toDomain converts Int-shaped booleans to Boolean") {
@@ -251,7 +243,7 @@ class GovtEntryMappingTest : FunSpec({
             diplomatsAre = 0,
             spiesAre = 0,
             relationships = listOf(relationship1, relationship2),
-            toggle1 = 111,
+            toggle1 = ByteString.of(1, 1, 1, 1),
         )
         val entry2 = govtEntry(name = "Anarchy", relationships = listOf(relationship2, relationship1))
         val original = listOf(entry1, entry2)
@@ -327,15 +319,17 @@ class GovtEntryMappingTest : FunSpec({
         wire.single().prerequisiteTechnology shouldBe 0
     }
 
-    test("toggle1/2/3 round-trip raw, non-boolean values unchanged") {
-        val entry = govtEntry(toggle1 = 7, toggle2 = -1, toggle3 = 12345)
+    test("toggle1/unknown round-trip raw, vestigial byte content unchanged") {
+        val entry = govtEntry(
+            toggle1 = ByteString.of(7, 0, 0, 0),
+            unknown = ByteString.of(-1, -1, -1, -1, 0, 0, 0, 0, 57, 48, 0, 0),
+        )
 
         val roundTripped = listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
             .toWire(emptyList(), emptyList(), emptyList())
             .single()
 
-        roundTripped.toggle1 shouldBe 7
-        roundTripped.toggle2 shouldBe -1
-        roundTripped.toggle3 shouldBe 12345
+        roundTripped.toggle1 shouldBe ByteString.of(7, 0, 0, 0)
+        roundTripped.unknown shouldBe ByteString.of(-1, -1, -1, -1, 0, 0, 0, 0, 57, 48, 0, 0)
     }
 })

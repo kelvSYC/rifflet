@@ -34,8 +34,8 @@ import okio.ByteString
  *   a revolution).
  * @param requiresMaintenance Whether this government requires maintenance.
  * @param toggle1 Vestigial — carries leftover, uninitialized memory content rather than real
- *   government data. Stays `Int`, not `Boolean`: unlike [defaultType]/[transitionType], there is
- *   no real 0/1 semantic to convert.
+ *   government data. Raw bytes, not `Int`/`Boolean`: unlike [defaultType]/[transitionType], there
+ *   is no numeric or 0/1 semantic to convert.
  * @param tilePenalty This government's tile penalty.
  * @param tradeBonus This government's trade bonus.
  * @param assimilationChance This government's assimilation chance.
@@ -44,9 +44,8 @@ import okio.ByteString
  * @param rulerTitlePairsUsed How many of [rulerTitles]'s 4 pairs are actually used.
  * @param scienceRateCap This government's maximum science rate.
  * @param workerRate This government's worker rate.
- * @param toggle2 Vestigial, matching [toggle1].
- * @param toggle3 Vestigial, matching [toggle1].
- * @param unknown 4 bytes with zero documented behavior. Preserved raw, not validated.
+ * @param unknown 12 bytes with zero documented behavior, matching [toggle1]'s vestigial nature.
+ *   Preserved raw, not validated.
  * @param xenophobic Whether this government is xenophobic.
  * @param forceResettle Whether this government forces resettlement.
  */
@@ -61,7 +60,7 @@ class Government(
     var defaultType: Boolean = false,
     var transitionType: Boolean = false,
     var requiresMaintenance: Boolean = false,
-    var toggle1: Int = 0,
+    var toggle1: ByteString = ByteString.of(0, 0, 0, 0),
     var tilePenalty: Int = 0,
     var tradeBonus: Int = 0,
     var assimilationChance: Int = 0,
@@ -70,9 +69,7 @@ class Government(
     var rulerTitlePairsUsed: Int = 0,
     var scienceRateCap: Int = 0,
     var workerRate: Int = 0,
-    var toggle2: Int = 0,
-    var toggle3: Int = 0,
-    var unknown: ByteString = ByteString.of(0, 0, 0, 0),
+    var unknown: ByteString = ByteString.of(*ByteArray(12)),
     var xenophobic: Boolean = false,
     var forceResettle: Boolean = false,
 ) {

@@ -39,9 +39,7 @@ class GovernmentTest : FunSpec({
         government.defaultType shouldBe false
         government.transitionType shouldBe false
         government.requiresMaintenance shouldBe false
-        government.toggle1 shouldBe 0
-        government.toggle2 shouldBe 0
-        government.toggle3 shouldBe 0
+        government.toggle1 shouldBe ByteString.of(0, 0, 0, 0)
         government.tilePenalty shouldBe 0
         government.tradeBonus shouldBe 0
         government.assimilationChance shouldBe 0
@@ -50,7 +48,7 @@ class GovernmentTest : FunSpec({
         government.rulerTitlePairsUsed shouldBe 0
         government.scienceRateCap shouldBe 0
         government.workerRate shouldBe 0
-        government.unknown shouldBe ByteString.of(0, 0, 0, 0)
+        government.unknown shouldBe ByteString.of(*ByteArray(12))
         government.xenophobic shouldBe false
         government.forceResettle shouldBe false
         government.prerequisiteTechnology shouldBe null
@@ -64,10 +62,10 @@ class GovernmentTest : FunSpec({
         val government = validGovernment()
 
         government.name = "Anarchy"
-        government.toggle1 = 42
+        government.toggle1 = ByteString.of(42, 0, 0, 0)
 
         government.name shouldBe "Anarchy"
-        government.toggle1 shouldBe 42
+        government.toggle1 shouldBe ByteString.of(42, 0, 0, 0)
     }
 
     test("relationships can hold a self-reference and a sibling cycle without stack-overflowing") {
