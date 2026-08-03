@@ -343,7 +343,7 @@ class BldgEntryValidationTest : FunSpec({
         validateBldgSpaceshipPartConventionalStats(file) shouldBe emptyList()
     }
 
-    test("allows agricultural/seaFaring on a spaceship part without a warning") {
+    test("allows agricultural/seafaring on a spaceship part without a warning") {
         val file = fileWithBldgs(listOf(bldgEntry(spaceshipPart = 0, otherCharacteristics = (1 shl 10) or (1 shl 11))))
 
         validateBldgSpaceshipPartConventionalStats(file) shouldBe emptyList()
@@ -380,7 +380,7 @@ class BldgEntryValidationTest : FunSpec({
         )
     }
 
-    test("warns about a spaceship part with a characteristic flag other than agricultural/seaFaring") {
+    test("warns about a spaceship part with a characteristic flag other than agricultural/seafaring") {
         val file = fileWithBldgs(listOf(bldgEntry(spaceshipPart = 0, otherCharacteristics = 1 shl 5)))
 
         validateBldgSpaceshipPartConventionalStats(file) shouldBe listOf(
@@ -390,7 +390,7 @@ class BldgEntryValidationTest : FunSpec({
                 0,
                 "otherCharacteristics",
                 "spaceshipPart is set but conventionally has no characteristic flags other than " +
-                    "agricultural/seaFaring (otherCharacteristics=32)",
+                    "agricultural/seafaring (otherCharacteristics=32)",
             ),
         )
     }

@@ -51,7 +51,10 @@ fun validateRaceBarbarianPlaceholder(file: Civ3File): List<ValidationIssue> {
         } else {
             null
         },
-        if (entry.personality.aggressionLevel != 0 || entry.leader.gender != 0 || entry.civilizationGender != 0) {
+        if (entry.personality.aggressionLevel != 0 ||
+            entry.leader.gender != Gender.MALE ||
+            entry.civilizationGender != Gender.MALE
+        ) {
             issue(
                 "aggressionLevel/leaderGender/civilizationGender",
                 "default personality settings (aggressionLevel=${entry.personality.aggressionLevel}, " +

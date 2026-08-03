@@ -123,7 +123,7 @@ class BldgEntryOtherCharacteristicsFlagsTest : FunSpec({
         8 to BldgEntry::religious,
         9 to BldgEntry::industrious,
         10 to BldgEntry::agricultural,
-        11 to BldgEntry::seaFaring,
+        11 to BldgEntry::seafaring,
     )
 
     test("otherCharacteristics extracts the second 4-byte window as a little-endian Int") {

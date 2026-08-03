@@ -12,14 +12,14 @@ private fun validRaceEntry(
 ): RaceEntry = RaceEntry(
     cityNames = emptyList(),
     greatLeaderNames = emptyList(),
-    leader = RaceLeader(name = "", title = "", gender = 0),
+    leader = RaceLeader(name = "", title = "", gender = Gender.MALE),
     civilopediaEntry = "",
     adjective = "",
     name = "Rome",
     noun = "",
     eras = emptyList(),
     cultureGroup = RaceCultureGroup.AMERICAN,
-    civilizationGender = 0,
+    civilizationGender = Gender.MALE,
     personality = RacePersonality(favoriteGovernment = 0, shunnedGovernment = 0, aggressionLevel = 0),
     uniqueCivilizationCounter = 0,
     defaultColor = 0,
@@ -45,7 +45,7 @@ class RaceEntryBonusesFlagsTest : FunSpec({
         4 to RaceEntry::religious,
         5 to RaceEntry::industrious,
         6 to RaceEntry::agricultural,
-        7 to RaceEntry::seaFaring,
+        7 to RaceEntry::seafaring,
     )
 
     test("each bit maps to exactly its own named property") {

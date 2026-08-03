@@ -1,6 +1,7 @@
 package com.kelvsyc.rifflet.internal.civ3
 
 import com.kelvsyc.rifflet.civ3.Civ3EnumDecodeException
+import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import com.kelvsyc.rifflet.civ3.RaceEraFilenames
 import com.kelvsyc.rifflet.civ3.RaceGovernor
@@ -31,6 +32,8 @@ private fun raceItemBinary(
     includeUnitTypeForKing: Boolean = true,
     includeTrailingFields: Boolean = true,
     cultureGroup: Int = 0,
+    leaderGender: Int = 0,
+    civilizationGender: Int = 0,
 ): Buffer = Buffer().apply {
     writeIntLe(cityNames.size)
     cityNames.forEach { writePaddedField(it, 24) }
@@ -47,8 +50,8 @@ private fun raceItemBinary(
         writePaddedField(reverse, 260)
     }
     writeIntLe(cultureGroup) // cultureGroup
-    writeIntLe(0) // leaderGender
-    writeIntLe(0) // civilizationGender
+    writeIntLe(leaderGender) // leaderGender
+    writeIntLe(civilizationGender) // civilizationGender
     writeIntLe(0) // aggressionLevel
     writeIntLe(0) // uniqueCivilizationCounter
     writeIntLe(0) // shunnedGovernment
@@ -84,14 +87,14 @@ class RaceEntryParserTest : FunSpec({
         entry shouldBe RaceEntry(
             cityNames = listOf("Roma", "Neapolis"),
             greatLeaderNames = listOf("Caesar"),
-            leader = RaceLeader(name = "Caesar Augustus", title = "Emperor", gender = 0),
+            leader = RaceLeader(name = "Caesar Augustus", title = "Emperor", gender = Gender.MALE),
             civilopediaEntry = "",
             adjective = "Roman",
             name = "Rome",
             noun = "Romans",
             eras = listOf(RaceEraFilenames("anc_fwd", "anc_rev"), RaceEraFilenames("mid_fwd", "mid_rev")),
             cultureGroup = RaceCultureGroup.AMERICAN,
-            civilizationGender = 0,
+            civilizationGender = Gender.MALE,
             personality = RacePersonality(favoriteGovernment = 0, shunnedGovernment = 0, aggressionLevel = 0),
             uniqueCivilizationCounter = 0,
             defaultColor = 0,
@@ -212,5 +215,33 @@ class RaceEntryParserTest : FunSpec({
         val e = shouldThrow<Civ3EnumDecodeException> { RaceEntryParser.parse(item, erasCount = 0) }
         e.field shouldBe "RaceEntry.cultureGroup"
         e.rawValue shouldBe 5
+    }
+
+    test("leaderGender decodes each raw value (0..1) to the matching Gender") {
+        Gender.entries.forEachIndexed { raw, expected ->
+            val item = raceItemBinary(leaderGender = raw, eraFilenames = emptyList())
+            RaceEntryParser.parse(item, erasCount = 0).leader.gender shouldBe expected
+        }
+    }
+
+    test("a leaderGender raw value outside 0..1 throws Civ3EnumDecodeException") {
+        val item = raceItemBinary(leaderGender = 2, eraFilenames = emptyList())
+        val e = shouldThrow<Civ3EnumDecodeException> { RaceEntryParser.parse(item, erasCount = 0) }
+        e.field shouldBe "RaceLeader.gender"
+        e.rawValue shouldBe 2
+    }
+
+    test("civilizationGender decodes each raw value (0..1) to the matching Gender") {
+        Gender.entries.forEachIndexed { raw, expected ->
+            val item = raceItemBinary(civilizationGender = raw, eraFilenames = emptyList())
+            RaceEntryParser.parse(item, erasCount = 0).civilizationGender shouldBe expected
+        }
+    }
+
+    test("a civilizationGender raw value outside 0..1 throws Civ3EnumDecodeException") {
+        val item = raceItemBinary(civilizationGender = 2, eraFilenames = emptyList())
+        val e = shouldThrow<Civ3EnumDecodeException> { RaceEntryParser.parse(item, erasCount = 0) }
+        e.field shouldBe "RaceEntry.civilizationGender"
+        e.rawValue shouldBe 2
     }
 })

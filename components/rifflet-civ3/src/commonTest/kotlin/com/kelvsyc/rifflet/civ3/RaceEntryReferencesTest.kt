@@ -12,14 +12,14 @@ private fun validRaceEntry(
 ): RaceEntry = RaceEntry(
     cityNames = emptyList(),
     greatLeaderNames = emptyList(),
-    leader = RaceLeader(name = "", title = "", gender = 0),
+    leader = RaceLeader(name = "", title = "", gender = Gender.MALE),
     civilopediaEntry = "",
     adjective = "",
     name = "Rome",
     noun = "",
     eras = emptyList(),
     cultureGroup = RaceCultureGroup.AMERICAN,
-    civilizationGender = 0,
+    civilizationGender = Gender.MALE,
     personality = RacePersonality(
         favoriteGovernment = favoriteGovernment,
         shunnedGovernment = shunnedGovernment,

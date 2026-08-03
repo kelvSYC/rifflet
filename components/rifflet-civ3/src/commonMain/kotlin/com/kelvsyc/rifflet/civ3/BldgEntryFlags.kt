@@ -62,7 +62,7 @@ val BldgEntry.requiredGoodsMustBeInCityRadius: Boolean by BitCollection.int.exte
  * documentation lists 10 bits here in the vanilla/PTW era ("coastal installation" through
  * "construction installation"), later renamed to trait names ([militaristic], [scientific],
  * [commercial], [expansionist], [religious], [industrious]) and extended with 2 new
- * Conquests-only bits ([agricultural], [seaFaring]) in a subsequent correction — this codebase
+ * Conquests-only bits ([agricultural], [seafaring]) in a subsequent correction — this codebase
  * exposes the final, corrected 12-bit layout.
  */
 val BldgEntry.otherCharacteristics: Int get() = flags.toIntLe(4)
@@ -78,7 +78,7 @@ val BldgEntry.expansionist: Boolean by BitCollection.int.extensionBitFlag({ othe
 val BldgEntry.religious: Boolean by BitCollection.int.extensionBitFlag({ otherCharacteristics }, 8)
 val BldgEntry.industrious: Boolean by BitCollection.int.extensionBitFlag({ otherCharacteristics }, 9)
 val BldgEntry.agricultural: Boolean by BitCollection.int.extensionBitFlag({ otherCharacteristics }, 10)
-val BldgEntry.seaFaring: Boolean by BitCollection.int.extensionBitFlag({ otherCharacteristics }, 11)
+val BldgEntry.seafaring: Boolean by BitCollection.int.extensionBitFlag({ otherCharacteristics }, 11)
 
 /**
  * The third named 4-byte sub-field of [BldgEntry.flags], per existing reverse-engineering
