@@ -89,4 +89,24 @@ class TechEntryMappingTest : FunSpec({
 
         shouldThrow<IllegalArgumentException> { entries.toDomain() }
     }
+
+    test("toDomain().toWire() round-trips a full TECH section") {
+        val entries = listOf(
+            techEntry(name = "Bronze Working", era = 0, flags = 5, flavors = 3, unknown = ByteString.of(9, 9, 9, 9)),
+            techEntry(name = "Iron Working", era = 0, prerequisite1 = 0),
+            techEntry(name = "Currency", era = 0, prerequisite2 = 0, prerequisite4 = 1),
+        )
+
+        val roundTripped = entries.toDomain().toWire()
+
+        roundTripped shouldBe entries
+    }
+
+    test("toWire throws on a prerequisite1 not present in the passed-through roster") {
+        val tech = listOf(techEntry(name = "A")).toDomain().single()
+        val outsider = listOf(techEntry(name = "Outsider")).toDomain().single()
+        tech.prerequisite1 = outsider
+
+        shouldThrow<IllegalArgumentException> { listOf(tech).toWire() }
+    }
 })

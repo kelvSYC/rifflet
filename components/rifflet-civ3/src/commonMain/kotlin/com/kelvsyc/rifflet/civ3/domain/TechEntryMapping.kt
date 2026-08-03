@@ -40,3 +40,45 @@ fun List<TechEntry>.toDomain(): List<Tech> {
 
     return techs
 }
+
+/**
+ * Converts a `TECH` section's domain-layer form back to wire entries, resolving each [Tech]'s
+ * self-referencing prerequisites back into indices against this list's own roster.
+ *
+ * Throws [IllegalArgumentException] if [Tech.prerequisite1], [Tech.prerequisite2],
+ * [Tech.prerequisite3], or [Tech.prerequisite4] references a [Tech] not present in this list —
+ * a dangling reference at encode time is a real bug, not something to default silently.
+ *
+ * Since [Tech] is a `data class`, `indexOf` below is a structural-equality match, not true
+ * reference identity — a narrow, accepted limitation shared with GOVT's `toWire()` lookups
+ * against its own `data class` wire types. Two hand-built [Tech]s with identical field values
+ * would be indistinguishable here; this resolves naturally for genuinely distinct techs, the
+ * overwhelmingly common case.
+ */
+fun List<Tech>.toWire(): List<TechEntry> {
+    val roster = this
+    fun resolve(field: String, prerequisite: Tech?): Int = prerequisite?.let {
+        val index = roster.indexOf(it)
+        require(index >= 0) { "Tech.$field references a Tech not present in this list" }
+        index
+    } ?: -1
+
+    return map { tech ->
+        TechEntry(
+            name = tech.name,
+            civilopediaEntry = tech.civilopediaEntry,
+            cost = tech.cost,
+            era = tech.era,
+            advanceIcon = tech.advanceIcon,
+            x = tech.x,
+            y = tech.y,
+            prerequisite1 = resolve("prerequisite1", tech.prerequisite1),
+            prerequisite2 = resolve("prerequisite2", tech.prerequisite2),
+            prerequisite3 = resolve("prerequisite3", tech.prerequisite3),
+            prerequisite4 = resolve("prerequisite4", tech.prerequisite4),
+            flags = tech.flags,
+            flavors = tech.flavors,
+            unknown = tech.unknown,
+        )
+    }
+}
