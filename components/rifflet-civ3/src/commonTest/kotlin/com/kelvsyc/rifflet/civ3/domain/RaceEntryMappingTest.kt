@@ -18,6 +18,7 @@ import com.kelvsyc.rifflet.civ3.RaceGovernor as WireRaceGovernor
 import com.kelvsyc.rifflet.civ3.RaceLeader
 import com.kelvsyc.rifflet.civ3.RacePersonality as WireRacePersonality
 import com.kelvsyc.rifflet.civ3.TechEntry
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
@@ -160,5 +161,70 @@ class RaceEntryMappingTest : FunSpec({
         val race = listOf(entry).toDomain(listOf(tech), emptyList(), emptyList()).single()
 
         race.freeTechs shouldBe listOf(tech, null, tech, null)
+    }
+
+    test("toDomain().toWire() round-trips a full RACE section") {
+        val tech = techEntry()
+        val gov = government()
+        val unit = prtoEntry()
+        val entry = raceEntry(
+            favoriteGovernment = 0,
+            shunnedGovernment = 0,
+            unitTypeForKing = 0,
+            freeTechs = listOf(0, -1, 0, -1),
+        )
+        val original = listOf(entry)
+
+        val roundTripped = original.toDomain(listOf(tech), listOf(gov), listOf(unit))
+            .toWire(listOf(tech), listOf(gov), listOf(unit))
+
+        roundTripped shouldBe original
+    }
+
+    test("toWire preserves a scattered (non-front-packed) freeTechs arrangement without reordering") {
+        val tech = techEntry()
+        val race = listOf(raceEntry(freeTechs = listOf(-1, 0, -1, -1)))
+            .toDomain(listOf(tech), emptyList(), emptyList())
+            .single()
+
+        val wire = listOf(race).toWire(listOf(tech), emptyList(), emptyList()).single()
+
+        wire.freeTechs shouldBe listOf(-1, 0, -1, -1)
+    }
+
+    test("toWire throws on a favoriteGovernment not present in the passed governments list") {
+        val race = listOf(raceEntry()).toDomain(emptyList(), emptyList(), emptyList()).single()
+        race.personality.favoriteGovernment = government()
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(race).toWire(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a shunnedGovernment not present in the passed governments list") {
+        val race = listOf(raceEntry()).toDomain(emptyList(), emptyList(), emptyList()).single()
+        race.personality.shunnedGovernment = government()
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(race).toWire(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a unitTypeForKing not present in the passed units list") {
+        val race = listOf(raceEntry()).toDomain(emptyList(), emptyList(), emptyList()).single()
+        race.unitTypeForKing = prtoEntry()
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(race).toWire(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a freeTechs slot not present in the passed techs list") {
+        val race = listOf(raceEntry()).toDomain(emptyList(), emptyList(), emptyList()).single()
+        race.freeTechs[0] = techEntry()
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(race).toWire(emptyList(), emptyList(), emptyList())
+        }
     }
 })
