@@ -67,6 +67,8 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateAdjacentLandTilesShareContinent(file) },
     ValidationRule { file -> validateContinentContiguous(file) },
     ValidationRule { file -> validateWaterContinentTouchesLand(file) },
+    ValidationRule { file -> validateTechPrerequisitesSameEra(file) },
+    ValidationRule { file -> validateTechPrerequisitesAcyclic(file) },
 )
 
 /**
