@@ -34,6 +34,7 @@ private fun bldgEntry(
     renderedObsoleteBy: Int = -1,
     requiredResource1: Int = -1,
     requiredResource2: Int = -1,
+    numberOfRequiredBuildings: Int = 0,
     wonderBit: Boolean = false,
     smallWonderBit: Boolean = false,
     wonders: Int = 0,
@@ -55,7 +56,7 @@ private fun bldgEntry(
         navalDefenseBonus = 0,
         maintenanceCost = 0,
         happiness = BldgHappiness(0, 0, 0, 0),
-        numberOfRequiredBuildings = 0,
+        numberOfRequiredBuildings = numberOfRequiredBuildings,
         pollution = 0,
         production = 0,
         spaceshipPart = spaceshipPart,
@@ -220,5 +221,66 @@ class BldgEntryMappingTest : FunSpec({
         )
 
         shouldThrow<IllegalArgumentException> { entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList()) }
+    }
+
+    test("toDomain().toWire() round-trips a plain Improvement") {
+        val entry = bldgEntry(name = "Granary")
+        val original = listOf(entry)
+
+        val roundTripped = original.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe original
+    }
+
+    test("toDomain().toWire() round-trips a Great Wonder with a resolved effect field") {
+        val entries = listOf(
+            bldgEntry(name = "Granary"),
+            bldgEntry(name = "Pyramids", wonderBit = true, gainInEveryCity = 0, wonders = 5),
+        )
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a SpaceshipPart") {
+        val entries = listOf(bldgEntry(name = "SS Structural", spaceshipPart = 3))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toWire throws on a requiredBuilding not present in the passed-through roster") {
+        val building = listOf(bldgEntry(name = "A")).toDomain(emptyList(), emptyList(), emptyList(), emptyList()).single()
+        val outsider = listOf(bldgEntry(name = "Outsider")).toDomain(emptyList(), emptyList(), emptyList(), emptyList()).single()
+        building.requirements.requiredBuilding = outsider
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(building).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a requiredGovernment not present in the passed governments list") {
+        val building = listOf(bldgEntry(name = "A")).toDomain(emptyList(), emptyList(), emptyList(), emptyList()).single()
+        building.requirements.requiredGovernment = government()
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(building).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a GreatWonder effect field not present in the passed-through roster") {
+        val wonder = listOf(bldgEntry(name = "Pyramids", wonderBit = true))
+            .toDomain(emptyList(), emptyList(), emptyList(), emptyList()).single() as GreatWonder
+        val outsider = listOf(bldgEntry(name = "Outsider")).toDomain(emptyList(), emptyList(), emptyList(), emptyList()).single()
+        wonder.gainInEveryCity = outsider
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(wonder).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
     }
 })
