@@ -253,3 +253,158 @@ fun validateBldgSpaceshipPartConventionalStats(file: Civ3File): List<ValidationI
         )
     }
 }
+
+/**
+ * Finds a cycle in the graph formed by following [indexOf] from each of [items], if one exists.
+ * Returns the cyclic path (in traversal order, repeating the starting item) or `null` if acyclic.
+ * Generic over [T] and [indexOf] so the same DFS serves every single-slot self-reference in
+ * `BldgEntry` (`requiredBuilding`, and each of the 3 `GreatWonder`-only effect fields
+ * independently) without duplicating the traversal logic per field.
+ */
+internal fun <T> findSelfReferenceCycle(items: List<T>, indexOf: (T) -> Int): List<T>? {
+    val state = IntArray(items.size) // 0 = unvisited, 1 = in progress, 2 = done
+    val path = mutableListOf<Int>()
+
+    fun dfs(index: Int): List<T>? {
+        if (state[index] == 1) {
+            val cycleStart = path.indexOf(index)
+            return (path.subList(cycleStart, path.size) + index).map { items[it] }
+        }
+        if (state[index] == 2) return null
+        state[index] = 1
+        path.add(index)
+        val next = indexOf(items[index])
+        if (next in items.indices) {
+            val cycle = dfs(next)
+            if (cycle != null) return cycle
+        }
+        path.removeAt(path.size - 1)
+        state[index] = 2
+        return null
+    }
+
+    items.indices.forEach { i ->
+        if (state[i] == 0) {
+            val cycle = dfs(i)
+            if (cycle != null) return cycle
+        }
+    }
+    return null
+}
+
+/**
+ * Flags any `BLDG` entry whose [BldgEntry.gainInEveryCity] resolves to a Wonder or Small Wonder.
+ * Returns no issues if the `BLDG` section is absent from [file].
+ *
+ * Every real file (official or third-party) has this field resolve only to a plain Improvement —
+ * granting a capped-at-1 Wonder for free in every city would be reductive given that cap.
+ */
+fun validateBldgGainInEveryCityNotWonder(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    val entries = section.entries
+    return entries.mapIndexedNotNull { index, entry ->
+        val target = entries.getOrNull(entry.gainInEveryCity) ?: return@mapIndexedNotNull null
+        if (!target.wonder && !target.smallWonder) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.BLDG,
+            index,
+            "gainInEveryCity",
+            "gainInEveryCity=${entry.gainInEveryCity} resolves to a Wonder or Small Wonder, " +
+                "which the Rules Editor never allows",
+        )
+    }
+}
+
+/**
+ * Flags any `BLDG` entry whose [BldgEntry.gainInEveryCityOnContinent] resolves to a Wonder or
+ * Small Wonder. Returns no issues if the `BLDG` section is absent from [file].
+ *
+ * One community mod ("Lord of Middle Earth") has an exception to this, but it's a third-party
+ * file, not an official one — this codebase's `ValidationSeverity.WARNING` convention requires an
+ * *official* exception to earn that downgrade, so this stays `ERROR`.
+ */
+fun validateBldgGainInEveryCityOnContinentNotWonder(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    val entries = section.entries
+    return entries.mapIndexedNotNull { index, entry ->
+        val target = entries.getOrNull(entry.gainInEveryCityOnContinent) ?: return@mapIndexedNotNull null
+        if (!target.wonder && !target.smallWonder) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.BLDG,
+            index,
+            "gainInEveryCityOnContinent",
+            "gainInEveryCityOnContinent=${entry.gainInEveryCityOnContinent} resolves to a Wonder or Small Wonder, " +
+                "which the Rules Editor never allows",
+        )
+    }
+}
+
+/**
+ * Flags a cycle in the `BLDG` section's [BldgRequirements.requiredBuilding] graph, if one exists.
+ * Returns no issues if the `BLDG` section is absent from [file].
+ *
+ * No real file has ever been found with a `requiredBuilding` cycle — a cyclic prerequisite graph
+ * would make a building permanently unbuildable.
+ */
+fun validateBldgRequiredBuildingAcyclic(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    val cycle = findSelfReferenceCycle(section.entries) { it.requirements.requiredBuilding } ?: return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.BLDG,
+            null,
+            "requiredBuilding",
+            "requiredBuilding graph contains a cycle: ${cycle.joinToString(" -> ") { it.name }}",
+        ),
+    )
+}
+
+/**
+ * Flags a cycle in any of [BldgEntry.doublesHappiness]/[BldgEntry.gainInEveryCity]/
+ * [BldgEntry.gainInEveryCityOnContinent]'s graphs, checked independently (a cycle mixing two
+ * different fields isn't meaningful, since they're different relations). Returns no issues if the
+ * `BLDG` section is absent from [file].
+ */
+fun validateBldgWonderEffectsAcyclic(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    val entries = section.entries
+    val fields = listOf<Pair<String, (BldgEntry) -> Int>>(
+        "doublesHappiness" to { it.doublesHappiness },
+        "gainInEveryCity" to { it.gainInEveryCity },
+        "gainInEveryCityOnContinent" to { it.gainInEveryCityOnContinent },
+    )
+    return fields.mapNotNull { (fieldName, selector) ->
+        val cycle = findSelfReferenceCycle(entries, selector) ?: return@mapNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.BLDG,
+            null,
+            fieldName,
+            "$fieldName graph contains a cycle: ${cycle.joinToString(" -> ") { it.name }}",
+        )
+    }
+}
+
+/**
+ * Flags any `BLDG` entry with both [BldgEntry.wonder] and [BldgEntry.smallWonder] set. Returns no
+ * issues if the `BLDG` section is absent from [file].
+ *
+ * No real file has ever set both — the Rules Editor's Category radio group only allows one.
+ */
+fun validateBldgNotBothWonderAndSmallWonder(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (!(entry.wonder && entry.smallWonder)) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.BLDG,
+            index,
+            "otherCharacteristics",
+            "otherCharacteristics=${entry.otherCharacteristics} has both wonder and smallWonder set, " +
+                "which the Rules Editor never allows",
+        )
+    }
+}

@@ -69,6 +69,11 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateWaterContinentTouchesLand(file) },
     ValidationRule { file -> validateTechPrerequisitesSameEra(file) },
     ValidationRule { file -> validateTechPrerequisitesAcyclic(file) },
+    ValidationRule { file -> validateBldgGainInEveryCityNotWonder(file) },
+    ValidationRule { file -> validateBldgGainInEveryCityOnContinentNotWonder(file) },
+    ValidationRule { file -> validateBldgRequiredBuildingAcyclic(file) },
+    ValidationRule { file -> validateBldgWonderEffectsAcyclic(file) },
+    ValidationRule { file -> validateBldgNotBothWonderAndSmallWonder(file) },
 )
 
 /**

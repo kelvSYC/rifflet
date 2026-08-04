@@ -18,6 +18,7 @@ private fun bldgEntry(
     otherCharacteristics: Int = 0,
     smallWonders: Int = 0,
     wonders: Int = 0,
+    requiredBuilding: Int = -1,
     doublesHappiness: Int = -1,
     gainInEveryCity: Int = -1,
     gainInEveryCityOnContinent: Int = -1,
@@ -47,7 +48,7 @@ private fun bldgEntry(
     doublesHappiness = doublesHappiness,
     gainInEveryCity = gainInEveryCity,
     gainInEveryCityOnContinent = gainInEveryCityOnContinent,
-    requirements = BldgRequirements(requiredBuilding = -1, requiredGovernment = -1, requiredAdvance = -1),
+    requirements = BldgRequirements(requiredBuilding = requiredBuilding, requiredGovernment = -1, requiredAdvance = -1),
     cost = 0,
     culture = culture,
     combatValues = BldgCombatValues(
@@ -413,5 +414,108 @@ class BldgEntryValidationTest : FunSpec({
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         validateBldgSpaceshipPartConventionalStats(file) shouldBe emptyList()
+    }
+
+    test("findSelfReferenceCycle returns null for an acyclic graph") {
+        val entries = listOf(bldgEntry(), bldgEntry(requiredBuilding = 0))
+        findSelfReferenceCycle(entries) { it.requirements.requiredBuilding } shouldBe null
+    }
+
+    test("findSelfReferenceCycle finds a 2-node cycle") {
+        val entries = listOf(bldgEntry(requiredBuilding = 1), bldgEntry(requiredBuilding = 0))
+        findSelfReferenceCycle(entries) { it.requirements.requiredBuilding }?.size shouldBe 3
+    }
+
+    test("findSelfReferenceCycle finds a self-loop") {
+        val entries = listOf(bldgEntry(requiredBuilding = 0))
+        findSelfReferenceCycle(entries) { it.requirements.requiredBuilding }?.size shouldBe 2
+    }
+
+    test("validateBldgGainInEveryCityNotWonder returns no issues for a plain-Improvement target") {
+        val target = bldgEntry()
+        val entry = bldgEntry(wonders = 1, gainInEveryCity = 0)
+        val file = fileWithBldgs(listOf(target, entry))
+
+        validateBldgGainInEveryCityNotWonder(file) shouldBe emptyList()
+    }
+
+    test("validateBldgGainInEveryCityNotWonder flags a Wonder target") {
+        val target = bldgEntry(otherCharacteristics = 1 shl 2) // wonder bit
+        val entry = bldgEntry(wonders = 1, gainInEveryCity = 0)
+        val file = fileWithBldgs(listOf(target, entry))
+
+        validateBldgGainInEveryCityNotWonder(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                1,
+                "gainInEveryCity",
+                "gainInEveryCity=0 resolves to a Wonder or Small Wonder, which the Rules Editor never allows",
+            ),
+        )
+    }
+
+    test("validateBldgGainInEveryCityOnContinentNotWonder flags a Small Wonder target") {
+        val target = bldgEntry(otherCharacteristics = 1 shl 3) // smallWonder bit
+        val entry = bldgEntry(wonders = 1, gainInEveryCityOnContinent = 0)
+        val file = fileWithBldgs(listOf(target, entry))
+
+        validateBldgGainInEveryCityOnContinentNotWonder(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                1,
+                "gainInEveryCityOnContinent",
+                "gainInEveryCityOnContinent=0 resolves to a Wonder or Small Wonder, which the Rules Editor never allows",
+            ),
+        )
+    }
+
+    test("validateBldgRequiredBuildingAcyclic returns no issues for an acyclic graph") {
+        val file = fileWithBldgs(listOf(bldgEntry(), bldgEntry(requiredBuilding = 0)))
+
+        validateBldgRequiredBuildingAcyclic(file) shouldBe emptyList()
+    }
+
+    test("validateBldgRequiredBuildingAcyclic flags a cycle") {
+        val file = fileWithBldgs(listOf(bldgEntry(requiredBuilding = 1), bldgEntry(requiredBuilding = 0)))
+
+        val issues = validateBldgRequiredBuildingAcyclic(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "requiredBuilding"
+    }
+
+    test("validateBldgWonderEffectsAcyclic returns no issues for an acyclic graph") {
+        val file = fileWithBldgs(listOf(bldgEntry(), bldgEntry(wonders = 1, doublesHappiness = 0)))
+
+        validateBldgWonderEffectsAcyclic(file) shouldBe emptyList()
+    }
+
+    test("validateBldgWonderEffectsAcyclic flags a doublesHappiness cycle") {
+        val file = fileWithBldgs(
+            listOf(
+                bldgEntry(wonders = 1, doublesHappiness = 1),
+                bldgEntry(wonders = 1, doublesHappiness = 0),
+            ),
+        )
+
+        val issues = validateBldgWonderEffectsAcyclic(file)
+        issues.size shouldBe 1
+        issues.single().field shouldBe "doublesHappiness"
+    }
+
+    test("validateBldgNotBothWonderAndSmallWonder returns no issues for a plain wonder-only entry") {
+        val file = fileWithBldgs(listOf(bldgEntry(otherCharacteristics = 1 shl 2)))
+
+        validateBldgNotBothWonderAndSmallWonder(file) shouldBe emptyList()
+    }
+
+    test("validateBldgNotBothWonderAndSmallWonder flags an entry with both bits set") {
+        val file = fileWithBldgs(listOf(bldgEntry(otherCharacteristics = (1 shl 2) or (1 shl 3))))
+
+        val issues = validateBldgNotBothWonderAndSmallWonder(file)
+        issues.size shouldBe 1
+        issues.single().field shouldBe "otherCharacteristics"
     }
 })
