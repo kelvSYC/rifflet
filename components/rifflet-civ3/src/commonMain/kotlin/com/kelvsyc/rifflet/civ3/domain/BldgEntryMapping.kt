@@ -291,23 +291,10 @@ private val BldgHappinessZero = BldgHappiness(0, 0, 0, 0)
  * GreatWonder` isolates exactly the `SmallWonder` case.
  */
 private fun flagsToByteString(improvements: Int, otherCharacteristics: Int, smallWonders: Int, wonders: Int): okio.ByteString {
-    val bytes = byteArrayOf(
-        (improvements and 0xFF).toByte(),
-        ((improvements shr 8) and 0xFF).toByte(),
-        ((improvements shr 16) and 0xFF).toByte(),
-        ((improvements shr 24) and 0xFF).toByte(),
-        (otherCharacteristics and 0xFF).toByte(),
-        ((otherCharacteristics shr 8) and 0xFF).toByte(),
-        ((otherCharacteristics shr 16) and 0xFF).toByte(),
-        ((otherCharacteristics shr 24) and 0xFF).toByte(),
-        (smallWonders and 0xFF).toByte(),
-        ((smallWonders shr 8) and 0xFF).toByte(),
-        ((smallWonders shr 16) and 0xFF).toByte(),
-        ((smallWonders shr 24) and 0xFF).toByte(),
-        (wonders and 0xFF).toByte(),
-        ((wonders shr 8) and 0xFF).toByte(),
-        ((wonders shr 16) and 0xFF).toByte(),
-        ((wonders shr 24) and 0xFF).toByte(),
-    )
-    return okio.ByteString.of(*bytes)
+    val buffer = okio.Buffer()
+    buffer.writeIntLe(improvements)
+    buffer.writeIntLe(otherCharacteristics)
+    buffer.writeIntLe(smallWonders)
+    buffer.writeIntLe(wonders)
+    return buffer.readByteString()
 }

@@ -245,6 +245,18 @@ class BldgEntryMappingTest : FunSpec({
         roundTripped shouldBe entries
     }
 
+    test("toDomain().toWire() round-trips a SmallWonder with smallWonders field") {
+        val entries = listOf(
+            bldgEntry(name = "Granary"),
+            bldgEntry(name = "Stonehenge", smallWonderBit = true, smallWonders = 7),
+        )
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
     test("toDomain().toWire() round-trips a SpaceshipPart") {
         val entries = listOf(bldgEntry(name = "SS Structural", spaceshipPart = 3))
 
