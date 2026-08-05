@@ -13,13 +13,18 @@ import com.kelvsyc.rifflet.civ3.SlocEntry
  * externally-sourced standard lists, as appropriate.
  *
  * Throws [IllegalArgumentException] if any entry's `ownerType` is outside the documented `0..3`
- * range (see `resolveOwner`'s own KDoc in `Owner.kt`), or if it is `1` (Barbarian) — the real
- * Rules/Scenario editor never allows a Barbarian-owned starting location.
+ * range (see `resolveOwner`'s own KDoc in `Owner.kt`), if it is `1` (Barbarian), or if it is `2`
+ * (Civilization) pointing at RACE index `0` (the barbarian placeholder civilization) — the real
+ * Rules/Scenario editor never allows either as a starting-location owner.
  */
 fun List<SlocEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<StartingLocation> = map { entry ->
     val owner = resolveOwner(entry.ownerType, entry.owner, races, leads)
     require(owner !is Owner.Barbarian) {
         "SLOC entries cannot be owned by Barbarian (ownerType=1) — the Rules/Scenario editor does not allow it"
+    }
+    require(!(entry.ownerType == 2 && entry.owner == 0)) {
+        "SLOC entries cannot be owned by the barbarian placeholder civilization (ownerType=2, " +
+            "owner=0) — the Rules/Scenario editor does not allow it"
     }
     StartingLocation(x = entry.x, y = entry.y, owner = owner)
 }

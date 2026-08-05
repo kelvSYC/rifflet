@@ -88,6 +88,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateCityOwnerNotBarbarianPlaceholderCiv(file) },
     ValidationRule { file -> validateClnyOwnerRequiresRealNation(file) },
     ValidationRule { file -> validateClnyOwnerNotBarbarianPlaceholderCiv(file) },
+    ValidationRule { file -> validateSlocOwnerNotBarbarianPlaceholderCiv(file) },
 )
 
 /**

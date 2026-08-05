@@ -103,3 +103,27 @@ fun validateSlocUniqueOwner(file: Civ3File): List<ValidationIssue> {
         )
     }
 }
+
+/**
+ * Flags a [SlocEntry] whose owner is [SlocEntry.ownerType] `2` (Civilization) pointing at `RACE`
+ * index `0`, the barbarian placeholder civilization. Returns no issues if the `SLOC` section is
+ * absent from [file].
+ *
+ * The real Rules/Scenario editor does not allow a starting location to be assigned the barbarian
+ * placeholder civ as its owner. Confirmed with zero exceptions across the corpus.
+ */
+fun validateSlocOwnerNotBarbarianPlaceholderCiv(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<SlocSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (!(entry.ownerType == 2 && entry.owner == 0)) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.SLOC,
+            index,
+            "owner",
+            "owner=0 with ownerType=2 (Civilization) is not allowed for SLOC entries; RACE index " +
+                "0 is the barbarian placeholder civilization, which the Rules/Scenario editor " +
+                "does not allow as a starting-location owner",
+        )
+    }
+}

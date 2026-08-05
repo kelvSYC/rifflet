@@ -96,6 +96,14 @@ class SlocEntryMappingTest : FunSpec({
         }
     }
 
+    test("toDomain throws for the barbarian placeholder civ") {
+        val entry = slocEntry(ownerType = 2, owner = 0)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList())
+        }
+    }
+
     test("toDomain().toWire() round-trips scalar fields and a Civilization owner") {
         val r = race("Rome")
         val entries = listOf(slocEntry(ownerType = 2, owner = 1))
