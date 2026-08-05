@@ -23,3 +23,39 @@ fun List<SlocEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<St
     }
     StartingLocation(x = entry.x, y = entry.y, owner = owner)
 }
+
+/**
+ * Converts a `SLOC` section's domain-layer form back to wire entries, resolving each
+ * [StartingLocation]'s [Owner] back into an `ownerType`/`owner` index pair.
+ *
+ * Throws [IllegalArgumentException] if [StartingLocation.owner] resolves to an [Owner.Civilization]
+ * or [Owner.Player] referencing an object not present in the corresponding list argument —
+ * `indexOf`-based, the same accepted structural-equality limitation as GOVT/TECH/BLDG/PRTO/CITY's
+ * `toWire()`.
+ *
+ * [Owner.None] writes back `-1` for the wire `owner` int, since it's stateless and the original raw
+ * value (if any) can't be reconstructed — same accepted limitation as CITY. [Owner.Barbarian] is
+ * handled for exhaustiveness only: a domain-constructed [StartingLocation] can never legitimately
+ * hold one — see `toDomain()`'s guard.
+ */
+fun List<StartingLocation>.toWire(races: List<Race>, leads: List<LeadEntry>): List<SlocEntry> = map { location ->
+    val (ownerType, owner) = when (val o = location.owner) {
+        is Owner.None -> 0 to -1
+        is Owner.Barbarian -> 1 to -1
+        is Owner.Civilization -> 2 to (
+            o.race?.let {
+                val index = races.indexOf(it)
+                require(index >= 0) { "Owner.Civilization references a Race not present in races" }
+                index
+            } ?: -1
+            )
+        is Owner.Player -> 3 to (
+            o.lead?.let {
+                val index = leads.indexOf(it)
+                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                index
+            } ?: -1
+            )
+    }
+    SlocEntry(ownerType = ownerType, owner = owner, x = location.x, y = location.y)
+}
