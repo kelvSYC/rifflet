@@ -37,6 +37,8 @@ private fun prtoEntry(
     specialActions: Int = 0,
     workerActions: Int = 0,
     airMissions: Int = 0,
+    flags4: ByteString = ByteString.of(0, 0, 1, 0), // default: bit 16 always set for CONQUESTS-era
+    ignoreMovementCost: ByteString? = null,
 ): PrtoEntry = PrtoEntry(
     unitStatistics = WirePrtoUnitStatistics(
         zoneOfControl = 0, bombardStrength = 0, bombardRange = 0, capacity = 0, shieldCost = 0,
@@ -61,8 +63,8 @@ private fun prtoEntry(
     specialActions = specialActions,
     workerActions = workerActions,
     airMissions = airMissions,
-    flags4 = ByteString.of(*ByteArray(4)),
-    ignoreMovementCost = ByteString.of(ignoreMovementCostByte.toByte()),
+    flags4 = flags4,
+    ignoreMovementCost = ignoreMovementCost ?: ByteString.of(ignoreMovementCostByte.toByte()),
     unknown = ByteString.of(*ByteArray(16)),
     enslaveResults = enslaveResults,
     unknown2 = ByteString.of(*ByteArray(4)),
@@ -98,6 +100,16 @@ private fun terr(name: String = ""): TerrEntry = TerrEntry(
     unknown = ByteString.of(*ByteArray(4)), landmark = null, unknown2 = ByteString.of(*ByteArray(4)),
     terrainFlags = 0, diseaseStrength = 0,
 )
+
+private fun validPrto(name: String = "Warrior"): Prto = Prto(
+    name = name, civilopediaEntry = "", iconIndex = 0, type = PrtoDomain.LAND,
+)
+
+private fun ByteString.toIntLeForTest(offset: Int): Int =
+    (this[offset].toInt() and 0xFF) or
+        ((this[offset + 1].toInt() and 0xFF) shl 8) or
+        ((this[offset + 2].toInt() and 0xFF) shl 16) or
+        ((this[offset + 3].toInt() and 0xFF) shl 24)
 
 class PrtoEntryMappingTest : FunSpec({
 
@@ -215,6 +227,143 @@ class PrtoEntryMappingTest : FunSpec({
 
         shouldThrow<IllegalArgumentException> {
             entries.toDomain(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toDomain().toWire() round-trips a plain single entry") {
+        val entries = listOf(prtoEntry(name = "Warrior", aiStrategies = 1 shl 0, flags4 = ByteString.of(0, 0, 1, 0), ignoreMovementCost = ByteString.of()))
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() splits a multi-bit aiStrategies back into canonical + duplicate entries") {
+        val entries = listOf(
+            prtoEntry(name = "Rifleman", aiStrategies = 1 shl 0, flags4 = ByteString.of(0, 0, 1, 0), ignoreMovementCost = ByteString.of()),
+            prtoEntry(name = "Rifleman", aiStrategies = 1 shl 1, otherStrategy = 0, flags4 = ByteString.of(0, 0, 1, 0), ignoreMovementCost = ByteString.of()),
+        )
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped.size shouldBe 2
+        roundTripped[0].aiStrategies shouldBe (1 shl 0)
+        roundTripped[0].otherStrategy shouldBe -1
+        roundTripped[1].aiStrategies shouldBe (1 shl 1)
+        roundTripped[1].otherStrategy shouldBe 0
+    }
+
+    test("toDomain().toWire() splits 3 duplicates sharing one canonical") {
+        val flagsValue = ByteString.of(0, 0, 1, 0)
+        val emptyIgnore = ByteString.of()
+        val entries = listOf(
+            prtoEntry(name = "X", aiStrategies = 1 shl 0, flags4 = flagsValue, ignoreMovementCost = emptyIgnore),
+            prtoEntry(name = "X", aiStrategies = 1 shl 1, otherStrategy = 0, flags4 = flagsValue, ignoreMovementCost = emptyIgnore),
+            prtoEntry(name = "X", aiStrategies = 1 shl 2, otherStrategy = 0, flags4 = flagsValue, ignoreMovementCost = emptyIgnore),
+            prtoEntry(name = "X", aiStrategies = 1 shl 3, otherStrategy = 0, flags4 = flagsValue, ignoreMovementCost = emptyIgnore),
+        )
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped.size shouldBe 4
+        roundTripped.drop(1).forEach { it.otherStrategy shouldBe 0 }
+    }
+
+    test("toDomain().toWire() round-trips cross-references and self-references") {
+        val advance = tech("Gunpowder")
+        val g = good()
+        val r = race("Rome")
+        val t = terr("Desert")
+        val entries = listOf(
+            prtoEntry(name = "Warrior"),
+            prtoEntry(
+                name = "Musketeers", upgradeTo = 0, enslaveResults = 0, stealthTargetUnitTypes = listOf(0),
+                required = 0, requiredResource1 = 0, availableTo = 1 shl 0, ignoreMovementCostByte = 1,
+                flags4 = ByteString.of(0, 0, 1, 0),
+            ),
+        )
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(g), listOf(r), listOf(t))
+            .toWire(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(g), listOf(r), listOf(t))
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips unified and direct actions for Conquests") {
+        val entries = listOf(
+            prtoEntry(
+                standardOrders = (1 shl 0) or (1 shl 5) or (1 shl 6),
+                specialActions = (1 shl 0) or (1 shl 9) or (1 shl 18),
+                workerActions = (1 shl 0) or (1 shl 13),
+                airMissions = 1 shl 0,
+                // Computed flags4: bits 0 (sentry), 12 (bombing), 16 (always 1) = 69633 = 0x11001
+                // Little-endian bytes: 0x01, 0x10, 0x01, 0x00
+                flags4 = ByteString.of(0x01.toByte(), 0x10.toByte(), 0x01.toByte(), 0x00.toByte()),
+                ignoreMovementCost = ByteString.of(),
+            ),
+        )
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() writes VANILLA-era output into flags2 and zeroes the modern fields") {
+        val prto = validPrto("Warrior").also {
+            it.skipTurn = true
+            it.load = true
+            it.buildColony = true
+            it.bombing = true
+        }
+
+        val wire = listOf(prto).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList()).single()
+
+        wire.standardOrders shouldBe 0
+        wire.specialActions shouldBe 0
+        wire.workerActions shouldBe 0
+        wire.airMissions shouldBe 0
+        wire.flags4 shouldBe ByteString.of(0, 0, 0, 0)
+        wire.flags2.toIntLeForTest(0).let { (it shr 0) and 1 } shouldBe 1
+        wire.flags2.toIntLeForTest(0).let { (it shr 5) and 1 } shouldBe 1
+        wire.flags2.toIntLeForTest(0).let { (it shr 14) and 1 } shouldBe 1
+        wire.flags2.toIntLeForTest(4).let { (it shr 0) and 1 } shouldBe 1
+    }
+
+    test("toDomain().toWire() drops VANILLA-unrepresentable direct actions for VANILLA output") {
+        val prto = validPrto("Spy").also { it.enslave = true }
+
+        val wire = listOf(prto).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList()).single()
+
+        wire.specialActions shouldBe 0
+    }
+
+    test("toWire throws on a dangling required reference") {
+        val prto = validPrto().also { it.required = tech("Outsider") }
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(prto).toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a dangling availableTo reference") {
+        val prto = validPrto().also { it.availableTo = mutableSetOf(race("Outsider")) }
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(prto).toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a dangling self-reference not present in the passed-through roster") {
+        val prto = validPrto()
+        val outsider = validPrto("Outsider")
+        prto.enslaveResults = outsider
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(prto).toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList())
         }
     }
 })
