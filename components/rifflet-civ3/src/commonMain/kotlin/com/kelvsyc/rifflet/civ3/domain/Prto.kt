@@ -51,14 +51,12 @@ import okio.ByteString
  *   more than one bit set — see this class's own KDoc.
  * @param availableTo The civilizations this unit type is available to.
  * @param enslaveResults The unit type this unit's Enslave Special Action creates on a successful
- *   battle, if any — e.g. a Man-O-War's Enslave ability creates more Man-O-War units. Unlike
- *   [PrtoUnitStatistics.upgradeTo], self-reference here is common and meaningful, not a defect —
- *   no acyclicity guard applies to this field.
+ *   battle, if any — e.g. a Man-O-War's Enslave ability creates more Man-O-War units. No
+ *   acyclicity guard applies to this field, unlike [PrtoUnitStatistics.upgradeTo].
  * @param ignoreMovementCost The terrain types this unit type ignores movement cost for. References
  *   the wire `TerrEntry` — `TERR` doesn't have its own domain type yet.
  * @param stealthTargetUnitTypes The unit types this unit's Stealth Attack ability cannot target —
- *   an exclusion list, not an allow-list, despite the name; that inversion is purely a rules detail
- *   the domain layer doesn't need to restructure around.
+ *   an exclusion list, not an allow-list, despite the name.
  * @param unknown 16 bytes with zero documented behavior; preserved raw, not validated.
  * @param unknown2 4 bytes with zero documented behavior; preserved raw, not validated.
  * @param unknown3 8 bytes with zero documented behavior; preserved raw, not validated.

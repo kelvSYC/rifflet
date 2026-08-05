@@ -68,8 +68,8 @@ import okio.ByteString
  *
  * Throws [IllegalArgumentException] if this list's [com.kelvsyc.rifflet.civ3.PrtoUnitStatistics.upgradeTo]
  * graph contains a cycle — checked via [findSelfReferenceCycle] before constructing any [Prto],
- * exactly like `BldgEntry.toDomain()`'s cycle guard. `enslaveResults` gets no such guard: unlike
- * `upgradeTo`, self-reference there is common and meaningful (see [Prto.enslaveResults]'s KDoc).
+ * exactly like `BldgEntry.toDomain()`'s cycle guard. `enslaveResults` gets no such guard (see
+ * [Prto.enslaveResults]'s KDoc).
  */
 fun List<PrtoEntry>.toDomain(
     era: Civ3FormatEra,
