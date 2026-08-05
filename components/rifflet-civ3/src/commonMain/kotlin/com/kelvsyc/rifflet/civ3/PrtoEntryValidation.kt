@@ -451,3 +451,70 @@ fun validatePrtoAirStrategyPrerequisites(file: Civ3File): List<ValidationIssue> 
         )
     }
 }
+
+/**
+ * Flags a cycle in the `PRTO` section's [PrtoUnitStatistics.upgradeTo] graph, if one exists.
+ * Returns no issues if the `PRTO` section is absent from [file].
+ *
+ * No real file has ever been found with an `upgradeTo` cycle — a cyclic upgrade graph would make a
+ * unit's upgrade chain never terminate.
+ */
+fun validatePrtoUpgradeToAcyclic(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
+    val cycle = findSelfReferenceCycle(section.entries) { it.unitStatistics.upgradeTo } ?: return emptyList()
+    return listOf(
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.PRTO,
+            null,
+            "upgradeTo",
+            "upgradeTo graph contains a cycle: ${cycle.joinToString(" -> ") { it.name }}",
+        ),
+    )
+}
+
+/**
+ * Flags a [PrtoEntry] with [PrtoEntry.enslaveResults] set (not -1) but [PrtoEntry.enslave] false.
+ * Returns no issues if the `PRTO` section is absent from [file].
+ *
+ * The real Units editor only enables the "Enslave Results In" dropdown when the Enslave Special
+ * Action checkbox is checked — real official files never violate this direction. The reverse
+ * (Enslave checked with no result chosen) is not flagged: the editor doesn't force picking a
+ * specific result once Enslave is checked.
+ */
+fun validatePrtoEnslaveResultsRequiresEnslave(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (entry.enslaveResults == -1 || entry.enslave) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.PRTO,
+            index,
+            "enslaveResults",
+            "enslaveResults=${entry.enslaveResults} is set but enslave is false",
+        )
+    }
+}
+
+/**
+ * Flags a [PrtoEntry] whose [PrtoEntry.aiStrategies] has more than one bit set. Returns no issues
+ * if the `PRTO` section is absent from [file].
+ *
+ * Every real file's individual entries carry at most one AI Strategy bit — a unit's second
+ * simultaneous strategy always lives on a separate, paired duplicate entry instead (see
+ * [PrtoEntry.otherStrategy]'s KDoc). This constraint is per-entry, not per-logical-unit: it says
+ * nothing about how many duplicates a canonical entry may have.
+ */
+fun validatePrtoAiStrategiesSingleBit(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (entry.aiStrategies.countOneBits() <= 1) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.PRTO,
+            index,
+            "aiStrategies",
+            "aiStrategies=${entry.aiStrategies} has more than one bit set",
+        )
+    }
+}

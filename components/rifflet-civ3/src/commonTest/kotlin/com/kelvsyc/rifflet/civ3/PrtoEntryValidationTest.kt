@@ -23,6 +23,8 @@ private fun prtoEntry(
     operationalRange: Int = 0,
     airMissions: Int = 0,
     availableTo: Int = 0,
+    upgradeTo: Int = -1,
+    enslaveResults: Int = -1,
 ): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
         zoneOfControl = 0,
@@ -36,7 +38,7 @@ private fun prtoEntry(
         populationCost = 0,
         rateOfFire = rateOfFire,
         movement = 0,
-        upgradeTo = -1,
+        upgradeTo = upgradeTo,
         hpBonus = 0,
         bombardEffects = 0,
         requireSupport = 0,
@@ -64,7 +66,7 @@ private fun prtoEntry(
     flags4 = ByteString.of(*ByteArray(4)),
     ignoreMovementCost = ByteString.of(),
     unknown = ByteString.of(*ByteArray(16)),
-    enslaveResults = -1,
+    enslaveResults = enslaveResults,
     unknown2 = ByteString.of(*ByteArray(4)),
     stealthTargetUnitTypes = emptyList(),
     unknown3 = ByteString.of(*ByteArray(8)),
@@ -658,5 +660,70 @@ class PrtoEntryValidationTest : FunSpec({
         )
 
         validatePrtoAirStrategyPrerequisites(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoUpgradeToAcyclic returns no issues for an acyclic graph") {
+        val file = fileWithPrtos(listOf(prtoEntry(), prtoEntry(upgradeTo = 0)))
+
+        validatePrtoUpgradeToAcyclic(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoUpgradeToAcyclic flags a self-loop") {
+        val file = fileWithPrtos(listOf(prtoEntry(upgradeTo = 0)))
+
+        val issues = validatePrtoUpgradeToAcyclic(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "upgradeTo"
+    }
+
+    test("validatePrtoUpgradeToAcyclic flags a 2-node cycle") {
+        val file = fileWithPrtos(listOf(prtoEntry(upgradeTo = 1), prtoEntry(upgradeTo = 0)))
+
+        val issues = validatePrtoUpgradeToAcyclic(file)
+        issues.size shouldBe 1
+        issues.single().field shouldBe "upgradeTo"
+    }
+
+    test("validatePrtoEnslaveResultsRequiresEnslave returns no issues when enslaveResults is set and enslave is true") {
+        val file = fileWithPrtos(listOf(prtoEntry(enslaveResults = 0, specialActions = 1 shl 18)))
+
+        validatePrtoEnslaveResultsRequiresEnslave(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoEnslaveResultsRequiresEnslave returns no issues when enslave is true but enslaveResults is -1") {
+        val file = fileWithPrtos(listOf(prtoEntry(specialActions = 1 shl 18)))
+
+        validatePrtoEnslaveResultsRequiresEnslave(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoEnslaveResultsRequiresEnslave flags enslaveResults set with enslave false") {
+        val file = fileWithPrtos(listOf(prtoEntry(enslaveResults = 0)))
+
+        val issues = validatePrtoEnslaveResultsRequiresEnslave(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "enslaveResults"
+    }
+
+    test("validatePrtoAiStrategiesSingleBit returns no issues for zero bits") {
+        val file = fileWithPrtos(listOf(prtoEntry(aiStrategies = 0)))
+
+        validatePrtoAiStrategiesSingleBit(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoAiStrategiesSingleBit returns no issues for exactly one bit") {
+        val file = fileWithPrtos(listOf(prtoEntry(aiStrategies = 1 shl 4)))
+
+        validatePrtoAiStrategiesSingleBit(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoAiStrategiesSingleBit flags more than one bit") {
+        val file = fileWithPrtos(listOf(prtoEntry(aiStrategies = (1 shl 0) or (1 shl 1))))
+
+        val issues = validatePrtoAiStrategiesSingleBit(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "aiStrategies"
     }
 })
