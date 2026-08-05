@@ -31,3 +31,75 @@ fun validateSlocCoordinateParity(file: Civ3File): List<ValidationIssue> {
         }
     }
 }
+
+/**
+ * Flags a [SlocEntry] whose [SlocEntry.ownerType] falls outside the documented `0..3` range.
+ * Returns no issues if the `SLOC` section is absent from [file].
+ *
+ * The real Rules/Scenario editor only ever produces `ownerType` 0-3; every real starting location
+ * in the corpus is 0, 2, or 3.
+ */
+fun validateSlocOwnerTypeRecognized(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<SlocSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (entry.ownerType in 0..3) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.SLOC,
+            index,
+            "ownerType",
+            "ownerType=${entry.ownerType} is not a recognized value (0..3)",
+        )
+    }
+}
+
+/**
+ * Flags a [SlocEntry] with [SlocEntry.ownerType] `== 1` (Barbarian). Returns no issues if the
+ * `SLOC` section is absent from [file].
+ *
+ * The real Rules/Scenario editor refuses to let a starting location be assigned to Barbarians
+ * ("Barbarians cannot have starting locations. Please select an active civilization or player
+ * before placing a starting location.") — confirmed with zero exceptions across the corpus.
+ */
+fun validateSlocOwnerNotBarbarian(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<SlocSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (entry.ownerType != 1) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.SLOC,
+            index,
+            "ownerType",
+            "ownerType=1 (Barbarian) is not allowed for SLOC entries; the Rules/Scenario editor " +
+                "refuses to assign a starting location to Barbarians",
+        )
+    }
+}
+
+/**
+ * Flags more than one [SlocEntry] sharing the same `(ownerType, owner)` pair among
+ * Civilization-owned (`ownerType=2`) or Player-owned (`ownerType=3`) entries, within [file].
+ * Returns no issues if the `SLOC` section is absent from [file].
+ *
+ * Each civilization/player gets at most one starting location — confirmed with zero exceptions
+ * across the corpus. `None`-owned (`ownerType=0`) entries are exempt: many reserved `None` slots
+ * commonly coexist in the same file.
+ */
+fun validateSlocUniqueOwner(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<SlocSection>().singleOrNull() ?: return emptyList()
+    val entriesByOwner = mutableMapOf<Pair<Int, Int>, MutableList<Int>>()
+    section.entries.forEachIndexed { index, entry ->
+        if (entry.ownerType != 2 && entry.ownerType != 3) return@forEachIndexed
+        entriesByOwner.getOrPut(entry.ownerType to entry.owner) { mutableListOf() }.add(index)
+    }
+    return entriesByOwner.filterValues { it.size > 1 }.map { (key, indices) ->
+        val (ownerType, owner) = key
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.SLOC,
+            null,
+            "owner",
+            "ownerType=$ownerType/owner=$owner has more than one starting location: $indices",
+        )
+    }
+}
