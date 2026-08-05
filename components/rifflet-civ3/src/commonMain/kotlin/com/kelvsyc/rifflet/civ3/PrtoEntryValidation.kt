@@ -495,3 +495,26 @@ fun validatePrtoEnslaveResultsRequiresEnslave(file: Civ3File): List<ValidationIs
         )
     }
 }
+
+/**
+ * Flags a [PrtoEntry] whose [PrtoEntry.aiStrategies] has more than one bit set. Returns no issues
+ * if the `PRTO` section is absent from [file].
+ *
+ * Every real file's individual entries carry at most one AI Strategy bit — a unit's second
+ * simultaneous strategy always lives on a separate, paired duplicate entry instead (see
+ * [PrtoEntry.otherStrategy]'s KDoc). This constraint is per-entry, not per-logical-unit: it says
+ * nothing about how many duplicates a canonical entry may have.
+ */
+fun validatePrtoAiStrategiesSingleBit(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (entry.aiStrategies.countOneBits() <= 1) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.PRTO,
+            index,
+            "aiStrategies",
+            "aiStrategies=${entry.aiStrategies} has more than one bit set",
+        )
+    }
+}

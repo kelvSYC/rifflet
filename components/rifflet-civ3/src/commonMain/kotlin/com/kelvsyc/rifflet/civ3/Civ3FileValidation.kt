@@ -76,6 +76,7 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validateBldgNotBothWonderAndSmallWonder(file) },
     ValidationRule { file -> validatePrtoUpgradeToAcyclic(file) },
     ValidationRule { file -> validatePrtoEnslaveResultsRequiresEnslave(file) },
+    ValidationRule { file -> validatePrtoAiStrategiesSingleBit(file) },
 )
 
 /**

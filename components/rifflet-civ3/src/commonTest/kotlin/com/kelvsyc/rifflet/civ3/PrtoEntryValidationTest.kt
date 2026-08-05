@@ -705,4 +705,25 @@ class PrtoEntryValidationTest : FunSpec({
         issues.single().severity shouldBe ValidationSeverity.ERROR
         issues.single().field shouldBe "enslaveResults"
     }
+
+    test("validatePrtoAiStrategiesSingleBit returns no issues for zero bits") {
+        val file = fileWithPrtos(listOf(prtoEntry(aiStrategies = 0)))
+
+        validatePrtoAiStrategiesSingleBit(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoAiStrategiesSingleBit returns no issues for exactly one bit") {
+        val file = fileWithPrtos(listOf(prtoEntry(aiStrategies = 1 shl 4)))
+
+        validatePrtoAiStrategiesSingleBit(file) shouldBe emptyList()
+    }
+
+    test("validatePrtoAiStrategiesSingleBit flags more than one bit") {
+        val file = fileWithPrtos(listOf(prtoEntry(aiStrategies = (1 shl 0) or (1 shl 1))))
+
+        val issues = validatePrtoAiStrategiesSingleBit(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "aiStrategies"
+    }
 })
