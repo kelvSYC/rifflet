@@ -45,8 +45,10 @@ fun List<CityEntry>.toDomain(
  * matches, not true reference identity, the same accepted limitation already documented on
  * GOVT's/TECH's/BLDG's/PRTO's `toWire()`.
  *
- * [Owner.None]/[Owner.Barbarian] write back `-1` for the wire `owner` int — see [Owner]'s own
- * KDoc for why the original raw value (if any) can't be reconstructed.
+ * [Owner.None] writes back `-1` for the wire `owner` int — stateless, no raw value to reconstruct
+ * (see [Owner]'s own KDoc). [Owner.Barbarian]/[Owner.Player]/[Owner.Civilization] write back their
+ * preserved `tribeIndex`/`unresolvedIndex` whenever the resolved reference is absent or `null`,
+ * rather than a hardcoded `-1` — see each case's own KDoc in [Owner].
  */
 fun List<City>.toWire(
     races: List<Race>,
@@ -55,20 +57,20 @@ fun List<City>.toWire(
 ): List<CityEntry> = map { city ->
     val (ownerType, owner) = when (val o = city.owner) {
         is Owner.None -> 0 to -1
-        is Owner.Barbarian -> 1 to -1
+        is Owner.Barbarian -> 1 to o.tribeIndex
         is Owner.Civilization -> 2 to (
             o.race?.let {
                 val index = races.indexOf(it)
                 require(index >= 0) { "Owner.Civilization references a Race not present in races" }
                 index
-            } ?: -1
+            } ?: o.unresolvedIndex
             )
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
                 require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
                 index
-            } ?: -1
+            } ?: o.unresolvedIndex
             )
     }
     val buildingIds = city.buildings.map { building ->

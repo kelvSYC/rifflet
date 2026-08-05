@@ -16,10 +16,10 @@ class StartingLocationTest : FunSpec({
 
         location.x = 30
         location.y = 40
-        location.owner = Owner.Barbarian
+        location.owner = Owner.Barbarian()
 
         location.x shouldBe 30
         location.y shouldBe 40
-        location.owner shouldBe Owner.Barbarian
+        location.owner shouldBe Owner.Barbarian()
     }
 })

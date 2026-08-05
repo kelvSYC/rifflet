@@ -28,28 +28,28 @@ class OwnerTest : FunSpec({
         resolveOwner(0, 0, emptyList(), emptyList()) shouldBe Owner.None
     }
 
-    test("resolveOwner resolves Barbarian") {
-        resolveOwner(1, 0, emptyList(), emptyList()) shouldBe Owner.Barbarian
+    test("resolveOwner resolves Barbarian, preserving the raw owner as tribeIndex") {
+        resolveOwner(1, 7, emptyList(), emptyList()) shouldBe Owner.Barbarian(tribeIndex = 7)
     }
 
     test("resolveOwner resolves a Civilization with a matching Race") {
         val r = race("Rome")
 
-        resolveOwner(2, 0, listOf(r), emptyList()) shouldBe Owner.Civilization(r)
+        resolveOwner(2, 0, listOf(r), emptyList()) shouldBe Owner.Civilization(r, unresolvedIndex = 0)
     }
 
-    test("resolveOwner resolves a Civilization with a dangling Race index to null") {
-        resolveOwner(2, 5, emptyList(), emptyList()) shouldBe Owner.Civilization(null)
+    test("resolveOwner resolves a Civilization with a dangling Race index, preserving it as unresolvedIndex") {
+        resolveOwner(2, 5, emptyList(), emptyList()) shouldBe Owner.Civilization(null, unresolvedIndex = 5)
     }
 
     test("resolveOwner resolves a Player with a matching LeadEntry") {
         val lead = leadEntry("Caesar")
 
-        resolveOwner(3, 0, emptyList(), listOf(lead)) shouldBe Owner.Player(lead)
+        resolveOwner(3, 0, emptyList(), listOf(lead)) shouldBe Owner.Player(lead, unresolvedIndex = 0)
     }
 
-    test("resolveOwner resolves a Player with a dangling LeadEntry index to null") {
-        resolveOwner(3, 5, emptyList(), emptyList()) shouldBe Owner.Player(null)
+    test("resolveOwner resolves a Player with a dangling LeadEntry index, preserving it as unresolvedIndex") {
+        resolveOwner(3, 5, emptyList(), emptyList()) shouldBe Owner.Player(null, unresolvedIndex = 5)
     }
 
     test("resolveOwner throws for an out-of-range ownerType") {

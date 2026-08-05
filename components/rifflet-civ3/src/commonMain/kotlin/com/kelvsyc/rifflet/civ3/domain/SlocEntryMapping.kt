@@ -33,28 +33,30 @@ fun List<SlocEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<St
  * `indexOf`-based, the same accepted structural-equality limitation as GOVT/TECH/BLDG/PRTO/CITY's
  * `toWire()`.
  *
- * [Owner.None] writes back `-1` for the wire `owner` int, since it's stateless and the original raw
- * value (if any) can't be reconstructed — same accepted limitation as CITY. [Owner.Barbarian] is
- * handled for exhaustiveness only: a domain-constructed [StartingLocation] can never legitimately
- * hold one — see `toDomain()`'s guard.
+ * [Owner.None] writes back `-1` for the wire `owner` int — stateless, no raw value to reconstruct.
+ * [Owner.Barbarian] is handled for exhaustiveness only: a domain-constructed [StartingLocation] can
+ * never legitimately hold one (see `toDomain()`'s guard) — but if hand-constructed anyway, its
+ * preserved `tribeIndex` is still written back correctly. [Owner.Player]/[Owner.Civilization] write
+ * back their preserved `unresolvedIndex` whenever the resolved reference is `null`, rather than a
+ * hardcoded `-1`.
  */
 fun List<StartingLocation>.toWire(races: List<Race>, leads: List<LeadEntry>): List<SlocEntry> = map { location ->
     val (ownerType, owner) = when (val o = location.owner) {
         is Owner.None -> 0 to -1
-        is Owner.Barbarian -> 1 to -1
+        is Owner.Barbarian -> 1 to o.tribeIndex
         is Owner.Civilization -> 2 to (
             o.race?.let {
                 val index = races.indexOf(it)
                 require(index >= 0) { "Owner.Civilization references a Race not present in races" }
                 index
-            } ?: -1
+            } ?: o.unresolvedIndex
             )
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
                 require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
                 index
-            } ?: -1
+            } ?: o.unresolvedIndex
             )
     }
     SlocEntry(ownerType = ownerType, owner = owner, x = location.x, y = location.y)
