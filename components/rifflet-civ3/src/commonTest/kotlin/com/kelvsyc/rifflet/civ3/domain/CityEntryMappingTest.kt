@@ -196,4 +196,28 @@ class CityEntryMappingTest : FunSpec({
 
         wire.buildingIds shouldBe listOf(-1)
     }
+
+    test("toDomain throws for a None ownerType") {
+        val entry = cityEntry(ownerType = 0)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toDomain throws for a Barbarian ownerType") {
+        val entry = cityEntry(ownerType = 1)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toDomain throws for the barbarian placeholder civ") {
+        val entry = cityEntry(ownerType = 2, owner = 0)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+        }
+    }
 })

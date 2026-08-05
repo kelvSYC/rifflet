@@ -142,3 +142,50 @@ fun validateCityOwnerTypeRecognized(file: Civ3File): List<ValidationIssue> {
         )
     }
 }
+
+/**
+ * Flags a [CityEntry] whose [CityEntry.ownerType] is `0` (None) or `1` (Barbarian). Returns no
+ * issues if the `CITY` section is absent from [file].
+ *
+ * The real Rules/Scenario editor does not allow a placed city to be assigned "None" or
+ * "Barbarian" ownership — every city must belong to a real civilization or player. Confirmed with
+ * zero exceptions across the corpus (every real city is `ownerType` 2 or 3).
+ */
+fun validateCityOwnerRequiresRealNation(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<CitySection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (entry.ownerType != 0 && entry.ownerType != 1) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CITY,
+            index,
+            "ownerType",
+            "ownerType=${entry.ownerType} is not allowed for CITY entries; the Rules/Scenario " +
+                "editor requires every city to belong to a real civilization or player",
+        )
+    }
+}
+
+/**
+ * Flags a [CityEntry] whose owner is [CityEntry.ownerType] `2` (Civilization) pointing at `RACE`
+ * index `0`, the barbarian placeholder civilization. Returns no issues if the `CITY` section is
+ * absent from [file].
+ *
+ * The real Rules/Scenario editor does not allow a placed city to be assigned the barbarian
+ * placeholder civ as its owner. Confirmed with zero exceptions across the corpus.
+ */
+fun validateCityOwnerNotBarbarianPlaceholderCiv(file: Civ3File): List<ValidationIssue> {
+    val section = file.sections.filterIsInstance<CitySection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        if (!(entry.ownerType == 2 && entry.owner == 0)) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.CITY,
+            index,
+            "owner",
+            "owner=0 with ownerType=2 (Civilization) is not allowed for CITY entries; RACE index " +
+                "0 is the barbarian placeholder civilization, which the Rules/Scenario editor " +
+                "does not allow as a city owner",
+        )
+    }
+}

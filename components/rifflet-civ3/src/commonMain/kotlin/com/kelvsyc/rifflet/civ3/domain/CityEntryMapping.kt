@@ -13,13 +13,24 @@ import com.kelvsyc.rifflet.civ3.LeadEntry
  * (`CITY`, gated by the separate Custom Map toggle, can exist without them).
  *
  * Throws [IllegalArgumentException] if any entry's `ownerType` is outside the documented `0..3`
- * range — see [resolveOwner]'s own KDoc.
+ * range (see [resolveOwner]'s own KDoc), if it is `0` (None) or `1` (Barbarian), or if it is `2`
+ * (Civilization) pointing at RACE index `0` (the barbarian placeholder civilization) — the real
+ * Rules/Scenario editor requires every city to belong to a real civilization or player, and never
+ * the barbarian placeholder.
  */
 fun List<CityEntry>.toDomain(
     races: List<Race>,
     leads: List<LeadEntry>,
     buildings: List<Building>,
 ): List<City> = map { entry ->
+    require(entry.ownerType != 0 && entry.ownerType != 1) {
+        "CITY entries cannot be owned by None or Barbarian (ownerType=${entry.ownerType}) — the " +
+            "Rules/Scenario editor requires every city to belong to a real civilization or player"
+    }
+    require(!(entry.ownerType == 2 && entry.owner == 0)) {
+        "CITY entries cannot be owned by the barbarian placeholder civilization (ownerType=2, " +
+            "owner=0) — the Rules/Scenario editor does not allow it"
+    }
     City(
         name = entry.name,
         x = entry.x,
