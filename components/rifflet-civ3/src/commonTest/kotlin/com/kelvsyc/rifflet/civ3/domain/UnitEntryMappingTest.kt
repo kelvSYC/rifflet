@@ -177,4 +177,114 @@ class UnitEntryMappingTest : FunSpec({
             listOf(entry).toDomain(emptyList(), emptyList(), listOf(p), emptyList())
         }
     }
+
+    test("toDomain().toWire() round-trips scalar fields and a Civilization owner") {
+        val r = race("Rome")
+        val entries = listOf(unitEntry(ownerType = 2, owner = 1, legacyName = "Phalanx", ptwName = "Legion"))
+
+        val roundTripped = entries.toDomain(listOf(race("Egypt"), r), emptyList(), emptyList(), emptyList())
+            .toWire(listOf(race("Egypt"), r), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Player owner") {
+        val lead = leadEntry("Caesar")
+        val entries = listOf(unitEntry(ownerType = 3, owner = 0))
+
+        val roundTripped = entries.toDomain(emptyList(), listOf(lead), emptyList(), emptyList())
+            .toWire(emptyList(), listOf(lead), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Barbarian owner's tribeIndex") {
+        val entries = listOf(unitEntry(ownerType = 1, owner = 7))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips unitType") {
+        val p = prto("Warrior")
+        val entries = listOf(unitEntry(unitType = 0))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), listOf(p), emptyList())
+            .toWire(emptyList(), emptyList(), listOf(p), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() writes back -1 for a dangling unitType") {
+        val entries = listOf(unitEntry(unitType = 5))
+
+        val wire = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+            .single()
+
+        wire.unitType shouldBe -1
+    }
+
+    test("toDomain().toWire() round-trips experienceLevel") {
+        val expr = exprEntry("Veteran")
+        val entries = listOf(unitEntry(experienceLevel = 0))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList(), listOf(expr))
+            .toWire(emptyList(), emptyList(), emptyList(), listOf(expr))
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips aiStrategy") {
+        val p = prto(aiStrategies = 1 shl 5)
+        val entries = listOf(unitEntry(unitType = 0, aiStrategy = 5))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), listOf(p), emptyList())
+            .toWire(emptyList(), emptyList(), listOf(p), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips useCivilizationKing") {
+        val entries = listOf(unitEntry(useCivilizationKing = 1))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toWire throws on a dangling Civilization race reference") {
+        val unit = PlacedUnit(x = 10, y = 20, owner = Owner.Civilization(race("Outsider")))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(unit).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a dangling Player lead reference") {
+        val unit = PlacedUnit(x = 10, y = 20, owner = Owner.Player(leadEntry("Outsider")))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(unit).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a dangling unitType reference") {
+        val unit = PlacedUnit(x = 10, y = 20, unitType = prto("Outsider"))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(unit).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a dangling experienceLevel reference") {
+        val unit = PlacedUnit(x = 10, y = 20, experienceLevel = exprEntry("Outsider"))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(unit).toWire(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
 })

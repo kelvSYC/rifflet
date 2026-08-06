@@ -61,3 +61,70 @@ fun List<UnitEntry>.toDomain(
         useCivilizationKing = entry.useCivilizationKing != 0,
     )
 }
+
+/**
+ * Converts a `UNIT` section's domain-layer form back to wire entries, resolving each
+ * [PlacedUnit]'s object references back into indices.
+ *
+ * Throws [IllegalArgumentException] if [PlacedUnit.owner], [PlacedUnit.unitType], or
+ * [PlacedUnit.experienceLevel] resolves to an object not present in the corresponding list
+ * argument — `indexOf`-based, the same accepted structural-equality limitation as
+ * GOVT/TECH/BLDG/PRTO/CITY/SLOC's `toWire()`.
+ *
+ * [Owner.None] writes back `-1` for the wire `owner` int — stateless, no raw value to reconstruct.
+ * [Owner.Barbarian]/[Owner.Player]/[Owner.Civilization] write back their preserved
+ * `tribeIndex`/`unresolvedIndex` whenever the resolved reference is `null`, rather than a
+ * hardcoded `-1`. A `null` [PlacedUnit.unitType]/[PlacedUnit.experienceLevel] writes back `-1` —
+ * unlike [Owner], neither field preserves a dangling wire index across a `toDomain()`/`toWire()`
+ * round-trip: a genuinely dangling `unitType`/`experienceLevel` index is indistinguishable from a
+ * legitimately absent one once resolved to `null`.
+ */
+fun List<PlacedUnit>.toWire(
+    races: List<Race>,
+    leads: List<LeadEntry>,
+    prtos: List<Prto>,
+    experienceLevels: List<ExprEntry>,
+): List<UnitEntry> = map { unit ->
+    val (ownerType, owner) = when (val o = unit.owner) {
+        is Owner.None -> 0 to -1
+        is Owner.Barbarian -> 1 to o.tribeIndex
+        is Owner.Civilization -> 2 to (
+            o.race?.let {
+                val index = races.indexOf(it)
+                require(index >= 0) { "Owner.Civilization references a Race not present in races" }
+                index
+            } ?: o.unresolvedIndex
+            )
+        is Owner.Player -> 3 to (
+            o.lead?.let {
+                val index = leads.indexOf(it)
+                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                index
+            } ?: o.unresolvedIndex
+            )
+    }
+    val unitType = unit.unitType?.let {
+        val index = prtos.indexOf(it)
+        require(index >= 0) { "PlacedUnit.unitType references a Prto not present in prtos" }
+        index
+    } ?: -1
+    val experienceLevel = unit.experienceLevel?.let {
+        val index = experienceLevels.indexOf(it)
+        require(index >= 0) {
+            "PlacedUnit.experienceLevel references an ExprEntry not present in experienceLevels"
+        }
+        index
+    } ?: -1
+    UnitEntry(
+        legacyName = unit.legacyName,
+        ownerType = ownerType,
+        experienceLevel = experienceLevel,
+        owner = owner,
+        unitType = unitType,
+        aiStrategy = unit.aiStrategy?.ordinal ?: -1,
+        x = unit.x,
+        y = unit.y,
+        ptwName = unit.ptwName,
+        useCivilizationKing = if (unit.useCivilizationKing) 1 else 0,
+    )
+}
