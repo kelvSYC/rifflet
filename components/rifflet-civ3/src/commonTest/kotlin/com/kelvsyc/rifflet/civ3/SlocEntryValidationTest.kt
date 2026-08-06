@@ -136,4 +136,25 @@ class SlocEntryValidationTest : FunSpec({
 
         validateSlocUniqueOwner(file) shouldBe emptyList()
     }
+
+    test("validateSlocOwnerNotBarbarianPlaceholderCiv returns no issues for a non-zero Civilization owner") {
+        val file = fileWithStartLocations(listOf(slocEntry(ownerType = 2, owner = 1)))
+
+        validateSlocOwnerNotBarbarianPlaceholderCiv(file) shouldBe emptyList()
+    }
+
+    test("validateSlocOwnerNotBarbarianPlaceholderCiv flags ownerType=2, owner=0") {
+        val file = fileWithStartLocations(listOf(slocEntry(ownerType = 2, owner = 0)))
+
+        val issues = validateSlocOwnerNotBarbarianPlaceholderCiv(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "owner"
+    }
+
+    test("validateSlocOwnerNotBarbarianPlaceholderCiv returns no issues when SLOC is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateSlocOwnerNotBarbarianPlaceholderCiv(file) shouldBe emptyList()
+    }
 })

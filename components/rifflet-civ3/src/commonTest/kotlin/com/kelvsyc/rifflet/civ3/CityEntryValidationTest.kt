@@ -200,4 +200,54 @@ class CityEntryValidationTest : FunSpec({
         issues.single().severity shouldBe ValidationSeverity.ERROR
         issues.single().field shouldBe "ownerType"
     }
+
+    test("validateCityOwnerRequiresRealNation returns no issues for ownerType 2 or 3") {
+        val file = fileWithCities(listOf(cityEntry(x = 0, y = 0, ownerType = 2), cityEntry(x = 0, y = 0, ownerType = 3)))
+
+        validateCityOwnerRequiresRealNation(file) shouldBe emptyList()
+    }
+
+    test("validateCityOwnerRequiresRealNation flags ownerType=0") {
+        val file = fileWithCities(listOf(cityEntry(x = 0, y = 0, ownerType = 0)))
+
+        val issues = validateCityOwnerRequiresRealNation(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "ownerType"
+    }
+
+    test("validateCityOwnerRequiresRealNation flags ownerType=1") {
+        val file = fileWithCities(listOf(cityEntry(x = 0, y = 0, ownerType = 1)))
+
+        val issues = validateCityOwnerRequiresRealNation(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+    }
+
+    test("validateCityOwnerRequiresRealNation returns no issues when CITY is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateCityOwnerRequiresRealNation(file) shouldBe emptyList()
+    }
+
+    test("validateCityOwnerNotBarbarianPlaceholderCiv returns no issues for a non-zero Civilization owner") {
+        val file = fileWithCities(listOf(cityEntry(x = 0, y = 0, ownerType = 2, owner = 1)))
+
+        validateCityOwnerNotBarbarianPlaceholderCiv(file) shouldBe emptyList()
+    }
+
+    test("validateCityOwnerNotBarbarianPlaceholderCiv flags ownerType=2, owner=0") {
+        val file = fileWithCities(listOf(cityEntry(x = 0, y = 0, ownerType = 2, owner = 0)))
+
+        val issues = validateCityOwnerNotBarbarianPlaceholderCiv(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "owner"
+    }
+
+    test("validateCityOwnerNotBarbarianPlaceholderCiv returns no issues when CITY is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateCityOwnerNotBarbarianPlaceholderCiv(file) shouldBe emptyList()
+    }
 })

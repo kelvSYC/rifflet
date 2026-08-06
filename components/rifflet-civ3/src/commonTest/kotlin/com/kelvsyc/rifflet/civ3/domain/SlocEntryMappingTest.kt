@@ -48,11 +48,11 @@ class SlocEntryMappingTest : FunSpec({
 
     test("toDomain resolves owner as a Civilization") {
         val r = race("Rome")
-        val entry = slocEntry(ownerType = 2, owner = 0)
+        val entry = slocEntry(ownerType = 2, owner = 1)
 
-        val location = listOf(entry).toDomain(listOf(r), emptyList()).single()
+        val location = listOf(entry).toDomain(listOf(race("Egypt"), r), emptyList()).single()
 
-        location.owner shouldBe Owner.Civilization(r)
+        location.owner shouldBe Owner.Civilization(r, unresolvedIndex = 1)
     }
 
     test("toDomain resolves owner as a Player") {
@@ -61,7 +61,7 @@ class SlocEntryMappingTest : FunSpec({
 
         val location = listOf(entry).toDomain(emptyList(), listOf(lead)).single()
 
-        location.owner shouldBe Owner.Player(lead)
+        location.owner shouldBe Owner.Player(lead, unresolvedIndex = 0)
     }
 
     test("toDomain resolves a Player owner against an empty leads list to a null payload") {
@@ -69,15 +69,15 @@ class SlocEntryMappingTest : FunSpec({
 
         val location = listOf(entry).toDomain(emptyList(), emptyList()).single()
 
-        location.owner shouldBe Owner.Player(null)
+        location.owner shouldBe Owner.Player(null, unresolvedIndex = 0)
     }
 
     test("toDomain resolves a Civilization owner against an empty races list to a null payload") {
-        val entry = slocEntry(ownerType = 2, owner = 0)
+        val entry = slocEntry(ownerType = 2, owner = 1)
 
         val location = listOf(entry).toDomain(emptyList(), emptyList()).single()
 
-        location.owner shouldBe Owner.Civilization(null)
+        location.owner shouldBe Owner.Civilization(null, unresolvedIndex = 1)
     }
 
     test("toDomain throws for an out-of-range ownerType") {
@@ -96,11 +96,20 @@ class SlocEntryMappingTest : FunSpec({
         }
     }
 
+    test("toDomain throws for the barbarian placeholder civ") {
+        val entry = slocEntry(ownerType = 2, owner = 0)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList())
+        }
+    }
+
     test("toDomain().toWire() round-trips scalar fields and a Civilization owner") {
         val r = race("Rome")
-        val entries = listOf(slocEntry(ownerType = 2, owner = 0))
+        val entries = listOf(slocEntry(ownerType = 2, owner = 1))
 
-        val roundTripped = entries.toDomain(listOf(r), emptyList()).toWire(listOf(r), emptyList())
+        val roundTripped = entries.toDomain(listOf(race("Egypt"), r), emptyList())
+            .toWire(listOf(race("Egypt"), r), emptyList())
 
         roundTripped shouldBe entries
     }
@@ -137,5 +146,30 @@ class SlocEntryMappingTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             listOf(location).toWire(emptyList(), emptyList())
         }
+    }
+
+    test("toWire preserves a Barbarian owner's tribeIndex when it isn't the default") {
+        val location = StartingLocation(x = 10, y = 20, owner = Owner.Barbarian(tribeIndex = 5))
+
+        val wire = listOf(location).toWire(emptyList(), emptyList()).single()
+
+        wire.ownerType shouldBe 1
+        wire.owner shouldBe 5
+    }
+
+    test("toDomain().toWire() round-trips a Civilization owner with no RACE data") {
+        val entries = listOf(slocEntry(ownerType = 2, owner = 6))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList()).toWire(emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Player owner with no LEAD data") {
+        val entries = listOf(slocEntry(ownerType = 3, owner = 4))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList()).toWire(emptyList(), emptyList())
+
+        roundTripped shouldBe entries
     }
 })

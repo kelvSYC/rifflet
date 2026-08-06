@@ -25,10 +25,10 @@ class CityTest : FunSpec({
             description = "", name = "Granary", civilopediaEntry = "", cost = 0, culture = 0,
             maintenanceCost = 0, pollution = 0, production = 0,
         )
-        city.owner = Owner.Barbarian
+        city.owner = Owner.Barbarian()
         city.buildings = mutableListOf(granary, granary, null)
 
-        city.owner shouldBe Owner.Barbarian
+        city.owner shouldBe Owner.Barbarian()
         city.buildings shouldBe mutableListOf(granary, granary, null)
     }
 })

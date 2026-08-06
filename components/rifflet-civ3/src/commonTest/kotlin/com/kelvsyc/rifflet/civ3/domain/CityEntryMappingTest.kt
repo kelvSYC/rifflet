@@ -14,7 +14,7 @@ private fun cityEntry(
     name: String = "",
     hasWalls: Byte = 0,
     hasPalace: Byte = 0,
-    ownerType: Int = 0,
+    ownerType: Int = 3,
     owner: Int = -1,
     buildingIds: List<Int> = emptyList(),
 ): CityEntry = CityEntry(
@@ -57,11 +57,11 @@ class CityEntryMappingTest : FunSpec({
 
     test("toDomain resolves owner as a Civilization") {
         val r = race("Rome")
-        val entry = cityEntry(ownerType = 2, owner = 0)
+        val entry = cityEntry(ownerType = 2, owner = 1)
 
-        val city = listOf(entry).toDomain(listOf(r), emptyList(), emptyList()).single()
+        val city = listOf(entry).toDomain(listOf(race("Egypt"), r), emptyList(), emptyList()).single()
 
-        city.owner shouldBe Owner.Civilization(r)
+        city.owner shouldBe Owner.Civilization(r, unresolvedIndex = 1)
     }
 
     test("toDomain resolves owner as a Player") {
@@ -70,7 +70,7 @@ class CityEntryMappingTest : FunSpec({
 
         val city = listOf(entry).toDomain(emptyList(), listOf(lead), emptyList()).single()
 
-        city.owner shouldBe Owner.Player(lead)
+        city.owner shouldBe Owner.Player(lead, unresolvedIndex = 0)
     }
 
     test("toDomain resolves buildings preserving position and nulls for dangling ids") {
@@ -92,10 +92,10 @@ class CityEntryMappingTest : FunSpec({
 
     test("toDomain().toWire() round-trips scalar fields and a Civilization owner") {
         val r = race("Rome")
-        val entries = listOf(cityEntry(name = "Rome", hasWalls = 1, ownerType = 2, owner = 0))
+        val entries = listOf(cityEntry(name = "Rome", hasWalls = 1, ownerType = 2, owner = 1))
 
-        val roundTripped = entries.toDomain(listOf(r), emptyList(), emptyList())
-            .toWire(listOf(r), emptyList(), emptyList())
+        val roundTripped = entries.toDomain(listOf(race("Egypt"), r), emptyList(), emptyList())
+            .toWire(listOf(race("Egypt"), r), emptyList(), emptyList())
 
         roundTripped shouldBe entries
     }
@@ -130,12 +130,39 @@ class CityEntryMappingTest : FunSpec({
     }
 
     test("toDomain().toWire() writes back -1 for a Barbarian owner's sentinel") {
-        val city = City(name = "Camp", x = 0, y = 0, owner = Owner.Barbarian)
+        val city = City(name = "Camp", x = 0, y = 0, owner = Owner.Barbarian())
 
         val wire = listOf(city).toWire(emptyList(), emptyList(), emptyList()).single()
 
         wire.ownerType shouldBe 1
         wire.owner shouldBe -1
+    }
+
+    test("toWire preserves a Barbarian owner's tribeIndex when it isn't the default") {
+        val city = City(name = "Camp", x = 0, y = 0, owner = Owner.Barbarian(tribeIndex = 5))
+
+        val wire = listOf(city).toWire(emptyList(), emptyList(), emptyList()).single()
+
+        wire.ownerType shouldBe 1
+        wire.owner shouldBe 5
+    }
+
+    test("toDomain().toWire() round-trips a Civilization owner with no RACE data") {
+        val entries = listOf(cityEntry(ownerType = 2, owner = 6))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Player owner with no LEAD data") {
+        val entries = listOf(cityEntry(ownerType = 3, owner = 4))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList(), emptyList())
+            .toWire(emptyList(), emptyList(), emptyList())
+
+        roundTripped shouldBe entries
     }
 
     test("toWire throws on a dangling Civilization race reference") {
@@ -168,5 +195,29 @@ class CityEntryMappingTest : FunSpec({
         val wire = listOf(city).toWire(emptyList(), emptyList(), emptyList()).single()
 
         wire.buildingIds shouldBe listOf(-1)
+    }
+
+    test("toDomain throws for a None ownerType") {
+        val entry = cityEntry(ownerType = 0)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toDomain throws for a Barbarian ownerType") {
+        val entry = cityEntry(ownerType = 1)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toDomain throws for the barbarian placeholder civ") {
+        val entry = cityEntry(ownerType = 2, owner = 0)
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(entry).toDomain(emptyList(), emptyList(), emptyList())
+        }
     }
 })

@@ -5,11 +5,11 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private fun unitEntry(x: Int, y: Int): UnitEntry = UnitEntry(
+private fun unitEntry(x: Int, y: Int, ownerType: Int = 2, owner: Int = 0): UnitEntry = UnitEntry(
     legacyName = "",
-    ownerType = 2,
+    ownerType = ownerType,
     experienceLevel = 0,
-    owner = 0,
+    owner = owner,
     unitType = 0,
     aiStrategy = 0,
     x = x,
@@ -45,5 +45,53 @@ class UnitEntryValidationTest : FunSpec({
         val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
 
         validateUnitCoordinateParity(file) shouldBe emptyList()
+    }
+
+    test("validateUnitOwnerNotNone returns no issues for ownerType 1, 2, or 3") {
+        val file = fileWithUnits(
+            listOf(
+                unitEntry(x = 0, y = 0, ownerType = 1),
+                unitEntry(x = 0, y = 0, ownerType = 2),
+                unitEntry(x = 0, y = 0, ownerType = 3),
+            ),
+        )
+
+        validateUnitOwnerNotNone(file) shouldBe emptyList()
+    }
+
+    test("validateUnitOwnerNotNone flags ownerType=0") {
+        val file = fileWithUnits(listOf(unitEntry(x = 0, y = 0, ownerType = 0)))
+
+        val issues = validateUnitOwnerNotNone(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "ownerType"
+    }
+
+    test("validateUnitOwnerNotNone returns no issues when UNIT is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateUnitOwnerNotNone(file) shouldBe emptyList()
+    }
+
+    test("validateUnitOwnerNotBarbarianPlaceholderCiv returns no issues for a non-zero Civilization owner") {
+        val file = fileWithUnits(listOf(unitEntry(x = 0, y = 0, ownerType = 2, owner = 1)))
+
+        validateUnitOwnerNotBarbarianPlaceholderCiv(file) shouldBe emptyList()
+    }
+
+    test("validateUnitOwnerNotBarbarianPlaceholderCiv flags ownerType=2, owner=0") {
+        val file = fileWithUnits(listOf(unitEntry(x = 0, y = 0, ownerType = 2, owner = 0)))
+
+        val issues = validateUnitOwnerNotBarbarianPlaceholderCiv(file)
+        issues.size shouldBe 1
+        issues.single().severity shouldBe ValidationSeverity.ERROR
+        issues.single().field shouldBe "owner"
+    }
+
+    test("validateUnitOwnerNotBarbarianPlaceholderCiv returns no issues when UNIT is absent") {
+        val file = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), sections = emptyList())
+
+        validateUnitOwnerNotBarbarianPlaceholderCiv(file) shouldBe emptyList()
     }
 })

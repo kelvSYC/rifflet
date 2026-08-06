@@ -13,13 +13,24 @@ import com.kelvsyc.rifflet.civ3.LeadEntry
  * (`CITY`, gated by the separate Custom Map toggle, can exist without them).
  *
  * Throws [IllegalArgumentException] if any entry's `ownerType` is outside the documented `0..3`
- * range — see [resolveOwner]'s own KDoc.
+ * range (see [resolveOwner]'s own KDoc), if it is `0` (None) or `1` (Barbarian), or if it is `2`
+ * (Civilization) pointing at RACE index `0` (the barbarian placeholder civilization) — the real
+ * Rules/Scenario editor requires every city to belong to a real civilization or player, and never
+ * the barbarian placeholder.
  */
 fun List<CityEntry>.toDomain(
     races: List<Race>,
     leads: List<LeadEntry>,
     buildings: List<Building>,
 ): List<City> = map { entry ->
+    require(entry.ownerType != 0 && entry.ownerType != 1) {
+        "CITY entries cannot be owned by None or Barbarian (ownerType=${entry.ownerType}) — the " +
+            "Rules/Scenario editor requires every city to belong to a real civilization or player"
+    }
+    require(!(entry.ownerType == 2 && entry.owner == 0)) {
+        "CITY entries cannot be owned by the barbarian placeholder civilization (ownerType=2, " +
+            "owner=0) — the Rules/Scenario editor does not allow it"
+    }
     City(
         name = entry.name,
         x = entry.x,
@@ -45,8 +56,10 @@ fun List<CityEntry>.toDomain(
  * matches, not true reference identity, the same accepted limitation already documented on
  * GOVT's/TECH's/BLDG's/PRTO's `toWire()`.
  *
- * [Owner.None]/[Owner.Barbarian] write back `-1` for the wire `owner` int — see [Owner]'s own
- * KDoc for why the original raw value (if any) can't be reconstructed.
+ * [Owner.None] writes back `-1` for the wire `owner` int — stateless, no raw value to reconstruct
+ * (see [Owner]'s own KDoc). [Owner.Barbarian]/[Owner.Player]/[Owner.Civilization] write back their
+ * preserved `tribeIndex`/`unresolvedIndex` whenever the resolved reference is absent or `null`,
+ * rather than a hardcoded `-1` — see each case's own KDoc in [Owner].
  */
 fun List<City>.toWire(
     races: List<Race>,
@@ -55,20 +68,20 @@ fun List<City>.toWire(
 ): List<CityEntry> = map { city ->
     val (ownerType, owner) = when (val o = city.owner) {
         is Owner.None -> 0 to -1
-        is Owner.Barbarian -> 1 to -1
+        is Owner.Barbarian -> 1 to o.tribeIndex
         is Owner.Civilization -> 2 to (
             o.race?.let {
                 val index = races.indexOf(it)
                 require(index >= 0) { "Owner.Civilization references a Race not present in races" }
                 index
-            } ?: -1
+            } ?: o.unresolvedIndex
             )
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
                 require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
                 index
-            } ?: -1
+            } ?: o.unresolvedIndex
             )
     }
     val buildingIds = city.buildings.map { building ->
