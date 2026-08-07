@@ -78,3 +78,35 @@ fun validateUnitOwnerNotBarbarianPlaceholderCiv(file: Civ3File): List<Validation
         )
     }
 }
+
+/**
+ * Flags a [UnitEntry] whose [UnitEntry.aiStrategy] is not `-1` and not a bit set in its resolved
+ * prototype's [PrtoEntry.aiStrategies]. Returns no issues if the `UNIT` or `PRTO` section is
+ * absent from [file], or if [UnitEntry.unitType] doesn't resolve to a real prototype.
+ *
+ * `-1` means no specific strategy is selected — the real Rules/Scenario editor's "Random" option,
+ * only offered when a prototype has 2+ `aiStrategies` bits set; with exactly one bit set, the
+ * editor disables the selector entirely. Every other observed value is a bit index into the
+ * resolved prototype's `aiStrategies` — confirmed with a 97.4% corpus match rate, with every
+ * exception traced to non-official mod content.
+ */
+fun validateUnitAiStrategyMatchesPrtoStrategy(file: Civ3File): List<ValidationIssue> {
+    val unit = file.sections.filterIsInstance<UnitSection>().singleOrNull() ?: return emptyList()
+    val prto = file.sections.filterIsInstance<PrtoSection>().singleOrNull() ?: return emptyList()
+    return unit.entries.mapIndexedNotNull { index, entry ->
+        if (entry.aiStrategy == -1) return@mapIndexedNotNull null
+        val proto = prto.entries.getOrNull(entry.unitType) ?: return@mapIndexedNotNull null
+        if ((proto.aiStrategies shr entry.aiStrategy) and 1 == 1) {
+            null
+        } else {
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.UNIT,
+                index,
+                "aiStrategy",
+                "aiStrategy=${entry.aiStrategy} is not a bit set in prototype ${entry.unitType}'s " +
+                    "aiStrategies (${proto.aiStrategies})",
+            )
+        }
+    }
+}
