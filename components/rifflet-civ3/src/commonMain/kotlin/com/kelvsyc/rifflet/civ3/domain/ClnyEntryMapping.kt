@@ -35,3 +35,46 @@ fun List<ClnyEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<Co
         improvementType = entry.improvementType,
     )
 }
+
+/**
+ * Converts a `CLNY` section's domain-layer form back to wire entries, resolving each [Colony]'s
+ * object references back into indices.
+ *
+ * Throws [IllegalArgumentException] if [Colony.owner] resolves to an [Owner.Civilization] or
+ * [Owner.Player] referencing an object not present in the corresponding list argument —
+ * `indexOf`-based, the same accepted structural-equality limitation as
+ * GOVT/TECH/BLDG/PRTO/CITY/SLOC/UNIT's `toWire()`.
+ *
+ * [Owner.None] writes back `-1` for the wire `owner` int — stateless, no raw value to
+ * reconstruct. [Owner.Barbarian]/[Owner.Player]/[Owner.Civilization] write back their preserved
+ * `tribeIndex`/`unresolvedIndex` whenever the resolved reference is absent or `null`, rather than
+ * a hardcoded `-1`. [Owner.Barbarian] is handled for exhaustiveness only: a domain-constructed
+ * [Colony] can never legitimately hold one — see `toDomain()`'s guard.
+ */
+fun List<Colony>.toWire(races: List<Race>, leads: List<LeadEntry>): List<ClnyEntry> = map { colony ->
+    val (ownerType, owner) = when (val o = colony.owner) {
+        is Owner.None -> 0 to -1
+        is Owner.Barbarian -> 1 to o.tribeIndex
+        is Owner.Civilization -> 2 to (
+            o.race?.let {
+                val index = races.indexOf(it)
+                require(index >= 0) { "Owner.Civilization references a Race not present in races" }
+                index
+            } ?: o.unresolvedIndex
+            )
+        is Owner.Player -> 3 to (
+            o.lead?.let {
+                val index = leads.indexOf(it)
+                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                index
+            } ?: o.unresolvedIndex
+            )
+    }
+    ClnyEntry(
+        ownerType = ownerType,
+        owner = owner,
+        x = colony.x,
+        y = colony.y,
+        improvementType = colony.improvementType,
+    )
+}

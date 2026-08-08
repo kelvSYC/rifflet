@@ -99,4 +99,81 @@ class ClnyEntryMappingTest : FunSpec({
             listOf(entry).toDomain(emptyList(), emptyList())
         }
     }
+
+    test("toDomain().toWire() round-trips scalar fields and a Civilization owner") {
+        val r = race("Rome")
+        val entries = listOf(clnyEntry(ownerType = 2, owner = 1, improvementType = ClnyImprovementType.RADAR_TOWER))
+
+        val roundTripped = entries.toDomain(listOf(race("Egypt"), r), emptyList())
+            .toWire(listOf(race("Egypt"), r), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Player owner") {
+        val lead = leadEntry("Caesar")
+        val entries = listOf(clnyEntry(ownerType = 3, owner = 0))
+
+        val roundTripped = entries.toDomain(emptyList(), listOf(lead)).toWire(emptyList(), listOf(lead))
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Civilization owner with no RACE data") {
+        val entries = listOf(clnyEntry(ownerType = 2, owner = 6))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList()).toWire(emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips a Player owner with no LEAD data") {
+        val entries = listOf(clnyEntry(ownerType = 3, owner = 4))
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList()).toWire(emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips each ClnyImprovementType value") {
+        val entries = ClnyImprovementType.entries.map { clnyEntry(improvementType = it) }
+
+        val roundTripped = entries.toDomain(emptyList(), emptyList()).toWire(emptyList(), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toWire writes back -1 for a None owner's sentinel") {
+        val colony = Colony(x = 10, y = 20, owner = Owner.None)
+
+        val wire = listOf(colony).toWire(emptyList(), emptyList()).single()
+
+        wire.ownerType shouldBe 0
+        wire.owner shouldBe -1
+    }
+
+    test("toWire preserves a Barbarian owner's tribeIndex when it isn't the default") {
+        val colony = Colony(x = 10, y = 20, owner = Owner.Barbarian(tribeIndex = 5))
+
+        val wire = listOf(colony).toWire(emptyList(), emptyList()).single()
+
+        wire.ownerType shouldBe 1
+        wire.owner shouldBe 5
+    }
+
+    test("toWire throws on a dangling Civilization race reference") {
+        val colony = Colony(x = 10, y = 20, owner = Owner.Civilization(race("Outsider")))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(colony).toWire(emptyList(), emptyList())
+        }
+    }
+
+    test("toWire throws on a dangling Player lead reference") {
+        val colony = Colony(x = 10, y = 20, owner = Owner.Player(leadEntry("Outsider")))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(colony).toWire(emptyList(), emptyList())
+        }
+    }
 })
