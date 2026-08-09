@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.Gender
-import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodResourceType
 import com.kelvsyc.rifflet.civ3.PrtoDomain
 import com.kelvsyc.rifflet.civ3.PrtoEntry
@@ -73,11 +72,7 @@ private fun prtoEntry(
     unknown4 = ByteString.of(*ByteArray(4)),
 )
 
-private fun good(): GoodEntry = GoodEntry(
-    name = "Wine", civilopediaEntry = "", type = GoodResourceType.LUXURY,
-    appearanceRatio = 0, disappearanceProbability = 0, icon = 0, prerequisite = 0,
-    foodBonus = 0, shieldsBonus = 0, commerceBonus = 0,
-)
+private fun resource(): Resource = Resource(name = "Wine", type = GoodResourceType.LUXURY)
 
 private fun tech(name: String = ""): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0)
 
@@ -168,16 +163,16 @@ class PrtoEntryMappingTest : FunSpec({
 
     test("toDomain resolves required, requiredResources, availableTo, ignoreMovementCost") {
         val advance = tech("Gunpowder")
-        val g = good()
-        val r = race("Rome")
+        val r = resource()
+        val raceVal = race("Rome")
         val t = terr("Desert")
         val entry = prtoEntry(required = 0, requiredResource1 = 0, availableTo = 1 shl 0, ignoreMovementCostByte = 1)
 
-        val prtos = listOf(entry).toDomain(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(g), listOf(r), listOf(t))
+        val prtos = listOf(entry).toDomain(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(r), listOf(raceVal), listOf(t))
 
         prtos.single().required shouldBe advance
-        prtos.single().requiredResources shouldBe mutableListOf(g, null, null)
-        prtos.single().availableTo shouldBe mutableSetOf(r)
+        prtos.single().requiredResources shouldBe mutableListOf(r, null, null)
+        prtos.single().availableTo shouldBe mutableSetOf(raceVal)
         prtos.single().ignoreMovementCost shouldBe mutableSetOf(t)
     }
 
@@ -274,8 +269,8 @@ class PrtoEntryMappingTest : FunSpec({
 
     test("toDomain().toWire() round-trips cross-references and self-references") {
         val advance = tech("Gunpowder")
-        val g = good()
-        val r = race("Rome")
+        val r = resource()
+        val raceVal = race("Rome")
         val t = terr("Desert")
         val entries = listOf(
             prtoEntry(name = "Warrior"),
@@ -286,8 +281,8 @@ class PrtoEntryMappingTest : FunSpec({
             ),
         )
 
-        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(g), listOf(r), listOf(t))
-            .toWire(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(g), listOf(r), listOf(t))
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(r), listOf(raceVal), listOf(t))
+            .toWire(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(r), listOf(raceVal), listOf(t))
 
         roundTripped shouldBe entries
     }

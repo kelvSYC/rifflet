@@ -1,6 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.PrtoDomain
 import com.kelvsyc.rifflet.civ3.TerrEntry
 import okio.ByteString
@@ -69,7 +68,7 @@ data class Prto(
     var type: PrtoDomain,
     var unitStatistics: PrtoUnitStatistics = PrtoUnitStatistics(),
     var required: Tech? = null,
-    var requiredResources: MutableList<GoodEntry?> = MutableList(3) { null },
+    var requiredResources: MutableList<Resource?> = MutableList(3) { null },
     var abilities: Int = 0,
     var aiStrategies: Int = 0,
     var availableTo: MutableSet<Race> = mutableSetOf(),
@@ -135,12 +134,12 @@ data class Prto(
 }
 
 /**
- * Builds a canonical [Prto.requiredResources]-shaped list from 0–3 actual [goods], front-packed
+ * Builds a canonical [Prto.requiredResources]-shaped list from 0–3 actual [resources], front-packed
  * with any remaining slots `null`. A construction-time convenience only — the `toWire()` mapping
  * function never performs this normalization itself, to avoid reordering data read from a real
  * file.
  */
-fun requiredResourcesOf(vararg goods: GoodEntry): MutableList<GoodEntry?> {
-    require(goods.size <= 3) { "requiredResourcesOf accepts at most 3 goods, was ${goods.size}" }
-    return (goods.toList() + List(3 - goods.size) { null }).toMutableList()
+fun requiredResourcesOf(vararg resources: Resource): MutableList<Resource?> {
+    require(resources.size <= 3) { "requiredResourcesOf accepts at most 3 resources, was ${resources.size}" }
+    return (resources.toList() + List(3 - resources.size) { null }).toMutableList()
 }

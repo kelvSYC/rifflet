@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
-import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.PrtoEntry
 import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.airdrop
@@ -74,7 +73,7 @@ import okio.ByteString
 fun List<PrtoEntry>.toDomain(
     era: Civ3FormatEra,
     techs: List<Tech>,
-    goods: List<GoodEntry>,
+    resources: List<Resource>,
     races: List<Race>,
     terrs: List<TerrEntry>,
 ): List<Prto> {
@@ -186,9 +185,9 @@ fun List<PrtoEntry>.toDomain(
         )
         prto.required = techs.getOrNull(entry.required)
         prto.requiredResources = mutableListOf(
-            goods.getOrNull(entry.requiredResource1),
-            goods.getOrNull(entry.requiredResource2),
-            goods.getOrNull(entry.requiredResource3),
+            resources.getOrNull(entry.requiredResource1),
+            resources.getOrNull(entry.requiredResource2),
+            resources.getOrNull(entry.requiredResource3),
         )
         prto.availableTo = races.filterIndexed { index, _ -> entry.availableTo and (1 shl index) != 0 }.toMutableSet()
         prto.enslaveResults = prtoForWireIndex[entry.enslaveResults]
@@ -222,7 +221,7 @@ fun List<PrtoEntry>.toDomain(
 fun List<Prto>.toWire(
     era: Civ3FormatEra,
     techs: List<Tech>,
-    goods: List<GoodEntry>,
+    resources: List<Resource>,
     races: List<Race>,
     terrs: List<TerrEntry>,
 ): List<PrtoEntry> {
@@ -247,9 +246,9 @@ fun List<Prto>.toWire(
         index
     } ?: -1
 
-    fun resolveGood(field: String, target: GoodEntry?): Int = target?.let {
-        val index = goods.indexOf(it)
-        require(index >= 0) { "Prto.$field references a GoodEntry not present in goods" }
+    fun resolveGood(field: String, target: Resource?): Int = target?.let {
+        val index = resources.indexOf(it)
+        require(index >= 0) { "Prto.$field references a Resource not present in resources" }
         index
     } ?: -1
 
