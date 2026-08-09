@@ -8,10 +8,10 @@ import com.kelvsyc.rifflet.civ3.PrtoUnitStatistics as WirePrtoUnitStatistics
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceLeader
 import com.kelvsyc.rifflet.civ3.TerrAllowances
-import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.TerrTerraformBonuses
 import com.kelvsyc.rifflet.civ3.TerrTileValues
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
+import com.kelvsyc.rifflet.civ3.domain.Terrain
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -80,20 +80,6 @@ private fun race(name: String = ""): Race = Race(
     name = name, civilopediaEntry = "", adjective = "", noun = "",
     leader = RaceLeader(name = "", title = "", gender = Gender.MALE),
     cultureGroup = RaceCultureGroup.NONE, civilizationGender = Gender.MALE,
-)
-
-private fun terr(name: String = ""): TerrEntry = TerrEntry(
-    numberOfPossibleResources = 0, possibleResources = ByteString.of(), name = name, civilopediaEntry = "",
-    terraformBonuses = TerrTerraformBonuses(irrigationBonus = 0, miningBonus = 0, roadBonus = 0),
-    defenseBonus = 0, movementCost = 0,
-    tileValues = TerrTileValues(food = 0, shields = 0, commerce = 0),
-    workerJobAllowed = -1, pollutionEffect = -1,
-    allowances = TerrAllowances(
-        allowCities = 0, allowColonies = 0, impassable = 0, impassableByWheeled = 0,
-        allowAirfields = 0, allowForts = 0, allowOutposts = 0, allowRadarTowers = 0,
-    ),
-    unknown = ByteString.of(*ByteArray(4)), landmark = null, unknown2 = ByteString.of(*ByteArray(4)),
-    terrainFlags = 0, diseaseStrength = 0,
 )
 
 private fun validPrto(name: String = "Warrior"): Prto = Prto(
@@ -165,7 +151,13 @@ class PrtoEntryMappingTest : FunSpec({
         val advance = tech("Gunpowder")
         val r = resource()
         val raceVal = race("Rome")
-        val t = terr("Desert")
+        val t = Terrain(
+            name = "Desert",
+            allowances = TerrAllowances(
+                allowCities = 0, allowColonies = 0, impassable = 0, impassableByWheeled = 0,
+                allowAirfields = 0, allowForts = 0, allowOutposts = 0, allowRadarTowers = 0,
+            ),
+        )
         val entry = prtoEntry(required = 0, requiredResource1 = 0, availableTo = 1 shl 0, ignoreMovementCostByte = 1)
 
         val prtos = listOf(entry).toDomain(Civ3FormatEra.CONQUESTS, listOf(advance), listOf(r), listOf(raceVal), listOf(t))
@@ -271,7 +263,13 @@ class PrtoEntryMappingTest : FunSpec({
         val advance = tech("Gunpowder")
         val r = resource()
         val raceVal = race("Rome")
-        val t = terr("Desert")
+        val t = Terrain(
+            name = "Desert",
+            allowances = TerrAllowances(
+                allowCities = 0, allowColonies = 0, impassable = 0, impassableByWheeled = 0,
+                allowAirfields = 0, allowForts = 0, allowOutposts = 0, allowRadarTowers = 0,
+            ),
+        )
         val entries = listOf(
             prtoEntry(name = "Warrior"),
             prtoEntry(

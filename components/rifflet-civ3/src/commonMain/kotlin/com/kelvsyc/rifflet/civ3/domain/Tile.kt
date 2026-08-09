@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.GoodEntry
-import com.kelvsyc.rifflet.civ3.TerrEntry
 
 /**
  * A single map tile, mutable — the domain-layer counterpart to
@@ -61,8 +60,8 @@ import com.kelvsyc.rifflet.civ3.TerrEntry
 data class Tile(
     var rivers: TileRivers = TileRivers(),
     var improvements: TileImprovements = TileImprovements(),
-    var baseTerrain: TerrEntry? = null,
-    var overlayTerrain: TerrEntry? = null,
+    var baseTerrain: Terrain? = null,
+    var overlayTerrain: Terrain? = null,
     var snowCappedMountains: Boolean = false,
     var pineForest: Boolean = false,
     var resource: GoodEntry? = null,

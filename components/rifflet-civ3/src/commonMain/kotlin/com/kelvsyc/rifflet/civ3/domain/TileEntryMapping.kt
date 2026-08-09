@@ -6,9 +6,10 @@ import okio.ByteString
 /**
  * Converts a parsed `TILE` section to its domain-layer form.
  *
- * [colonies]/[cities]/[races]/[continents] are the already domain-converted `CLNY`/`CITY`/`RACE`/
- * `CONT` lists; [terrains] stays a wire type (`TERR` doesn't have a domain type yet). [goods] also
- * stays wire-typed for this field specifically — `GOOD` has a domain type (`Resource`) now, but
+ * [colonies]/[cities]/[races]/[continents]/[terrains] are the already domain-converted `CLNY`/
+ * `CITY`/`RACE`/`CONT`/`TERR` lists (`terrains` specifically as `Map<TerrainSlot, Terrain>.
+ * toOrderedList(era)`, since `TERR`'s own domain form is a `Map`, not a `List`). [goods] stays
+ * wire-typed for this field specifically — `GOOD` has a domain type (`Resource`) now, but
  * retrofitting `Tile.resource` wasn't part of that pass's scope. The caller is responsible for
  * supplying the right lists for this file — this file's own sections converted via their own
  * `toDomain()`, or externally-sourced standard lists, as appropriate.
@@ -23,7 +24,7 @@ fun List<TileEntry>.toDomain(
     colonies: List<Colony>,
     cities: List<City>,
     continents: List<Continent>,
-    terrains: List<TerrEntry>,
+    terrains: List<Terrain>,
     races: List<Race>,
 ): List<Tile> = map { entry ->
     Tile(
@@ -52,8 +53,8 @@ fun List<TileEntry>.toDomain(
             radarTower = entry.radarTower,
             outpost = entry.outpost,
         ),
-        baseTerrain = entry.baseTerrain(terrains, era),
-        overlayTerrain = entry.overlayTerrain(terrains, era),
+        baseTerrain = entry.baseTerrainIndex(era)?.let { terrains.getOrNull(it) },
+        overlayTerrain = entry.overlayTerrainIndex(era)?.let { terrains.getOrNull(it) },
         snowCappedMountains = entry.snowCappedMountains(era),
         pineForest = entry.pineForest(era),
         resource = entry.resourceGood(goods),
@@ -102,7 +103,7 @@ fun List<Tile>.toWire(
     colonies: List<Colony>,
     cities: List<City>,
     continents: List<Continent>,
-    terrains: List<TerrEntry>,
+    terrains: List<Terrain>,
     races: List<Race>,
 ): List<TileEntry> = map { tile ->
     val isConquests = era == Civ3FormatEra.CONQUESTS
