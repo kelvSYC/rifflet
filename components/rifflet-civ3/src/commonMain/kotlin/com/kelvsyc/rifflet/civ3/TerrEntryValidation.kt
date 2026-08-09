@@ -1,5 +1,12 @@
 package com.kelvsyc.rifflet.civ3
 
+import com.kelvsyc.rifflet.civ3.TerrainSlot.DESERT
+import com.kelvsyc.rifflet.civ3.TerrainSlot.FOREST
+import com.kelvsyc.rifflet.civ3.TerrainSlot.GRASSLAND
+import com.kelvsyc.rifflet.civ3.TerrainSlot.HILLS
+import com.kelvsyc.rifflet.civ3.TerrainSlot.MOUNTAINS
+import com.kelvsyc.rifflet.civ3.TerrainSlot.PLAINS
+import com.kelvsyc.rifflet.civ3.TerrainSlot.SEA
 import com.kelvsyc.rifflet.civ3.validation.ValidationIssue
 import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
 
@@ -31,7 +38,9 @@ fun validatePollutionEffect(file: Civ3File): List<ValidationIssue> {
     }
 }
 
-private const val FOREST_TERR_INDEX = 7
+// Forest's TERR index is stable across every era (see TerrainSlot); computed rather than
+// hardcoded so a future era addition can't silently desync this from the real mapping.
+private val FOREST_TERR_INDEX = FOREST.index(Civ3FormatEra.CONQUESTS)!!
 private const val CLEAR_FOREST_TFRM_INDEX = 6
 
 /**
@@ -88,7 +97,10 @@ fun validateCuredBySanitationRequiresCausesDisease(file: Civ3File): List<Validat
     }
 }
 
-private val LANDMARK_TERR_INDICES = setOf(0, 1, 2, 5, 6, 7, 12)
+// This rule only ever evaluates entries with a non-null `landmark` (Conquests-only), so resolving
+// against CONQUESTS is always the correct era here.
+private val LANDMARK_TERR_INDICES =
+    setOf(DESERT, PLAINS, GRASSLAND, HILLS, MOUNTAINS, FOREST, SEA).mapNotNull { it.index(Civ3FormatEra.CONQUESTS) }.toSet()
 
 /**
  * Flags a [TerrEntry] whose [TerrLandmark.landmarkEnabled] is set on a `TERR` index other than
