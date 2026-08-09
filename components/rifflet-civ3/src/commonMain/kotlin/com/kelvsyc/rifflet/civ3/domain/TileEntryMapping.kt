@@ -6,11 +6,12 @@ import okio.ByteString
 /**
  * Converts a parsed `TILE` section to its domain-layer form.
  *
- * [colonies]/[cities]/[races] are the already domain-converted `CLNY`/`CITY`/`RACE` lists;
- * [goods]/[continents]/[terrains] stay wire types (`GOOD`/`CONT`/`TERR` don't have domain types
- * yet). The caller is responsible for supplying the right lists for this file — this file's own
- * sections converted via their own `toDomain()`, or externally-sourced standard lists, as
- * appropriate.
+ * [colonies]/[cities]/[races]/[continents] are the already domain-converted `CLNY`/`CITY`/`RACE`/
+ * `CONT` lists; [terrains] stays a wire type (`TERR` doesn't have a domain type yet). [goods] also
+ * stays wire-typed for this field specifically — `GOOD` has a domain type (`Resource`) now, but
+ * retrofitting `Tile.resource` wasn't part of that pass's scope. The caller is responsible for
+ * supplying the right lists for this file — this file's own sections converted via their own
+ * `toDomain()`, or externally-sourced standard lists, as appropriate.
  *
  * Every era-dependent field is fully resolved via [era] — see each field's own KDoc on [Tile] for
  * which wire fields it merges. No `require()` guards: unlike `City`/`StartingLocation`/
@@ -21,7 +22,7 @@ fun List<TileEntry>.toDomain(
     goods: List<GoodEntry>,
     colonies: List<Colony>,
     cities: List<City>,
-    continents: List<ContEntry>,
+    continents: List<Continent>,
     terrains: List<TerrEntry>,
     races: List<Race>,
 ): List<Tile> = map { entry ->
@@ -70,7 +71,7 @@ fun List<TileEntry>.toDomain(
         barbarianTribe = races.getOrNull(0)?.cityNames?.getOrNull(entry.barbarianTribe.toInt()),
         colony = colonies.getOrNull(entry.colony.toInt()),
         city = cities.getOrNull(entry.city.toInt()),
-        continent = entry.continentCont(continents),
+        continent = continents.getOrNull(entry.continent.toInt()),
         fogOfWar = entry.fogOfWar.toInt() != 0,
         border = entry.border,
     )
@@ -100,7 +101,7 @@ fun List<Tile>.toWire(
     goods: List<GoodEntry>,
     colonies: List<Colony>,
     cities: List<City>,
-    continents: List<ContEntry>,
+    continents: List<Continent>,
     terrains: List<TerrEntry>,
     races: List<Race>,
 ): List<TileEntry> = map { tile ->
@@ -184,7 +185,7 @@ fun List<Tile>.toWire(
     } ?: -1
     val continentIndex = tile.continent?.let {
         val index = continents.indexOf(it)
-        require(index >= 0) { "Tile.continent references a ContEntry not present in continents" }
+        require(index >= 0) { "Tile.continent references a Continent not present in continents" }
         index
     } ?: -1
     val barbarianTribeIndex = tile.barbarianTribe?.let { name ->
