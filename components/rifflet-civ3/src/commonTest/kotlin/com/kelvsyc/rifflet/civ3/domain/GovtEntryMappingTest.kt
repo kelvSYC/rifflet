@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.EspnEntry
-import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtHurrying
@@ -94,7 +93,7 @@ private fun espnEntry(): EspnEntry = EspnEntry(
     description = "", name = "", civilopediaEntry = "", missionFlags = 0, baseCost = 0,
 )
 
-private fun exprEntry(): ExprEntry = ExprEntry(name = "", baseHitPoints = 0, retreatBonus = 0)
+private fun exprEntry(): ExperienceLevel = ExperienceLevel(name = "", baseHitPoints = 0, retreatBonus = 0)
 
 private fun validGovernmentFor(name: String): Government = Government(
     name = name,

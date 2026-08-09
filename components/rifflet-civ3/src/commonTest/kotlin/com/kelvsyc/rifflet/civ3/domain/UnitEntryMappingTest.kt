@@ -1,6 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.PrtoDomain
@@ -44,7 +43,7 @@ private fun prto(name: String = "", aiStrategies: Int = 0): Prto = Prto(
     name = name, civilopediaEntry = "", iconIndex = 0, type = PrtoDomain.LAND, aiStrategies = aiStrategies,
 )
 
-private fun exprEntry(name: String = ""): ExprEntry = ExprEntry(name = name, baseHitPoints = 0, retreatBonus = 0)
+private fun exprEntry(name: String = ""): ExperienceLevel = ExperienceLevel(name = name, baseHitPoints = 0, retreatBonus = 0)
 
 class UnitEntryMappingTest : FunSpec({
 

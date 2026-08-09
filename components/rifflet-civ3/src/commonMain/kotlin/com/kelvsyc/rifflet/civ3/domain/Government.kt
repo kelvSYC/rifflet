@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.EspnEntry
-import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtHurrying
 import com.kelvsyc.rifflet.civ3.GovtRelationship
@@ -84,14 +83,14 @@ class Government(
     var immuneTo: EspnEntry? = null
 
     /**
-     * References the wire `ExprEntry` — `EXPR` doesn't have its own domain type yet.
+     * This government's diplomats' effective experience level.
      */
-    var diplomatsAre: ExprEntry? = null
+    var diplomatsAre: ExperienceLevel? = null
 
     /**
-     * References the wire `ExprEntry` — `EXPR` doesn't have its own domain type yet.
+     * This government's spies' effective experience level.
      */
-    var spiesAre: ExprEntry? = null
+    var spiesAre: ExperienceLevel? = null
 
     /**
      * How this government relates to every other government it will be encoded alongside,
