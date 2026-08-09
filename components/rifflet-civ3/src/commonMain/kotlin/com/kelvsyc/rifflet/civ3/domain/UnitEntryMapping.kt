@@ -1,16 +1,17 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.UnitEntry
 
 /**
  * Converts a parsed `UNIT` section to its domain-layer form.
  *
- * [races]/[prtos] are the already domain-converted `RACE`/`PRTO` lists; [leads]/[experienceLevels]
- * stay wire types (`LEAD`/`EXPR` don't have domain types yet). The caller is responsible for
- * supplying the right lists for this file — this file's own sections converted via their own
- * `toDomain()`, or externally-sourced standard lists, as appropriate.
+ * [races]/[prtos]/[experienceLevels] are the already domain-converted `RACE`/`PRTO`/`EXPR` lists
+ * (`experienceLevels` specifically as `Map<ExperienceLevelSlot, ExperienceLevel>.toOrderedList()`,
+ * since `EXPR`'s own domain form is a `Map`, not a `List`). [leads] stays a wire type (`LEAD`
+ * doesn't have a domain type yet). The caller is responsible for supplying the right lists for
+ * this file — this file's own sections converted via their own `toDomain()`, or
+ * externally-sourced standard lists, as appropriate.
  *
  * Throws [IllegalArgumentException] if any entry's `ownerType` is outside the documented `0..3`
  * range (see `resolveOwner`'s own KDoc in `Owner.kt`), if it is `0` (None), if it is `2`
@@ -23,7 +24,7 @@ fun List<UnitEntry>.toDomain(
     races: List<Race>,
     leads: List<LeadEntry>,
     prtos: List<Prto>,
-    experienceLevels: List<ExprEntry>,
+    experienceLevels: List<ExperienceLevel>,
 ): List<PlacedUnit> = map { entry ->
     require(entry.ownerType != 0) {
         "UNIT entries cannot be owned by None (ownerType=0) — the Rules/Scenario editor requires " +
@@ -83,7 +84,7 @@ fun List<PlacedUnit>.toWire(
     races: List<Race>,
     leads: List<LeadEntry>,
     prtos: List<Prto>,
-    experienceLevels: List<ExprEntry>,
+    experienceLevels: List<ExperienceLevel>,
 ): List<UnitEntry> = map { unit ->
     val (ownerType, owner) = when (val o = unit.owner) {
         is Owner.None -> 0 to -1

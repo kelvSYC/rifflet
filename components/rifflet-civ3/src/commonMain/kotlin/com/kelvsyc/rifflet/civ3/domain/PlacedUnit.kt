@@ -1,7 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.ExprEntry
-
 /**
  * A placed unit instance, mutable — the domain-layer counterpart to
  * [com.kelvsyc.rifflet.civ3.UnitEntry]. Named `PlacedUnit` rather than `Unit`, since `Unit` is
@@ -18,8 +16,7 @@ import com.kelvsyc.rifflet.civ3.ExprEntry
  * @param owner This unit's owner. See [Owner]. Unlike [City]/[StartingLocation], [Owner.Barbarian]
  *   is a legitimate value here.
  * @param unitType This unit's prototype/type.
- * @param experienceLevel This unit's combat experience level. References the wire `ExprEntry` —
- *   `EXPR` doesn't have its own domain type yet.
+ * @param experienceLevel This unit's combat experience level.
  * @param aiStrategy This unit's currently-selected AI Strategy, or `null` for the real
  *   Rules/Scenario editor's "Random" option (only offered when [unitType] has 2+ `aiStrategies`
  *   bits set).
@@ -35,7 +32,7 @@ data class PlacedUnit(
     var ptwName: String = "",
     var owner: Owner = Owner.None,
     var unitType: Prto? = null,
-    var experienceLevel: ExprEntry? = null,
+    var experienceLevel: ExperienceLevel? = null,
     var aiStrategy: AiStrategy? = null,
     var useCivilizationKing: Boolean = false,
 ) {
