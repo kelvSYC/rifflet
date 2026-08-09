@@ -3,10 +3,8 @@ package com.kelvsyc.rifflet.civ3.domain
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.TerrainSlot
-import com.kelvsyc.rifflet.civ3.TfrmEntry
 import com.kelvsyc.rifflet.civ3.index
 import com.kelvsyc.rifflet.civ3.pollutionEffectResolved
-import com.kelvsyc.rifflet.civ3.workerJobAllowedTfrm
 import com.kelvsyc.rifflet.civ3.TerrPollutionEffect as WireTerrPollutionEffect
 import okio.ByteString
 
@@ -14,8 +12,9 @@ import okio.ByteString
  * Converts a parsed `TERR` section to its domain-layer form, keyed by [TerrainSlot] rather than
  * returned as a flat list — see `TerrainSlot`'s own KDoc for why.
  *
- * [resources] is the already domain-converted `GOOD` list; [tfrmJobs] stays wire-typed (`TFRM`
- * doesn't have a domain type yet).
+ * [resources]/[tfrmJobs] are the already domain-converted `GOOD`/`TFRM` lists (`tfrmJobs`
+ * specifically as `Map<WorkerJobSlot, WorkerJob>.toOrderedList(era)`, since `TFRM`'s own domain
+ * form is a `Map`, not a `List`).
  *
  * Throws [IllegalArgumentException] if this list's size doesn't exactly match the number of slots
  * valid for [era] — the domain-layer equivalent of `validateTerrCardinality`, since a
@@ -25,7 +24,7 @@ import okio.ByteString
 fun List<TerrEntry>.toDomain(
     era: Civ3FormatEra,
     resources: List<Resource>,
-    tfrmJobs: List<TfrmEntry>,
+    tfrmJobs: List<WorkerJob>,
 ): Map<TerrainSlot, Terrain> {
     val slots = TerrainSlot.entries.filter { it.index(era) != null }
     require(size == slots.size) {
@@ -47,7 +46,7 @@ fun List<TerrEntry>.toDomain(
             defenseBonus = entry.defenseBonus,
             movementCost = entry.movementCost,
             tileValues = entry.tileValues,
-            workerJobAllowed = entry.workerJobAllowedTfrm(tfrmJobs),
+            workerJobAllowed = tfrmJobs.getOrNull(entry.workerJobAllowed),
             allowances = entry.allowances,
             landmark = entry.landmark,
             terrainFlags = entry.terrainFlags,
@@ -91,7 +90,7 @@ fun List<TerrEntry>.toDomain(
 fun Map<TerrainSlot, Terrain>.toWire(
     era: Civ3FormatEra,
     resources: List<Resource>,
-    tfrmJobs: List<TfrmEntry>,
+    tfrmJobs: List<WorkerJob>,
 ): List<TerrEntry> {
     val slots = TerrainSlot.entries.filter { it.index(era) != null }
     require(keys == slots.toSet()) {
