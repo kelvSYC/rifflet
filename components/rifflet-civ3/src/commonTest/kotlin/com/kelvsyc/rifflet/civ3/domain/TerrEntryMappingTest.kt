@@ -7,7 +7,6 @@ import com.kelvsyc.rifflet.civ3.TerrLandmark
 import com.kelvsyc.rifflet.civ3.TerrTerraformBonuses
 import com.kelvsyc.rifflet.civ3.TerrTileValues
 import com.kelvsyc.rifflet.civ3.TerrainSlot
-import com.kelvsyc.rifflet.civ3.TfrmEntry
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -51,10 +50,7 @@ private fun fillerTerrains(count: Int, numberOfPossibleResources: Int = 0): List
 
 private fun resource(name: String): Resource = Resource(name = name)
 
-private fun tfrmJob(name: String): TfrmEntry = TfrmEntry(
-    name = name, civilopediaEntry = "", turnsToComplete = 1, required = -1,
-    requiredResource1 = -1, requiredResource2 = -1, order = "",
-)
+private fun tfrmJob(name: String): WorkerJob = WorkerJob(name = name)
 
 class TerrEntryMappingTest : FunSpec({
 

@@ -9,6 +9,9 @@ package com.kelvsyc.rifflet.civ3
  * @param required A `TECH` section index, per the Conquests Rules Editor.
  * @param requiredResource1 A `GOOD` section index, per the Conquests Rules Editor. Same treatment
  *   applies to [requiredResource2].
+ * @param order The in-game command label shown when directing a worker to perform this job (e.g.
+ *   "Build Mine", "Irrigate") — distinct from [name], the Rules Editor's own display name for the
+ *   job type.
  */
 data class TfrmEntry(
     val name: String,

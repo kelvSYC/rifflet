@@ -4,7 +4,6 @@ import com.kelvsyc.rifflet.civ3.TerrAllowances
 import com.kelvsyc.rifflet.civ3.TerrLandmark
 import com.kelvsyc.rifflet.civ3.TerrTerraformBonuses
 import com.kelvsyc.rifflet.civ3.TerrTileValues
-import com.kelvsyc.rifflet.civ3.TfrmEntry
 import okio.ByteString
 
 /**
@@ -21,8 +20,7 @@ import okio.ByteString
  * @param defenseBonus This terrain type's defense bonus.
  * @param movementCost This terrain type's movement cost.
  * @param tileValues This terrain type's base Food/Shields/Commerce yield. See [TerrTileValues].
- * @param workerJobAllowed The worker job that transforms this terrain type, if any. References the
- *   wire `TfrmEntry` — `TFRM` doesn't have its own domain type yet.
+ * @param workerJobAllowed The worker job that transforms this terrain type, if any.
  * @param pollutionEffect What this terrain type becomes when polluted. See [TerrPollutionEffect].
  * @param allowances This terrain type's city/improvement/movement allowances. See [TerrAllowances].
  * @param landmark This terrain type's Conquests-only landmark override, `null` pre-Conquests. See
@@ -44,7 +42,7 @@ data class Terrain(
     var defenseBonus: Int = 0,
     var movementCost: Int = 0,
     var tileValues: TerrTileValues = TerrTileValues(0, 0, 0),
-    var workerJobAllowed: TfrmEntry? = null,
+    var workerJobAllowed: WorkerJob? = null,
     var pollutionEffect: TerrPollutionEffect = TerrPollutionEffect.None,
     var allowances: TerrAllowances = TerrAllowances(0, 0, null, null, null, null, null, null),
     var landmark: TerrLandmark? = null,
