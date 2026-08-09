@@ -117,3 +117,21 @@ fun TileEntry.baseTerrainIndex(era: Civ3FormatEra): Int? =
  */
 fun TileEntry.baseTerrain(terrains: List<TerrEntry>, era: Civ3FormatEra): TerrEntry? =
     baseTerrainIndex(era)?.let { terrains.getOrNull(it) }
+
+/**
+ * This tile's overlay terrain type (e.g. Hills/Mountains/Forest/Jungle on top of the base terrain
+ * — [terrain]'s own KDoc), as a `TERR` section index, resolved for [era]: the high nibble of
+ * [TileEntry.c3cTerrain] for [Civ3FormatEra.CONQUESTS] files, or the high nibble of the legacy
+ * [TileEntry.terrain] otherwise. `null` when [TileEntry.c3cTerrain] itself is `null`. Water
+ * terrain types always carry the same value here as [baseTerrainIndex] — there is no independent
+ * overlay for water — confirmed corpus-wide (345,140 Conquests tiles): every tile whose base
+ * terrain was one of the always-water indices had an identical overlay index, with no exceptions.
+ */
+fun TileEntry.overlayTerrainIndex(era: Civ3FormatEra): Int? =
+    if (era == Civ3FormatEra.CONQUESTS) c3cTerrain?.toInt()?.shr(4)?.and(0x0F) else terrain.toInt().shr(4).and(0x0F)
+
+/**
+ * Resolves [TileEntry.overlayTerrainIndex] against [terrains].
+ */
+fun TileEntry.overlayTerrain(terrains: List<TerrEntry>, era: Civ3FormatEra): TerrEntry? =
+    overlayTerrainIndex(era)?.let { terrains.getOrNull(it) }
