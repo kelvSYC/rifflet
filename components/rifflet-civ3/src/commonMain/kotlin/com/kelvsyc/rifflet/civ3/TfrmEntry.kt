@@ -11,7 +11,7 @@ package com.kelvsyc.rifflet.civ3
  *   applies to [requiredResource2].
  * @param order The in-game command label shown when directing a worker to perform this job (e.g.
  *   "Build Mine", "Irrigate") — distinct from [name], the Rules Editor's own display name for the
- *   job type. Documented on the game's own "Worker Jobs Page" help topic.
+ *   job type.
  */
 data class TfrmEntry(
     val name: String,

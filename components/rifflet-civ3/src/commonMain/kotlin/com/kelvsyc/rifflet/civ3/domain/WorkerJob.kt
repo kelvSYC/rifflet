@@ -15,8 +15,7 @@ package com.kelvsyc.rifflet.civ3.domain
  *   dropdowns, which a `Set` would silently collapse. Use [tfrmRequiredResourcesOf] to build a
  *   canonical, front-packed list by hand.
  * @param order The in-game command label shown when directing a worker to perform this job (e.g.
- *   "Build Mine", "Irrigate") — distinct from [name]. Documented on the game's own "Worker Jobs
- *   Page" help topic.
+ *   "Build Mine", "Irrigate") — distinct from [name].
  */
 data class WorkerJob(
     var name: String,
