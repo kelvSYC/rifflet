@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
-import com.kelvsyc.rifflet.civ3.ContEntry
 import com.kelvsyc.rifflet.civ3.ContType
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodResourceType
@@ -194,7 +193,7 @@ class TileEntryMappingTest : FunSpec({
     }
 
     test("toDomain resolves continent against the CONT list") {
-        val plains = ContEntry(type = ContType.LAND, numberOfTiles = 10)
+        val plains = Continent(type = ContType.LAND, numberOfTiles = 10)
 
         val tile = listOf(tileEntry(continent = 0)).toDomain(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), listOf(plains), emptyList(), emptyList()).single()
 
@@ -247,7 +246,7 @@ class TileEntryMappingTest : FunSpec({
     test("toWire throws on a dangling resource/baseTerrain/continent reference") {
         val tileWithResource = Tile(resource = goodEntry("Outsider"))
         val tileWithTerrain = Tile(baseTerrain = terrEntry("Outsider"))
-        val tileWithContinent = Tile(continent = ContEntry(type = ContType.LAND, numberOfTiles = 1))
+        val tileWithContinent = Tile(continent = Continent(type = ContType.LAND, numberOfTiles = 1))
 
         shouldThrow<IllegalArgumentException> {
             listOf(tileWithResource).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList())

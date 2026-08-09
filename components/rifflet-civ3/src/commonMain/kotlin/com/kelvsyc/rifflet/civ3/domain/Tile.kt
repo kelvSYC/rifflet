@@ -1,6 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.ContEntry
 import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.TerrEntry
 
@@ -81,7 +80,7 @@ data class Tile(
     var barbarianTribe: String? = null,
     var colony: Colony? = null,
     var city: City? = null,
-    var continent: ContEntry? = null,
+    var continent: Continent? = null,
     var fogOfWar: Boolean = false,
     var border: Byte = 0,
 )
