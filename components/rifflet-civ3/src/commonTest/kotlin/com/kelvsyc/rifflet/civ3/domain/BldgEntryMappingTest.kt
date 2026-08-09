@@ -6,7 +6,6 @@ import com.kelvsyc.rifflet.civ3.BldgHappiness
 import com.kelvsyc.rifflet.civ3.BldgRequiredResources as WireBldgRequiredResources
 import com.kelvsyc.rifflet.civ3.BldgRequirements as WireBldgRequirements
 import com.kelvsyc.rifflet.civ3.BldgUnitsProduced as WireBldgUnitsProduced
-import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodResourceType
 import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtHurrying
@@ -100,11 +99,7 @@ private fun tech(name: String = ""): Tech = Tech(
     name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0,
 )
 
-private fun good(): GoodEntry = GoodEntry(
-    name = "", civilopediaEntry = "", type = GoodResourceType.LUXURY,
-    appearanceRatio = 0, disappearanceProbability = 0, icon = 0, prerequisite = 0,
-    foodBonus = 0, shieldsBonus = 0, commerceBonus = 0,
-)
+private fun resource(): Resource = Resource(name = "", type = GoodResourceType.LUXURY)
 
 private fun prto(): PrtoEntry = PrtoEntry(
     unitStatistics = PrtoUnitStatistics(
@@ -177,13 +172,13 @@ class BldgEntryMappingTest : FunSpec({
         building.requirements.requiredAdvance shouldBe advance
     }
 
-    test("toDomain resolves requiredResources against the wire GOOD list") {
-        val g = good()
+    test("toDomain resolves requiredResources against the domain-converted RESOURCE list") {
+        val r = resource()
         val entry = bldgEntry(requiredResource1 = 0)
 
-        val building = listOf(entry).toDomain(emptyList(), emptyList(), listOf(g), emptyList()).single()
+        val building = listOf(entry).toDomain(emptyList(), emptyList(), listOf(r), emptyList()).single()
 
-        building.requiredResources.requiredResource1 shouldBe g
+        building.requiredResources.requiredResource1 shouldBe r
     }
 
     test("toDomain resolves GreatWonder's effect fields against sibling entries") {
