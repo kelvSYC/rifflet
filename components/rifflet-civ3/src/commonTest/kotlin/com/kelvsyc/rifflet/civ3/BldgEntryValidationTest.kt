@@ -86,6 +86,17 @@ private fun fileWithBldgs(entries: List<BldgEntry>): Civ3File = Civ3File(
     listOf(BldgSection(entries)),
 )
 
+private fun goodEntryForBonusCheck(type: GoodResourceType): GoodEntry = GoodEntry(
+    name = "", civilopediaEntry = "", type = type, appearanceRatio = 0,
+    disappearanceProbability = 0, icon = 0, prerequisite = -1,
+    foodBonus = 0, shieldsBonus = 0, commerceBonus = 0,
+)
+
+private fun fileWithGoodsAndBldg(goods: List<GoodEntry>, bldgEntries: List<BldgEntry>): Civ3File = Civ3File(
+    Civ3Header(major = 12, minor = 0, description = "", title = ""),
+    listOf(GoodSection(goods), BldgSection(bldgEntries)),
+)
+
 class BldgEntryValidationTest : FunSpec({
 
     test("returns no issues when at most one entry has centerOfEmpire") {
@@ -517,5 +528,53 @@ class BldgEntryValidationTest : FunSpec({
         val issues = validateBldgNotBothWonderAndSmallWonder(file)
         issues.size shouldBe 1
         issues.single().field shouldBe "otherCharacteristics"
+    }
+
+    test("validateBldgRequiredResourceNotBonus returns no issues when both required resources are Luxury/Strategic") {
+        val goods = listOf(goodEntryForBonusCheck(GoodResourceType.LUXURY), goodEntryForBonusCheck(GoodResourceType.STRATEGIC))
+        val entry = bldgEntry().copy(requiredResources = BldgRequiredResources(requiredResource1 = 0, requiredResource2 = 1))
+        val file = fileWithGoodsAndBldg(goods, listOf(entry))
+
+        validateBldgRequiredResourceNotBonus(file) shouldBe emptyList()
+    }
+
+    test("validateBldgRequiredResourceNotBonus flags a Bonus-type requiredResource1") {
+        val goods = listOf(goodEntryForBonusCheck(GoodResourceType.BONUS))
+        val entry = bldgEntry().copy(requiredResources = BldgRequiredResources(requiredResource1 = 0, requiredResource2 = -1))
+        val file = fileWithGoodsAndBldg(goods, listOf(entry))
+
+        validateBldgRequiredResourceNotBonus(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                0,
+                "requiredResource1",
+                "a required resource must be Luxury or Strategic, not Bonus (requiredResource1)",
+            ),
+        )
+    }
+
+    test("validateBldgRequiredResourceNotBonus flags both fields when both are Bonus-type") {
+        val goods = listOf(goodEntryForBonusCheck(GoodResourceType.BONUS))
+        val entry = bldgEntry().copy(requiredResources = BldgRequiredResources(requiredResource1 = 0, requiredResource2 = 0))
+        val file = fileWithGoodsAndBldg(goods, listOf(entry))
+
+        validateBldgRequiredResourceNotBonus(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.BLDG,
+                0,
+                "requiredResource1, requiredResource2",
+                "a required resource must be Luxury or Strategic, not Bonus (requiredResource1, requiredResource2)",
+            ),
+        )
+    }
+
+    test("validateBldgRequiredResourceNotBonus returns no issues when GOOD or BLDG is absent") {
+        val onlyBldg = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), listOf(BldgSection(listOf(bldgEntry()))))
+        val onlyGoods = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), listOf(GoodSection(listOf(goodEntryForBonusCheck(GoodResourceType.BONUS)))))
+
+        validateBldgRequiredResourceNotBonus(onlyBldg) shouldBe emptyList()
+        validateBldgRequiredResourceNotBonus(onlyGoods) shouldBe emptyList()
     }
 })

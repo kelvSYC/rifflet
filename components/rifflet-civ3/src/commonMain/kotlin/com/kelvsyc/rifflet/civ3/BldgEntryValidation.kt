@@ -408,3 +408,34 @@ fun validateBldgNotBothWonderAndSmallWonder(file: Civ3File): List<ValidationIssu
         )
     }
 }
+
+/**
+ * Flags a [BldgEntry] whose [BldgRequiredResources.requiredResource1]/
+ * [BldgRequiredResources.requiredResource2] resolves to a [GoodResourceType.BONUS] resource.
+ * Returns no issues if the `GOOD` or `BLDG` section is absent from [file].
+ *
+ * The Rules Editor's required-resource dropdown excludes Bonus resources entirely — only Luxury
+ * and Strategic resources are selectable.
+ */
+fun validateBldgRequiredResourceNotBonus(file: Civ3File): List<ValidationIssue> {
+    val goods = file.sections.filterIsInstance<GoodSection>().singleOrNull()?.entries ?: return emptyList()
+    val section = file.sections.filterIsInstance<BldgSection>().singleOrNull() ?: return emptyList()
+    return section.entries.mapIndexedNotNull { index, entry ->
+        val bonusFields = listOfNotNull(
+            "requiredResource1".takeIf {
+                goods.getOrNull(entry.requiredResources.requiredResource1)?.type == GoodResourceType.BONUS
+            },
+            "requiredResource2".takeIf {
+                goods.getOrNull(entry.requiredResources.requiredResource2)?.type == GoodResourceType.BONUS
+            },
+        )
+        if (bonusFields.isEmpty()) return@mapIndexedNotNull null
+        ValidationIssue(
+            ValidationSeverity.ERROR,
+            Civ3SectionIds.BLDG,
+            index,
+            bonusFields.joinToString(", "),
+            "a required resource must be Luxury or Strategic, not Bonus (${bonusFields.joinToString(", ")})",
+        )
+    }
+}
