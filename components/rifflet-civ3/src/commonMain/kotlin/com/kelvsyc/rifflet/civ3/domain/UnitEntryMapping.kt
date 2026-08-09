@@ -112,7 +112,7 @@ fun List<PlacedUnit>.toWire(
     val experienceLevel = unit.experienceLevel?.let {
         val index = experienceLevels.indexOf(it)
         require(index >= 0) {
-            "PlacedUnit.experienceLevel references an ExprEntry not present in experienceLevels"
+            "PlacedUnit.experienceLevel references an ExperienceLevel not present in experienceLevels"
         }
         index
     } ?: -1

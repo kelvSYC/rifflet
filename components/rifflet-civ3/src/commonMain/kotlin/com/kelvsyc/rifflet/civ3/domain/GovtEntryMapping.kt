@@ -94,12 +94,12 @@ fun List<Government>.toWire(
         } ?: -1
         val diplomatsAreIndex = government.diplomatsAre?.let { expr ->
             val index = experienceLevels.indexOf(expr)
-            require(index >= 0) { "Government.diplomatsAre references an ExprEntry not present in experienceLevels" }
+            require(index >= 0) { "Government.diplomatsAre references an ExperienceLevel not present in experienceLevels" }
             index
         } ?: -1
         val spiesAreIndex = government.spiesAre?.let { expr ->
             val index = experienceLevels.indexOf(expr)
-            require(index >= 0) { "Government.spiesAre references an ExprEntry not present in experienceLevels" }
+            require(index >= 0) { "Government.spiesAre references an ExperienceLevel not present in experienceLevels" }
             index
         } ?: -1
         val relationships = roster.map { other ->
