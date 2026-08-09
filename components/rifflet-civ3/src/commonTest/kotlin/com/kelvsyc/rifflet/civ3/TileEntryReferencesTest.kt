@@ -268,4 +268,29 @@ class TileEntryReferencesTest : FunSpec({
 
         entry.baseTerrain(listOf(validTerrEntryForTileTest(name = "Desert")), Civ3FormatEra.VANILLA) shouldBe null
     }
+
+    test("overlayTerrainIndex(era) reads the high nibble of the legacy terrain field for VANILLA/PTW") {
+        val entry = validTileEntry(terrain = 0x25.toByte(), c3cTerrain = 0x13.toByte())
+        entry.overlayTerrainIndex(Civ3FormatEra.VANILLA) shouldBe 2
+        entry.overlayTerrainIndex(Civ3FormatEra.PTW) shouldBe 2
+    }
+
+    test("overlayTerrainIndex(era) reads the high nibble of c3cTerrain for CONQUESTS") {
+        val entry = validTileEntry(terrain = 0x25.toByte(), c3cTerrain = 0x13.toByte())
+        entry.overlayTerrainIndex(Civ3FormatEra.CONQUESTS) shouldBe 1
+    }
+
+    test("overlayTerrain(terrains, era) resolves the decoded index against the TERR list") {
+        val desert = validTerrEntryForTileTest(name = "Desert")
+        val hills = validTerrEntryForTileTest(name = "Hills")
+        val entry = validTileEntry(terrain = 0x10.toByte())
+
+        entry.overlayTerrain(listOf(desert, hills), Civ3FormatEra.VANILLA) shouldBe hills
+    }
+
+    test("overlayTerrain(terrains, era) returns null for an out-of-range index") {
+        val entry = validTileEntry(terrain = 0x90.toByte())
+
+        entry.overlayTerrain(listOf(validTerrEntryForTileTest(name = "Desert")), Civ3FormatEra.VANILLA) shouldBe null
+    }
 })
