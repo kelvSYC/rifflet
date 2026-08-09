@@ -1,6 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.GoodEntry
 import com.kelvsyc.rifflet.civ3.GoodResourceType
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -16,14 +15,10 @@ class BldgRequiredResourcesTest : FunSpec({
 
     test("fields are mutable after construction") {
         val resources = BldgRequiredResources()
-        val good = GoodEntry(
-            name = "Wine", civilopediaEntry = "", type = GoodResourceType.LUXURY,
-            appearanceRatio = 0, disappearanceProbability = 0, icon = 0, prerequisite = 0,
-            foodBonus = 0, shieldsBonus = 0, commerceBonus = 0,
-        )
+        val resource = Resource(name = "Wine", type = GoodResourceType.LUXURY)
 
-        resources.requiredResource1 = good
+        resources.requiredResource1 = resource
 
-        resources.requiredResource1 shouldBe good
+        resources.requiredResource1 shouldBe resource
     }
 })

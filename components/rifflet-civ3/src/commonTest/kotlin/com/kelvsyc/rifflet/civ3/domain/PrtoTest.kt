@@ -1,5 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
+import com.kelvsyc.rifflet.civ3.GoodResourceType
 import com.kelvsyc.rifflet.civ3.PrtoDomain
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -47,12 +48,8 @@ class PrtoTest : FunSpec({
     }
 
     test("requiredResourcesOf builds a front-packed 3-element list") {
-        val good = com.kelvsyc.rifflet.civ3.GoodEntry(
-            name = "Wine", civilopediaEntry = "", type = com.kelvsyc.rifflet.civ3.GoodResourceType.LUXURY,
-            appearanceRatio = 0, disappearanceProbability = 0, icon = 0, prerequisite = 0,
-            foodBonus = 0, shieldsBonus = 0, commerceBonus = 0,
-        )
+        val resource = Resource(name = "Wine", type = GoodResourceType.LUXURY)
 
-        requiredResourcesOf(good) shouldBe mutableListOf(good, null, null)
+        requiredResourcesOf(resource) shouldBe mutableListOf(resource, null, null)
     }
 })

@@ -77,6 +77,8 @@ private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validatePrtoUpgradeToAcyclic(file) },
     ValidationRule { file -> validatePrtoEnslaveResultsRequiresEnslave(file) },
     ValidationRule { file -> validatePrtoAiStrategiesSingleBit(file) },
+    ValidationRule { file -> validateBldgRequiredResourceNotBonus(file) },
+    ValidationRule { file -> validatePrtoRequiredResourceNotBonus(file) },
     ValidationRule { file -> validateCityHasPalaceMatchesCenterOfEmpire(file) },
     ValidationRule { file -> validateCityGreatWonderUniqueGlobally(file) },
     ValidationRule { file -> validateCitySmallWonderUniquePerNation(file) },

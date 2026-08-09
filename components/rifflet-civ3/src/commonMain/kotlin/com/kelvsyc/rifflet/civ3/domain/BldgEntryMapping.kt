@@ -16,8 +16,8 @@ import com.kelvsyc.rifflet.civ3.BldgUnitsProduced as BldgUnitsProducedWire
  * (both `ERROR`-level, zero real exceptions) together guarantee the three conditions never
  * overlap.
  *
- * [governments]/[techs] are the already domain-converted `GOVT`/`TECH` lists; [goods]/[units]
- * stay wire types (`GOOD`/`PRTO` don't have domain types yet).
+ * [governments]/[techs]/[resources] are the already domain-converted `GOVT`/`TECH`/`GOOD` lists; [units]
+ * stays wire type (`PRTO` doesn't have a domain type yet).
  *
  * Throws [IllegalArgumentException] if this list's `requiredBuilding` graph, or any of the 3
  * `GreatWonder`-only effect-field graphs, contains a cycle — checked via [findSelfReferenceCycle]
@@ -27,7 +27,7 @@ import com.kelvsyc.rifflet.civ3.BldgUnitsProduced as BldgUnitsProducedWire
 fun List<BldgEntry>.toDomain(
     governments: List<Government>,
     techs: List<Tech>,
-    goods: List<GoodEntry>,
+    resources: List<Resource>,
     units: List<PrtoEntry>,
 ): List<Building> {
     val requiredBuildingCycle = findSelfReferenceCycle(this) { it.requirements.requiredBuilding }
@@ -137,8 +137,8 @@ fun List<BldgEntry>.toDomain(
             requiredAdvance = techs.getOrNull(entry.requirements.requiredAdvance),
         )
         building.requiredResources = BldgRequiredResources(
-            requiredResource1 = goods.getOrNull(entry.requiredResources.requiredResource1),
-            requiredResource2 = goods.getOrNull(entry.requiredResources.requiredResource2),
+            requiredResource1 = resources.getOrNull(entry.requiredResources.requiredResource1),
+            requiredResource2 = resources.getOrNull(entry.requiredResources.requiredResource2),
         )
         if (building is StandardBuilding) {
             building.renderedObsoleteBy = techs.getOrNull(entry.renderedObsoleteBy)
@@ -158,7 +158,7 @@ fun List<BldgEntry>.toDomain(
 
 /**
  * Converts a `BLDG` section's domain-layer form back to wire entries, resolving each [Building]'s
- * object references back into indices against [governments]/[techs]/[goods]/[units] and this
+ * object references back into indices against [governments]/[techs]/[resources]/[units] and this
  * list's own roster.
  *
  * Throws [IllegalArgumentException] if any cross-reference resolves to an object not present in
@@ -175,7 +175,7 @@ fun List<BldgEntry>.toDomain(
 fun List<Building>.toWire(
     governments: List<Government>,
     techs: List<Tech>,
-    goods: List<GoodEntry>,
+    resources: List<Resource>,
     units: List<PrtoEntry>,
 ): List<BldgEntry> {
     val roster = this
@@ -198,9 +198,9 @@ fun List<Building>.toWire(
         index
     } ?: -1
 
-    fun resolveGood(field: String, target: GoodEntry?): Int = target?.let {
-        val index = goods.indexOf(it)
-        require(index >= 0) { "BldgRequiredResources.$field references a GoodEntry not present in goods" }
+    fun resolveGood(field: String, target: Resource?): Int = target?.let {
+        val index = resources.indexOf(it)
+        require(index >= 0) { "BldgRequiredResources.$field references a Resource not present in resources" }
         index
     } ?: -1
 
