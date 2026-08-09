@@ -8,9 +8,6 @@ import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceLeader
 import com.kelvsyc.rifflet.civ3.TerrAllowances
-import com.kelvsyc.rifflet.civ3.TerrEntry
-import com.kelvsyc.rifflet.civ3.TerrTerraformBonuses
-import com.kelvsyc.rifflet.civ3.TerrTileValues
 import com.kelvsyc.rifflet.civ3.TileEntry
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -65,26 +62,12 @@ private fun tileEntry(
     unknown6 = ByteString.of(0, 0, 0, 0),
 )
 
-private fun terrEntry(name: String): TerrEntry = TerrEntry(
-    numberOfPossibleResources = 0,
-    possibleResources = ByteString.of(),
+private fun terrEntry(name: String): Terrain = Terrain(
     name = name,
-    civilopediaEntry = "",
-    terraformBonuses = TerrTerraformBonuses(irrigationBonus = 0, miningBonus = 0, roadBonus = 0),
-    defenseBonus = 0,
-    movementCost = 0,
-    tileValues = TerrTileValues(food = 0, shields = 0, commerce = 0),
-    workerJobAllowed = -1,
-    pollutionEffect = -1,
     allowances = TerrAllowances(
         allowCities = 0, allowColonies = 0, impassable = 0, impassableByWheeled = 0,
         allowAirfields = 0, allowForts = 0, allowOutposts = 0, allowRadarTowers = 0,
     ),
-    unknown = ByteString.of(0, 0, 0, 0),
-    landmark = null,
-    unknown2 = ByteString.of(0, 0, 0, 0),
-    terrainFlags = 0,
-    diseaseStrength = 0,
 )
 
 private fun goodEntry(name: String): GoodEntry = GoodEntry(
