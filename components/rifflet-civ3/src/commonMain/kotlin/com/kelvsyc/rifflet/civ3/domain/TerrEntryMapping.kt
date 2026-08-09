@@ -54,7 +54,6 @@ fun List<TerrEntry>.toDomain(
             diseaseStrength = entry.diseaseStrength,
             unknown = entry.unknown,
             unknown2 = entry.unknown2,
-            numberOfPossibleResources = entry.numberOfPossibleResources,
         )
     }
 
@@ -102,7 +101,7 @@ fun Map<TerrainSlot, Terrain>.toWire(
     val orderedTerrains = orderedSlots.map { getValue(it) }
 
     return orderedTerrains.map { terrain ->
-        val possibleResourcesBytes = ByteArray((terrain.numberOfPossibleResources + 7) / 8)
+        val possibleResourcesBytes = ByteArray((resources.size + 7) / 8)
         terrain.possibleResources.forEach { resource ->
             val index = resources.indexOf(resource)
             require(index >= 0) { "Terrain.possibleResources references a Resource not present in resources" }
@@ -126,7 +125,7 @@ fun Map<TerrainSlot, Terrain>.toWire(
         }
 
         TerrEntry(
-            numberOfPossibleResources = terrain.numberOfPossibleResources,
+            numberOfPossibleResources = resources.size,
             possibleResources = ByteString.of(*possibleResourcesBytes),
             name = terrain.name,
             civilopediaEntry = terrain.civilopediaEntry,

@@ -52,7 +52,6 @@ data class Terrain(
     var diseaseStrength: Int = 0,
     var unknown: ByteString = ByteString.of(0, 0, 0, 0),
     var unknown2: ByteString = ByteString.of(0, 0, 0, 0),
-    var numberOfPossibleResources: Int = 0,
 )
 
 /**

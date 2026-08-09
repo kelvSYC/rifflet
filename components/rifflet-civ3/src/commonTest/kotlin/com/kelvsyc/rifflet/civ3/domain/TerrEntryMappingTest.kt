@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
-import com.kelvsyc.rifflet.civ3.GoodResourceType
 import com.kelvsyc.rifflet.civ3.TerrAllowances
 import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.TerrLandmark
@@ -16,7 +15,7 @@ import okio.ByteString
 
 private fun terrEntry(
     name: String = "",
-    possibleResources: ByteString = ByteString.of(),
+    possibleResources: ByteString? = null,
     numberOfPossibleResources: Int = 0,
     workerJobAllowed: Int = -1,
     pollutionEffect: Int = -1,
@@ -26,7 +25,7 @@ private fun terrEntry(
     unknown2: ByteString = ByteString.of(0, 0, 0, 0),
 ): TerrEntry = TerrEntry(
     numberOfPossibleResources = numberOfPossibleResources,
-    possibleResources = possibleResources,
+    possibleResources = possibleResources ?: ByteString.of(*ByteArray((numberOfPossibleResources + 7) / 8)),
     name = name,
     civilopediaEntry = "",
     terraformBonuses = TerrTerraformBonuses(irrigationBonus = 1, miningBonus = 2, roadBonus = 3),
@@ -47,7 +46,8 @@ private fun terrEntry(
 )
 
 // 9 filler slots (Desert..Jungle) so a real TerrainSlot lands at a chosen index.
-private fun fillerTerrains(count: Int): List<TerrEntry> = List(count) { terrEntry(name = "Filler$it") }
+private fun fillerTerrains(count: Int, numberOfPossibleResources: Int = 0): List<TerrEntry> =
+    List(count) { terrEntry(name = "Filler$it", numberOfPossibleResources = numberOfPossibleResources) }
 
 private fun resource(name: String): Resource = Resource(name = name)
 
@@ -154,7 +154,7 @@ class TerrEntryMappingTest : FunSpec({
                 unknown2 = ByteString.of(1, 2, 3, 4),
             ),
             terrEntry(name = "Plains", possibleResources = ByteString.of(0), numberOfPossibleResources = 1, pollutionEffect = 0),
-        ) + fillerTerrains(10)
+        ) + fillerTerrains(10, numberOfPossibleResources = 1)
 
         val roundTripped = entries.toDomain(Civ3FormatEra.VANILLA, listOf(iron), listOf(clearForest))
             .toWire(Civ3FormatEra.VANILLA, listOf(iron), listOf(clearForest))
