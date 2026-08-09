@@ -13,6 +13,7 @@ import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.TerrTerraformBonuses
 import com.kelvsyc.rifflet.civ3.TerrTileValues
 import com.kelvsyc.rifflet.civ3.TileEntry
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okio.ByteString
@@ -198,5 +199,80 @@ class TileEntryMappingTest : FunSpec({
         val tile = listOf(tileEntry(continent = 0)).toDomain(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), listOf(plains), emptyList(), emptyList()).single()
 
         tile.continent shouldBe plains
+    }
+
+    test("toDomain().toWire() round-trips for a VANILLA-era entry using legacy fields") {
+        val desert = terrEntry("Desert")
+        val hills = terrEntry("Hills")
+        val entries = listOf(
+            tileEntry(
+                riverConnections = 0b0001,
+                riverCrossingFlags = 0b00000001,
+                overlayFlags = 0b00000001, // road
+                bonusFlags = 0b00000001, // bonusGrassland
+                terrain = 0x10, // base=0 (Desert), overlay=1 (Hills)
+                textureLocation = 2,
+                textureFile = 4,
+                victoryPointLocation = -1,
+                border = 0x0F,
+            ),
+        )
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), listOf(desert, hills), emptyList())
+            .toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), listOf(desert, hills), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toDomain().toWire() round-trips for a CONQUESTS-era entry using c3c fields") {
+        val plains = terrEntry("Plains")
+        val forest = terrEntry("Forest")
+        val entries = listOf(
+            tileEntry(
+                c3cOverlays = ByteString.of(0b00000010, 0, 0, 0x80.toByte()), // railroad + outpost
+                c3cBonuses = ByteString.of(0b00100000, 0, 0, 0), // pineForest
+                c3cTerrain = 0x10, // base=0 (Plains), overlay=1 (Forest)
+                victoryPointLocation = 0,
+                fogOfWar = 0x8000.toShort(),
+                ruin = 1,
+            ),
+        )
+
+        val roundTripped = entries.toDomain(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList(), listOf(plains, forest), emptyList())
+            .toWire(Civ3FormatEra.CONQUESTS, emptyList(), emptyList(), emptyList(), emptyList(), listOf(plains, forest), emptyList())
+
+        roundTripped shouldBe entries
+    }
+
+    test("toWire throws on a dangling resource/baseTerrain/continent reference") {
+        val tileWithResource = Tile(resource = goodEntry("Outsider"))
+        val tileWithTerrain = Tile(baseTerrain = terrEntry("Outsider"))
+        val tileWithContinent = Tile(continent = ContEntry(type = ContType.LAND, numberOfTiles = 1))
+
+        shouldThrow<IllegalArgumentException> {
+            listOf(tileWithResource).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        }
+        shouldThrow<IllegalArgumentException> {
+            listOf(tileWithTerrain).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        }
+        shouldThrow<IllegalArgumentException> {
+            listOf(tileWithContinent).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        }
+    }
+
+    test("toWire writes -1 for a barbarianTribe name not found, without throwing") {
+        val tile = Tile(barbarianTribe = "Nonexistent Tribe")
+
+        val wire = listOf(tile).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList()).single()
+
+        wire.barbarianTribe shouldBe (-1).toShort()
+    }
+
+    test("toWire writes 0 for a null baseTerrain/overlayTerrain, not -1") {
+        val tile = Tile()
+
+        val wire = listOf(tile).toWire(Civ3FormatEra.VANILLA, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList()).single()
+
+        wire.terrain shouldBe 0.toByte()
     }
 })
