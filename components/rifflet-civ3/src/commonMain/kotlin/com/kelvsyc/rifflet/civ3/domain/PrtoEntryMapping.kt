@@ -2,7 +2,6 @@ package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.Civ3FormatEra
 import com.kelvsyc.rifflet.civ3.PrtoEntry
-import com.kelvsyc.rifflet.civ3.TerrEntry
 import com.kelvsyc.rifflet.civ3.airdrop
 import com.kelvsyc.rifflet.civ3.airlift
 import com.kelvsyc.rifflet.civ3.automate
@@ -62,8 +61,9 @@ import okio.ByteString
  * canonical's merged [Prto].
  *
  * [era] resolves every VANILLA-vs-later storage-location quirk (see [Prto]'s own KDoc).
- * [techs]/[races] are the already domain-converted `TECH`/`RACE` lists; [goods]/[terrs] stay wire
- * types (`GOOD`/`TERR` don't have domain types yet).
+ * [techs]/[races]/[terrains] are the already domain-converted `TECH`/`RACE`/`TERR` lists
+ * ([terrains] specifically as `Map<TerrainSlot, Terrain>.toOrderedList(era)`, since `TERR`'s own
+ * domain form is a `Map`, not a `List`).
  *
  * Throws [IllegalArgumentException] if this list's [com.kelvsyc.rifflet.civ3.PrtoUnitStatistics.upgradeTo]
  * graph contains a cycle — checked via [findSelfReferenceCycle] before constructing any [Prto],
@@ -75,7 +75,7 @@ fun List<PrtoEntry>.toDomain(
     techs: List<Tech>,
     resources: List<Resource>,
     races: List<Race>,
-    terrs: List<TerrEntry>,
+    terrains: List<Terrain>,
 ): List<Prto> {
     val upgradeToCycle = findSelfReferenceCycle(this) { it.unitStatistics.upgradeTo }
     require(upgradeToCycle == null) {
@@ -191,7 +191,7 @@ fun List<PrtoEntry>.toDomain(
         )
         prto.availableTo = races.filterIndexed { index, _ -> entry.availableTo and (1 shl index) != 0 }.toMutableSet()
         prto.enslaveResults = prtoForWireIndex[entry.enslaveResults]
-        prto.ignoreMovementCost = terrs.filterIndexed { index, _ ->
+        prto.ignoreMovementCost = terrains.filterIndexed { index, _ ->
             val byteIndex = index / 8
             val bitIndex = index % 8
             byteIndex < entry.ignoreMovementCost.size && (entry.ignoreMovementCost[byteIndex].toInt() and (1 shl bitIndex)) != 0
@@ -223,7 +223,7 @@ fun List<Prto>.toWire(
     techs: List<Tech>,
     resources: List<Resource>,
     races: List<Race>,
-    terrs: List<TerrEntry>,
+    terrains: List<Terrain>,
 ): List<PrtoEntry> {
     val roster = this
     val entryCounts = roster.map { maxOf(1, Integer.bitCount(it.aiStrategies)) }
@@ -258,9 +258,9 @@ fun List<Prto>.toWire(
         return index
     }
 
-    fun resolveTerr(target: TerrEntry): Int {
-        val index = terrs.indexOf(target)
-        require(index >= 0) { "Prto.ignoreMovementCost references a TerrEntry not present in terrs" }
+    fun resolveTerr(target: Terrain): Int {
+        val index = terrains.indexOf(target)
+        require(index >= 0) { "Prto.ignoreMovementCost references a Terrain not present in terrains" }
         return index
     }
 
@@ -345,9 +345,9 @@ fun List<Prto>.toWire(
         val availableTo = prto.availableTo.fold(0) { acc, race -> acc or (1 shl resolveRace(race)) }
         val enslaveResultsIndex = resolvePrto("enslaveResults", prto.enslaveResults)
         val stealthTargetUnitTypesIndices = prto.stealthTargetUnitTypes.map { resolvePrto("stealthTargetUnitTypes", it) }
-        val ignoreMovementCostBytes = ByteArray((terrs.size + 7) / 8)
-        prto.ignoreMovementCost.forEach { terr ->
-            val index = resolveTerr(terr)
+        val ignoreMovementCostBytes = ByteArray((terrains.size + 7) / 8)
+        prto.ignoreMovementCost.forEach { terrain ->
+            val index = resolveTerr(terrain)
             ignoreMovementCostBytes[index / 8] = (ignoreMovementCostBytes[index / 8].toInt() or (1 shl (index % 8))).toByte()
         }
         val ignoreMovementCost = ByteString.of(*ignoreMovementCostBytes)
