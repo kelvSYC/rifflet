@@ -762,6 +762,22 @@ class PrtoEntryValidationTest : FunSpec({
         )
     }
 
+    test("validatePrtoRequiredResourceNotBonus flags multiple fields when multiple are Bonus-type") {
+        val goods = listOf(goodEntryForBonusCheck(GoodResourceType.BONUS))
+        val entry = prtoEntry().copy(requiredResource1 = 0, requiredResource3 = 0)
+        val file = fileWithGoodsAndPrto(goods, listOf(entry))
+
+        validatePrtoRequiredResourceNotBonus(file) shouldBe listOf(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                Civ3SectionIds.PRTO,
+                0,
+                "requiredResource1, requiredResource3",
+                "a required resource must be Luxury or Strategic, not Bonus (requiredResource1, requiredResource3)",
+            ),
+        )
+    }
+
     test("validatePrtoRequiredResourceNotBonus returns no issues when GOOD or PRTO is absent") {
         val onlyPrto = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), listOf(PrtoSection(listOf(prtoEntry()))))
         val onlyGoods = Civ3File(Civ3Header(major = 12, minor = 0, description = "", title = ""), listOf(GoodSection(listOf(goodEntryForBonusCheck(GoodResourceType.BONUS)))))
