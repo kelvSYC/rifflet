@@ -1,7 +1,6 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.EspnEntry
-import com.kelvsyc.rifflet.civ3.ExprEntry
 import com.kelvsyc.rifflet.civ3.GovtEntry
 import com.kelvsyc.rifflet.civ3.GovtRelationship
 import com.kelvsyc.rifflet.civ3.TechEntry
@@ -14,7 +13,7 @@ import com.kelvsyc.rifflet.civ3.TechEntry
 fun List<GovtEntry>.toDomain(
     techs: List<TechEntry>,
     espionageMissions: List<EspnEntry>,
-    experienceLevels: List<ExprEntry>,
+    experienceLevels: List<ExperienceLevel>,
 ): List<Government> {
     val governments = map { entry ->
         Government(
@@ -69,16 +68,17 @@ fun List<GovtEntry>.toDomain(
  * ignored (irrelevant to this encode); entries missing for a [Government] inside this list default
  * to `GovtRelationship(canBribe = 0, propagandaModifier = 0, resistanceModifier = 0)`.
  *
- * [techs]/[espionageMissions]/[experienceLevels] are still `data class`-based wire types, so these
- * particular lookups are structural-equality matches, not true reference-identity matches (unlike
- * the [Government]-to-[Government] [Government.relationships] lookups below, which are identity-based
- * since [Government] is a plain class) — a narrow, pre-existing limitation that resolves once those
- * sections get their own domain types.
+ * [techs]/[espionageMissions] are still `data class`-based wire types, so these particular lookups
+ * are structural-equality matches, not true reference-identity matches (unlike the
+ * [Government]-to-[Government] [Government.relationships] lookups below, which are identity-based
+ * since [Government] is a plain class, or the [experienceLevels] lookups, which are now also
+ * structural-equality matches against a domain type rather than a wire one) — a narrow,
+ * pre-existing limitation that resolves once `TECH`/`ESPN` get their own domain types.
  */
 fun List<Government>.toWire(
     techs: List<TechEntry>,
     espionageMissions: List<EspnEntry>,
-    experienceLevels: List<ExprEntry>,
+    experienceLevels: List<ExperienceLevel>,
 ): List<GovtEntry> {
     val roster = this
     return map { government ->
