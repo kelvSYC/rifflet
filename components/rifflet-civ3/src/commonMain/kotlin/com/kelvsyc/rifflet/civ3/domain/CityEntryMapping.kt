@@ -1,16 +1,15 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.CityEntry
-import com.kelvsyc.rifflet.civ3.LeadEntry
 
 /**
  * Converts a parsed `CITY` section to its domain-layer form.
  *
- * [races]/[buildings] are the already domain-converted `RACE`/`BLDG` lists; [leads] stays a wire
- * type (`LEAD` doesn't have a domain type yet). The caller is responsible for supplying `races`/
- * `buildings` from wherever is appropriate for this file — this file's own sections converted via
- * their own `toDomain()`, or an externally-sourced standard ruleset's, when Custom Rules is off
- * (`CITY`, gated by the separate Custom Map toggle, can exist without them).
+ * [races]/[buildings]/[leads] are the already domain-converted `RACE`/`BLDG`/`LEAD` lists. The
+ * caller is responsible for supplying these from wherever is appropriate for this file — this
+ * file's own sections converted via their own `toDomain()`, or an externally-sourced standard
+ * ruleset's, when Custom Rules is off (`CITY`, gated by the separate Custom Map toggle, can exist
+ * without them).
  *
  * Throws [IllegalArgumentException] if any entry's `ownerType` is outside the documented `0..3`
  * range (see [resolveOwner]'s own KDoc), if it is `0` (None) or `1` (Barbarian), or if it is `2`
@@ -20,7 +19,7 @@ import com.kelvsyc.rifflet.civ3.LeadEntry
  */
 fun List<CityEntry>.toDomain(
     races: List<Race>,
-    leads: List<LeadEntry>,
+    leads: List<Leader>,
     buildings: List<Building>,
 ): List<City> = map { entry ->
     require(entry.ownerType != 0 && entry.ownerType != 1) {
@@ -63,7 +62,7 @@ fun List<CityEntry>.toDomain(
  */
 fun List<City>.toWire(
     races: List<Race>,
-    leads: List<LeadEntry>,
+    leads: List<Leader>,
     buildings: List<Building>,
 ): List<CityEntry> = map { city ->
     val (ownerType, owner) = when (val o = city.owner) {
@@ -79,7 +78,7 @@ fun List<City>.toWire(
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
-                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                require(index >= 0) { "Owner.Player references a Leader not present in leads" }
                 index
             } ?: o.unresolvedIndex
             )

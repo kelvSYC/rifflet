@@ -1,15 +1,13 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.UnitEntry
 
 /**
  * Converts a parsed `UNIT` section to its domain-layer form.
  *
- * [races]/[prtos]/[experienceLevels] are the already domain-converted `RACE`/`PRTO`/`EXPR` lists
+ * [races]/[leads]/[prtos]/[experienceLevels] are the already domain-converted `RACE`/`LEAD`/`PRTO`/`EXPR` lists
  * (`experienceLevels` specifically as `Map<ExperienceLevelSlot, ExperienceLevel>.toOrderedList()`,
- * since `EXPR`'s own domain form is a `Map`, not a `List`). [leads] stays a wire type (`LEAD`
- * doesn't have a domain type yet). The caller is responsible for supplying the right lists for
+ * since `EXPR`'s own domain form is a `Map`, not a `List`). The caller is responsible for supplying the right lists for
  * this file — this file's own sections converted via their own `toDomain()`, or
  * externally-sourced standard lists, as appropriate.
  *
@@ -22,7 +20,7 @@ import com.kelvsyc.rifflet.civ3.UnitEntry
  */
 fun List<UnitEntry>.toDomain(
     races: List<Race>,
-    leads: List<LeadEntry>,
+    leads: List<Leader>,
     prtos: List<Prto>,
     experienceLevels: List<ExperienceLevel>,
 ): List<PlacedUnit> = map { entry ->
@@ -82,7 +80,7 @@ fun List<UnitEntry>.toDomain(
  */
 fun List<PlacedUnit>.toWire(
     races: List<Race>,
-    leads: List<LeadEntry>,
+    leads: List<Leader>,
     prtos: List<Prto>,
     experienceLevels: List<ExperienceLevel>,
 ): List<UnitEntry> = map { unit ->
@@ -99,7 +97,7 @@ fun List<PlacedUnit>.toWire(
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
-                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                require(index >= 0) { "Owner.Player references a Leader not present in leads" }
                 index
             } ?: o.unresolvedIndex
             )

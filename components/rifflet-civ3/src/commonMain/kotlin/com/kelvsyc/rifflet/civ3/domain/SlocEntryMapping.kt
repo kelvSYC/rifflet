@@ -1,6 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.SlocEntry
 
 /**
@@ -17,7 +16,7 @@ import com.kelvsyc.rifflet.civ3.SlocEntry
  * (Civilization) pointing at RACE index `0` (the barbarian placeholder civilization) — the real
  * Rules/Scenario editor never allows either as a starting-location owner.
  */
-fun List<SlocEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<StartingLocation> = map { entry ->
+fun List<SlocEntry>.toDomain(races: List<Race>, leads: List<Leader>): List<StartingLocation> = map { entry ->
     val owner = resolveOwner(entry.ownerType, entry.owner, races, leads)
     require(owner !is Owner.Barbarian) {
         "SLOC entries cannot be owned by Barbarian (ownerType=1) — the Rules/Scenario editor does not allow it"
@@ -45,7 +44,7 @@ fun List<SlocEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<St
  * back their preserved `unresolvedIndex` whenever the resolved reference is `null`, rather than a
  * hardcoded `-1`.
  */
-fun List<StartingLocation>.toWire(races: List<Race>, leads: List<LeadEntry>): List<SlocEntry> = map { location ->
+fun List<StartingLocation>.toWire(races: List<Race>, leads: List<Leader>): List<SlocEntry> = map { location ->
     val (ownerType, owner) = when (val o = location.owner) {
         is Owner.None -> 0 to -1
         is Owner.Barbarian -> 1 to o.tribeIndex
@@ -59,7 +58,7 @@ fun List<StartingLocation>.toWire(races: List<Race>, leads: List<LeadEntry>): Li
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
-                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                require(index >= 0) { "Owner.Player references a Leader not present in leads" }
                 index
             } ?: o.unresolvedIndex
             )

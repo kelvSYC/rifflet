@@ -1,7 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.LeadEntry
-
 /**
  * The resolved meaning of an `ownerType`/`owner` wire field pair — the domain-layer counterpart to
  * [com.kelvsyc.rifflet.civ3.Owner], shared across every section using this pattern
@@ -31,14 +29,13 @@ sealed interface Owner {
     data class Barbarian(val tribeIndex: Int = -1) : Owner
 
     /**
-     * `ownerType == 3`: owned by a player. References the wire `LeadEntry` — `LEAD` doesn't have
-     * its own domain type yet. [unresolvedIndex] preserves the raw wire `owner` value whenever
-     * [lead] is `null` (either a genuinely dangling index, or `LEAD` legitimately absent because
-     * Custom Player Data is off) — consulted by `toWire()` only in that case; when [lead] is
-     * non-null, its position is re-derived instead, so reassigning [lead] to a different object
+     * `ownerType == 3`: owned by a player. [unresolvedIndex] preserves the raw wire `owner` value
+     * whenever [lead] is `null` (either a genuinely dangling index, or `LEAD` legitimately absent
+     * because Custom Player Data is off) — consulted by `toWire()` only in that case; when [lead]
+     * is non-null, its position is re-derived instead, so reassigning [lead] to a different object
      * still round-trips correctly.
      */
-    data class Player(val lead: LeadEntry? = null, val unresolvedIndex: Int = -1) : Owner
+    data class Player(val lead: Leader? = null, val unresolvedIndex: Int = -1) : Owner
 
     /**
      * `ownerType == 2`: owned by a civilization. [race] is `null` when the wire `owner` index
@@ -58,7 +55,7 @@ sealed interface Owner {
  * construction-time error, the same way TECH/BLDG/PRTO's cycle guards treat other
  * "impossible per the editor" conditions.
  */
-internal fun resolveOwner(ownerType: Int, owner: Int, races: List<Race>, leads: List<LeadEntry>): Owner {
+internal fun resolveOwner(ownerType: Int, owner: Int, races: List<Race>, leads: List<Leader>): Owner {
     require(ownerType in 0..3) { "ownerType=$ownerType is not a recognized value (0..3)" }
     return when (ownerType) {
         0 -> Owner.None

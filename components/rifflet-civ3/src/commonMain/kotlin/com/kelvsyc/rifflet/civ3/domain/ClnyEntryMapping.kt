@@ -1,15 +1,13 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.ClnyEntry
-import com.kelvsyc.rifflet.civ3.LeadEntry
 
 /**
  * Converts a parsed `CLNY` section to its domain-layer form.
  *
- * [races] is the already domain-converted `RACE` list; [leads] stays a wire type (`LEAD` doesn't
- * have a domain type yet). The caller is responsible for supplying the right lists for this file —
- * this file's own sections converted via their own `toDomain()`, or externally-sourced standard
- * lists, as appropriate.
+ * [races]/[leads] are the already domain-converted `RACE`/`LEAD` lists. The caller is responsible
+ * for supplying the right lists for this file — this file's own sections converted via their own
+ * `toDomain()`, or externally-sourced standard lists, as appropriate.
  *
  * Throws [IllegalArgumentException] if any entry's `ownerType` is outside the documented `0..3`
  * range (see `resolveOwner`'s own KDoc in `Owner.kt`), if it is `0` (None) or `1` (Barbarian), or
@@ -18,7 +16,7 @@ import com.kelvsyc.rifflet.civ3.LeadEntry
  * a real civilization or player, and never the barbarian placeholder, uniformly across all 4
  * `ClnyImprovementType` values.
  */
-fun List<ClnyEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<Colony> = map { entry ->
+fun List<ClnyEntry>.toDomain(races: List<Race>, leads: List<Leader>): List<Colony> = map { entry ->
     require(entry.ownerType != 0 && entry.ownerType != 1) {
         "CLNY entries cannot be owned by None or Barbarian (ownerType=${entry.ownerType}) — the " +
             "Rules/Scenario editor requires every colony/airfield/radar tower/outpost to belong " +
@@ -51,7 +49,7 @@ fun List<ClnyEntry>.toDomain(races: List<Race>, leads: List<LeadEntry>): List<Co
  * a hardcoded `-1`. [Owner.Barbarian] is handled for exhaustiveness only: a domain-constructed
  * [Colony] can never legitimately hold one — see `toDomain()`'s guard.
  */
-fun List<Colony>.toWire(races: List<Race>, leads: List<LeadEntry>): List<ClnyEntry> = map { colony ->
+fun List<Colony>.toWire(races: List<Race>, leads: List<Leader>): List<ClnyEntry> = map { colony ->
     val (ownerType, owner) = when (val o = colony.owner) {
         is Owner.None -> 0 to -1
         is Owner.Barbarian -> 1 to o.tribeIndex
@@ -65,7 +63,7 @@ fun List<Colony>.toWire(races: List<Race>, leads: List<LeadEntry>): List<ClnyEnt
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
-                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                require(index >= 0) { "Owner.Player references a Leader not present in leads" }
                 index
             } ?: o.unresolvedIndex
             )
