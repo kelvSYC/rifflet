@@ -11,6 +11,7 @@ import com.kelvsyc.rifflet.civ3.validation.ValidationSeverity
  */
 private val civ3ValidationRules: List<ValidationRule> = listOf(
     ValidationRule { file -> validatePollutionEffect(file) },
+    ValidationRule { file -> validateLeadCountMatchesWmapNumberOfCivs(file) },
     ValidationRule { file -> validateClearForestExclusiveToForest(file) },
     ValidationRule { file -> validateWsizCardinality(file) },
     ValidationRule { file -> validateWmapCardinality(file) },
