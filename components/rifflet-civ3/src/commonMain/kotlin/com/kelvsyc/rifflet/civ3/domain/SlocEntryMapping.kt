@@ -58,7 +58,7 @@ fun List<StartingLocation>.toWire(races: List<Race>, leads: List<Leader>): List<
         is Owner.Player -> 3 to (
             o.lead?.let {
                 val index = leads.indexOf(it)
-                require(index >= 0) { "Owner.Player references a LeadEntry not present in leads" }
+                require(index >= 0) { "Owner.Player references a Leader not present in leads" }
                 index
             } ?: o.unresolvedIndex
             )
