@@ -2,13 +2,11 @@ package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.CityEntry
 import com.kelvsyc.rifflet.civ3.Gender
-import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceLeader
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import okio.ByteString
 
 private fun cityEntry(
     name: String = "",
@@ -29,12 +27,7 @@ private fun race(name: String = ""): Race = Race(
     cultureGroup = RaceCultureGroup.NONE, civilizationGender = Gender.MALE,
 )
 
-private fun leadEntry(name: String = ""): LeadEntry = LeadEntry(
-    customCivData = 0, humanPlayer = 0, name = name, unknown = ByteString.of(*ByteArray(8)),
-    startUnits = emptyList(), genderOfLeaderName = 0, startingTechnologyIds = emptyList(),
-    difficulty = -2, initialEra = 0, startCash = 0, government = 0, civ = -2, color = 0,
-    skipFirstTurn = 0, unknown2 = ByteString.of(*ByteArray(4)), startEmbassies = 0,
-)
+private fun leadEntry(name: String = ""): Leader = Leader(name = name)
 
 private fun improvement(name: String = ""): Improvement = Improvement(
     description = "", name = name, civilopediaEntry = "", cost = 0, culture = 0,
