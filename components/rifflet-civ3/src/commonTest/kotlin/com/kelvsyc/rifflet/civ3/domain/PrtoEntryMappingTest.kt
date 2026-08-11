@@ -74,7 +74,7 @@ private fun prtoEntry(
 
 private fun resource(): Resource = Resource(name = "Wine", type = GoodResourceType.LUXURY)
 
-private fun tech(name: String = ""): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0)
+private fun tech(name: String = ""): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, advanceIcon = 0, x = 0, y = 0)
 
 private fun race(name: String = ""): Race = Race(
     name = name, civilopediaEntry = "", adjective = "", noun = "",

@@ -8,7 +8,6 @@ private fun validTech(name: String = "Bronze Working"): Tech = Tech(
     name = name,
     civilopediaEntry = "",
     cost = 0,
-    era = 0,
     advanceIcon = 0,
     x = 0,
     y = 0,
@@ -23,6 +22,7 @@ class TechTest : FunSpec({
         tech.prerequisite2 shouldBe null
         tech.prerequisite3 shouldBe null
         tech.prerequisite4 shouldBe null
+        tech.era shouldBe null
         tech.flags shouldBe 0
         tech.flavors shouldBe 0
         tech.unknown shouldBe ByteString.of(0, 0, 0, 0)

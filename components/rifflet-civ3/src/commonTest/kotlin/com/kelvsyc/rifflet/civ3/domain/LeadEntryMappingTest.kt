@@ -31,7 +31,7 @@ private fun leadEntry(
     civ = civ, color = 0, skipFirstTurn = 0, unknown2 = ByteString.of(*ByteArray(4)), startEmbassies = 0,
 )
 
-private fun tech(name: String): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0)
+private fun tech(name: String): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, advanceIcon = 0, x = 0, y = 0)
 
 private fun race(name: String): Race = Race(
     name = name, civilopediaEntry = "", adjective = "", noun = "",

@@ -5,13 +5,14 @@ import com.kelvsyc.rifflet.civ3.findTechPrerequisiteCycle
 
 /**
  * Converts a parsed `TECH` section to its domain-layer form, resolving each entry's
- * self-referencing prerequisite indices into real [Tech] object references.
+ * self-referencing prerequisite indices into real [Tech] object references, and [era] against
+ * the already domain-converted `ERAS` list.
  *
  * Throws [IllegalArgumentException] if this list's prerequisite graph contains a cycle, checked
  * via [findTechPrerequisiteCycle] before constructing any [Tech] — this is what makes [Tech] safe
  * as a `data class` (see its own KDoc): nothing built through this function can ever be cyclic.
  */
-fun List<TechEntry>.toDomain(): List<Tech> {
+fun List<TechEntry>.toDomain(eras: List<Era>): List<Tech> {
     val cycle = findTechPrerequisiteCycle(this)
     require(cycle == null) { "TechEntry prerequisite graph contains a cycle: ${cycle?.joinToString(" -> ") { it.name }}" }
 
@@ -20,7 +21,7 @@ fun List<TechEntry>.toDomain(): List<Tech> {
             name = entry.name,
             civilopediaEntry = entry.civilopediaEntry,
             cost = entry.cost,
-            era = entry.era,
+            era = eras.getOrNull(entry.era),
             advanceIcon = entry.advanceIcon,
             x = entry.x,
             y = entry.y,
@@ -43,11 +44,13 @@ fun List<TechEntry>.toDomain(): List<Tech> {
 
 /**
  * Converts a `TECH` section's domain-layer form back to wire entries, resolving each [Tech]'s
- * self-referencing prerequisites back into indices against this list's own roster.
+ * self-referencing prerequisites back into indices against this list's own roster, and [Tech.era]
+ * back into an index against [eras].
  *
  * Throws [IllegalArgumentException] if [Tech.prerequisite1], [Tech.prerequisite2],
- * [Tech.prerequisite3], or [Tech.prerequisite4] references a [Tech] not present in this list —
- * a dangling reference at encode time is a real bug, not something to default silently.
+ * [Tech.prerequisite3], [Tech.prerequisite4], or [Tech.era] references an object not present in
+ * the corresponding list argument — a dangling reference at encode time is a real bug, not
+ * something to default silently.
  *
  * Since [Tech] is a `data class`, `indexOf` below is a structural-equality match, not true
  * reference identity — a narrow, accepted limitation shared with GOVT's `toWire()` lookups
@@ -55,7 +58,7 @@ fun List<TechEntry>.toDomain(): List<Tech> {
  * would be indistinguishable here; this resolves naturally for genuinely distinct techs, the
  * overwhelmingly common case.
  */
-fun List<Tech>.toWire(): List<TechEntry> {
+fun List<Tech>.toWire(eras: List<Era>): List<TechEntry> {
     val roster = this
     fun resolve(field: String, prerequisite: Tech?): Int = prerequisite?.let {
         val index = roster.indexOf(it)
@@ -68,7 +71,11 @@ fun List<Tech>.toWire(): List<TechEntry> {
             name = tech.name,
             civilopediaEntry = tech.civilopediaEntry,
             cost = tech.cost,
-            era = tech.era,
+            era = tech.era?.let {
+                val index = eras.indexOf(it)
+                require(index >= 0) { "Tech.era references an Era not present in eras" }
+                index
+            } ?: -1,
             advanceIcon = tech.advanceIcon,
             x = tech.x,
             y = tech.y,

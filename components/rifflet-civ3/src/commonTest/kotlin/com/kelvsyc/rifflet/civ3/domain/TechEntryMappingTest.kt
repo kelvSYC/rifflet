@@ -33,23 +33,34 @@ private fun techEntry(
     unknown = unknown,
 )
 
+private fun era(name: String): Era = Era(name = name)
+
 class TechEntryMappingTest : FunSpec({
 
     test("toDomain maps scalar fields straight across") {
-        val entry = techEntry(name = "Bronze Working", era = 0, flags = 5, flavors = 3, unknown = ByteString.of(9, 9, 9, 9))
+        val entry = techEntry(name = "Bronze Working", era = -1, flags = 5, flavors = 3, unknown = ByteString.of(9, 9, 9, 9))
 
-        val tech = listOf(entry).toDomain().single()
+        val tech = listOf(entry).toDomain(emptyList()).single()
 
         tech.name shouldBe "Bronze Working"
         tech.civilopediaEntry shouldBe "civilopedia text"
         tech.cost shouldBe 10
-        tech.era shouldBe 0
         tech.advanceIcon shouldBe 1
         tech.x shouldBe 2
         tech.y shouldBe 3
         tech.flags shouldBe 5
         tech.flavors shouldBe 3
         tech.unknown shouldBe ByteString.of(9, 9, 9, 9)
+    }
+
+    test("toDomain resolves era against the supplied ERAS list, null for a dangling index") {
+        val ancient = era("Ancient Times")
+        val entries = listOf(techEntry(name = "Bronze Working", era = 0), techEntry(name = "Never", era = -1))
+
+        val techs = entries.toDomain(listOf(ancient))
+
+        techs[0].era shouldBe ancient
+        techs[1].era shouldBe null
     }
 
     test("toDomain resolves prerequisites against sibling entries, preserving each of the 4 slots") {
@@ -59,7 +70,7 @@ class TechEntryMappingTest : FunSpec({
             techEntry(name = "Currency", prerequisite2 = 0, prerequisite4 = 1),
         )
 
-        val techs = entries.toDomain()
+        val techs = entries.toDomain(emptyList())
 
         techs[1].prerequisite1 shouldBe techs[0]
         techs[2].prerequisite2 shouldBe techs[0]
@@ -69,7 +80,7 @@ class TechEntryMappingTest : FunSpec({
     test("toDomain resolves -1/out-of-range prerequisites to null") {
         val entry = techEntry(prerequisite1 = -1, prerequisite2 = 99)
 
-        val tech = listOf(entry).toDomain().single()
+        val tech = listOf(entry).toDomain(emptyList()).single()
 
         tech.prerequisite1 shouldBe null
         tech.prerequisite2 shouldBe null
@@ -81,32 +92,50 @@ class TechEntryMappingTest : FunSpec({
             techEntry(name = "B", prerequisite1 = 0),
         )
 
-        shouldThrow<IllegalArgumentException> { entries.toDomain() }
+        shouldThrow<IllegalArgumentException> { entries.toDomain(emptyList()) }
     }
 
     test("toDomain throws on a self-loop") {
         val entries = listOf(techEntry(name = "A", prerequisite1 = 0))
 
-        shouldThrow<IllegalArgumentException> { entries.toDomain() }
+        shouldThrow<IllegalArgumentException> { entries.toDomain(emptyList()) }
     }
 
     test("toDomain().toWire() round-trips a full TECH section") {
+        val ancient = era("Ancient Times")
         val entries = listOf(
             techEntry(name = "Bronze Working", era = 0, flags = 5, flavors = 3, unknown = ByteString.of(9, 9, 9, 9)),
             techEntry(name = "Iron Working", era = 0, prerequisite1 = 0),
             techEntry(name = "Currency", era = 0, prerequisite2 = 0, prerequisite4 = 1),
         )
 
-        val roundTripped = entries.toDomain().toWire()
+        val roundTripped = entries.toDomain(listOf(ancient)).toWire(listOf(ancient))
 
         roundTripped shouldBe entries
     }
 
     test("toWire throws on a prerequisite1 not present in the passed-through roster") {
-        val tech = listOf(techEntry(name = "A")).toDomain().single()
-        val outsider = listOf(techEntry(name = "Outsider")).toDomain().single()
+        val tech = listOf(techEntry(name = "A")).toDomain(emptyList()).single()
+        val outsider = listOf(techEntry(name = "Outsider")).toDomain(emptyList()).single()
         tech.prerequisite1 = outsider
 
-        shouldThrow<IllegalArgumentException> { listOf(tech).toWire() }
+        shouldThrow<IllegalArgumentException> { listOf(tech).toWire(emptyList()) }
+    }
+
+    test("toWire throws on an era not present in the passed-through eras list") {
+        val ancient = era("Ancient Times")
+        val tech = listOf(techEntry(name = "A", era = 0)).toDomain(listOf(ancient)).single()
+        val outsider = era("Outsider Era")
+        tech.era = outsider
+
+        shouldThrow<IllegalArgumentException> { listOf(tech).toWire(listOf(ancient)) }
+    }
+
+    test("toWire writes -1 for a null era") {
+        val tech = listOf(techEntry(name = "A", era = -1)).toDomain(emptyList()).single()
+
+        val wire = listOf(tech).toWire(emptyList()).single()
+
+        wire.era shouldBe -1
     }
 })
