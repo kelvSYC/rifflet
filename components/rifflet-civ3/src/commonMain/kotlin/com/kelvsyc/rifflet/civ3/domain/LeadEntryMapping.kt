@@ -1,7 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.DiffEntry
-import com.kelvsyc.rifflet.civ3.ErasEntry
 import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.LeadEntry
 import com.kelvsyc.rifflet.civ3.LeadStartUnit
@@ -9,16 +7,16 @@ import com.kelvsyc.rifflet.civ3.LeadStartUnit
 /**
  * Converts a parsed `LEAD` section to its domain-layer form.
  *
- * [techs]/[governments]/[races]/[prtos] are the already domain-converted `TECH`/`GOVT`/`RACE`/
- * `PRTO` lists; [difficulties]/[eras] stay wire types (`DIFF`/`ERAS` don't have domain types yet).
+ * [techs]/[governments]/[races]/[prtos]/[difficulties]/[eras] are the already domain-converted
+ * `TECH`/`GOVT`/`RACE`/`PRTO`/`DIFF`/`ERAS` lists.
  */
 fun List<LeadEntry>.toDomain(
     techs: List<Tech>,
     governments: List<Government>,
     races: List<Race>,
     prtos: List<Prto>,
-    difficulties: List<DiffEntry>,
-    eras: List<ErasEntry>,
+    difficulties: List<Difficulty>,
+    eras: List<Era>,
 ): List<Leader> = map { entry ->
     Leader(
         name = entry.name,
@@ -52,11 +50,11 @@ fun List<LeadEntry>.toDomain(
  * Converts a `LEAD` section's domain-layer form back to wire entries.
  *
  * Throws [IllegalArgumentException] if [LeaderCivilization.Preset.race], [Leader.government],
- * [LeaderDifficulty.Preset.difficulty], or any [StartUnit.unitType] resolves to an object not
- * present in the corresponding list argument — `indexOf`-based, the same accepted
- * structural-equality limitation as every other `toWire()` in this codebase.
- * [LeaderCivilization.Random]/[LeaderCivilization.Unrestricted] write back `-2`/`-3`;
- * [LeaderDifficulty.Unrestricted] writes back `-2`. A `null` [Leader.government]/
+ * [LeaderDifficulty.Preset.difficulty], [Leader.initialEra], any [StartUnit.unitType], or any
+ * [Leader.startingTechnologies] entry resolves to an object not present in the corresponding list
+ * argument — `indexOf`-based, the same accepted structural-equality limitation as every other
+ * `toWire()` in this codebase. [LeaderCivilization.Random]/[LeaderCivilization.Unrestricted] write
+ * back `-2`/`-3`; [LeaderDifficulty.Unrestricted] writes back `-2`. A `null` [Leader.government]/
  * [Leader.initialEra]/[StartUnit.unitType]/[LeaderCivilization.Preset.race]/
  * [LeaderDifficulty.Preset.difficulty] writes back `-1` — none of these fields preserve a dangling
  * wire index across a `toDomain()`/`toWire()` round-trip.
@@ -66,8 +64,8 @@ fun List<Leader>.toWire(
     governments: List<Government>,
     races: List<Race>,
     prtos: List<Prto>,
-    difficulties: List<DiffEntry>,
-    eras: List<ErasEntry>,
+    difficulties: List<Difficulty>,
+    eras: List<Era>,
 ): List<LeadEntry> = map { leader ->
     val civ = when (val c = leader.civilization) {
         LeaderCivilization.Random -> -2
@@ -82,7 +80,7 @@ fun List<Leader>.toWire(
         LeaderDifficulty.Unrestricted -> -2
         is LeaderDifficulty.Preset -> d.difficulty?.let {
             val index = difficulties.indexOf(it)
-            require(index >= 0) { "Leader.difficulty references a DiffEntry not present in difficulties" }
+            require(index >= 0) { "Leader.difficulty references a Difficulty not present in difficulties" }
             index
         } ?: -1
     }
@@ -93,7 +91,7 @@ fun List<Leader>.toWire(
     } ?: -1
     val initialEra = leader.initialEra?.let {
         val index = eras.indexOf(it)
-        require(index >= 0) { "Leader.initialEra references an ErasEntry not present in eras" }
+        require(index >= 0) { "Leader.initialEra references an Era not present in eras" }
         index
     } ?: -1
     val startUnits = leader.startUnits.map { startUnit ->

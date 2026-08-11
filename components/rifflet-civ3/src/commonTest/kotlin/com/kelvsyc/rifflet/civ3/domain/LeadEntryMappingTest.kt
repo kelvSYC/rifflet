@@ -1,7 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.DiffEntry
-import com.kelvsyc.rifflet.civ3.ErasEntry
 import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.GovtCorruption
 import com.kelvsyc.rifflet.civ3.GovtHurrying
@@ -56,18 +54,9 @@ private fun government(name: String): Government = Government(
 
 private fun prto(name: String): Prto = Prto(name = name, civilopediaEntry = "", iconIndex = 0, type = PrtoDomain.LAND)
 
-private fun diffEntry(name: String): DiffEntry = DiffEntry(
-    name = name, numberOfCitizensBornContent = 0, maxGovernmentTransitionTime = 0,
-    numberOfAiDefensiveStartingUnits = 0, numberOfAiOffensiveStartingUnits = 0,
-    extraStartUnit1 = 0, extraStartUnit2 = 0, additionalFreeSupport = 0,
-    unitSupportBonusForEachSettlement = 0, attackBonusAgainstBarbarians = 0, costFactor = 0,
-    percentageOfOptimalCities = 0, aiToAiTradeRate = 0, corruptionPercentage = 0, militaryLaw = 0,
-)
+private fun difficulty(name: String): Difficulty = Difficulty(name = name)
 
-private fun erasEntry(name: String): ErasEntry = ErasEntry(
-    name = name, civilopediaEntry = "", researcher1 = "", researcher2 = "", researcher3 = "",
-    researcher4 = "", researcher5 = "", numberOfUsedResearcherNames = 0, unknown = ByteString.of(*ByteArray(4)),
-)
+private fun era(name: String): Era = Era(name = name)
 
 class LeadEntryMappingTest : FunSpec({
 
@@ -98,8 +87,8 @@ class LeadEntryMappingTest : FunSpec({
         leader.civilization shouldBe LeaderCivilization.Preset(null)
     }
 
-    test("toDomain resolves difficulty: Unrestricted (-2) and a specific DiffEntry") {
-        val hard = diffEntry("Deity")
+    test("toDomain resolves difficulty: Unrestricted (-2) and a specific Difficulty") {
+        val hard = difficulty("Deity")
         val entries = listOf(leadEntry(difficulty = -2), leadEntry(difficulty = 0))
 
         val leaders = entries.toDomain(emptyList(), emptyList(), emptyList(), emptyList(), listOf(hard), emptyList())
@@ -110,7 +99,7 @@ class LeadEntryMappingTest : FunSpec({
 
     test("toDomain resolves government, initialEra against the supplied lists") {
         val despotism = government("Despotism")
-        val ancient = erasEntry("Ancient Era")
+        val ancient = era("Ancient Era")
         val entry = leadEntry(government = 0, initialEra = 0)
 
         val leader = listOf(entry).toDomain(emptyList(), listOf(despotism), emptyList(), emptyList(), emptyList(), listOf(ancient)).single()
@@ -142,8 +131,8 @@ class LeadEntryMappingTest : FunSpec({
         val despotism = government("Despotism")
         val rome = race("Rome")
         val warrior = prto("Warrior")
-        val hard = diffEntry("Deity")
-        val ancient = erasEntry("Ancient Era")
+        val hard = difficulty("Deity")
+        val ancient = era("Ancient Era")
         val entries = listOf(
             leadEntry(
                 name = "Caesar", startUnits = listOf(LeadStartUnit(quantity = 2, unitType = 0)),
@@ -185,7 +174,7 @@ class LeadEntryMappingTest : FunSpec({
         val withUnit = Leader(name = "A", startUnits = mutableListOf(StartUnit(quantity = 1, unitType = prto("Outsider"))))
         shouldThrow<IllegalArgumentException> { listOf(withUnit).toWire(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList()) }
 
-        val withDifficulty = Leader(name = "A", difficulty = LeaderDifficulty.Preset(diffEntry("Outsider")))
+        val withDifficulty = Leader(name = "A", difficulty = LeaderDifficulty.Preset(difficulty("Outsider")))
         shouldThrow<IllegalArgumentException> { listOf(withDifficulty).toWire(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList()) }
     }
 })
