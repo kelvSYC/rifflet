@@ -26,7 +26,7 @@ private fun tfrmEntry(
 
 private fun fillerJobs(count: Int): List<TfrmEntry> = List(count) { tfrmEntry(name = "Filler$it") }
 
-private fun tech(name: String): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0)
+private fun tech(name: String): Tech = Tech(name = name, civilopediaEntry = "", cost = 0, advanceIcon = 0, x = 0, y = 0)
 
 private fun resource(name: String): Resource = Resource(name = name)
 

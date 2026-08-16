@@ -1,7 +1,5 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.DiffEntry
-import com.kelvsyc.rifflet.civ3.ErasEntry
 import com.kelvsyc.rifflet.civ3.Gender
 import okio.ByteString
 
@@ -17,8 +15,7 @@ import okio.ByteString
  * @param genderOfLeaderName This player's leader's gender.
  * @param government This player's starting government.
  * @param difficulty This player's difficulty restriction. See [LeaderDifficulty].
- * @param initialEra This player's starting era. References the wire `ErasEntry` — `ERAS` doesn't
- *   have its own domain type yet.
+ * @param initialEra This player's starting era.
  * @param startCash This player's starting treasury.
  * @param color This player's civilization color index.
  * @param startUnits This player's starting unit allotments. See [StartUnit].
@@ -37,7 +34,7 @@ data class Leader(
     var genderOfLeaderName: Gender = Gender.MALE,
     var government: Government? = null,
     var difficulty: LeaderDifficulty = LeaderDifficulty.Unrestricted,
-    var initialEra: ErasEntry? = null,
+    var initialEra: Era? = null,
     var startCash: Int = 0,
     var color: Int = 0,
     var startUnits: MutableList<StartUnit> = mutableListOf(),
@@ -71,7 +68,7 @@ sealed interface LeaderDifficulty {
     /** `difficulty == -2`: the Players tab's "Any" option — this slot isn't restricted to one difficulty. */
     data object Unrestricted : LeaderDifficulty
 
-    /** `difficulty >= 0`: a specific difficulty, referencing the wire `DiffEntry` — `DIFF` has no
-     * domain type yet. [difficulty] is `null` when the wire index doesn't resolve. */
-    data class Preset(val difficulty: DiffEntry?) : LeaderDifficulty
+    /** `difficulty >= 0`: a specific difficulty. [difficulty] is `null` when the wire index doesn't
+     * resolve. */
+    data class Preset(val difficulty: Difficulty?) : LeaderDifficulty
 }

@@ -14,7 +14,9 @@ import okio.ByteString
  * @param name This advance's name.
  * @param civilopediaEntry Encyclopedia/Civilopedia entry text.
  * @param cost This advance's research cost, in beakers.
- * @param era This advance's era.
+ * @param era This advance's era. `null` when the wire index doesn't resolve — includes a small
+ *   number of corpus-confirmed custom-scenario techs that use an out-of-range sentinel with no
+ *   known meaning.
  * @param advanceIcon This advance's icon index.
  * @param x This advance's X position in the Civilopedia tech-tree display.
  * @param y This advance's Y position in the Civilopedia tech-tree display.
@@ -29,7 +31,7 @@ data class Tech(
     var name: String,
     var civilopediaEntry: String,
     var cost: Int,
-    var era: Int,
+    var era: Era? = null,
     var advanceIcon: Int,
     var x: Int,
     var y: Int,

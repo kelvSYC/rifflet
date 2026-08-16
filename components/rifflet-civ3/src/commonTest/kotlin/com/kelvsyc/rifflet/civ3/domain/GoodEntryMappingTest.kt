@@ -30,7 +30,7 @@ private fun goodEntry(
 )
 
 private fun tech(name: String = ""): Tech = Tech(
-    name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0,
+    name = name, civilopediaEntry = "", cost = 0, advanceIcon = 0, x = 0, y = 0,
 )
 
 class GoodEntryMappingTest : FunSpec({
