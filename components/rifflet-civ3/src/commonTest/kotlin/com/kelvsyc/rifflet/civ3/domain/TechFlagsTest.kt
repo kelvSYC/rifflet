@@ -1,7 +1,9 @@
 package com.kelvsyc.rifflet.civ3.domain
 
+import com.kelvsyc.kotlin.core.collections.mutableEnumSetOf
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import com.kelvsyc.rifflet.civ3.FlavorSlot
 
 private fun validTech(): Tech = Tech(
     name = "Bronze Working",
@@ -26,15 +28,24 @@ class TechFlagsTest : FunSpec({
         tech.flags shouldBe (1 shl 22)
     }
 
-    test("flavor1 (bit 0) and flavor7 (bit 6, highest flavors bit) are independently settable") {
+    test("flavorSlots reads and writes the full FLAV membership set") {
         val tech = validTech()
 
-        tech.flavor1 = true
-        tech.flavor7 = true
-        tech.flavor1 = false
+        tech.flavorSlots shouldBe mutableEnumSetOf<FlavorSlot>()
 
-        tech.flavor1 shouldBe false
-        tech.flavor7 shouldBe true
+        tech.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_1, FlavorSlot.FLAVOR_7)
+
+        tech.flavorSlots shouldBe mutableEnumSetOf(FlavorSlot.FLAVOR_1, FlavorSlot.FLAVOR_7)
+        tech.flavors shouldBe (1 or (1 shl 6))
+    }
+
+    test("flavorSlots setter replaces the whole set, not just adds") {
+        val tech = validTech()
+        tech.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_1, FlavorSlot.FLAVOR_2)
+
+        tech.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_7)
+
+        tech.flavorSlots shouldBe mutableEnumSetOf(FlavorSlot.FLAVOR_7)
         tech.flavors shouldBe (1 shl 6)
     }
 })

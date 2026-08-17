@@ -1,10 +1,12 @@
 package com.kelvsyc.rifflet.civ3.domain
 
+import com.kelvsyc.kotlin.core.collections.mutableEnumSetOf
 import com.kelvsyc.rifflet.civ3.Gender
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceLeader
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import com.kelvsyc.rifflet.civ3.FlavorSlot
 
 private fun validRace(): Race = Race(
     name = "Rome",
@@ -27,12 +29,15 @@ class RaceFlagsTest : FunSpec({
         race.bonuses shouldBe 1
     }
 
-    test("flavor1 is settable and backed by flavors") {
+    test("flavorSlots reads and writes the full FLAV membership set") {
         val race = validRace()
 
-        race.flavor1 = true
+        race.flavorSlots shouldBe mutableEnumSetOf<FlavorSlot>()
+
+        race.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_1)
+
+        race.flavorSlots shouldBe mutableEnumSetOf(FlavorSlot.FLAVOR_1)
         race.flavors shouldBe 1
-        race.flavor1 shouldBe true
     }
 
     test("manageCitizens is settable and backed by governor.settings") {
@@ -70,15 +75,13 @@ class RaceFlagsTest : FunSpec({
         race.commercial shouldBe true
     }
 
-    test("flavor7 (highest flavors bit) is independently settable") {
+    test("flavorSlots setter replaces the whole set, not just adds") {
         val race = validRace()
+        race.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_1, FlavorSlot.FLAVOR_2)
 
-        race.flavor1 = true
-        race.flavor7 = true
-        race.flavor1 = false
+        race.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_7)
 
-        race.flavor1 shouldBe false
-        race.flavor7 shouldBe true
+        race.flavorSlots shouldBe mutableEnumSetOf(FlavorSlot.FLAVOR_7)
         race.flavors shouldBe (1 shl 6)
     }
 

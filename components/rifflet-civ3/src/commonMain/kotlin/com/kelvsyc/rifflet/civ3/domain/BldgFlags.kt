@@ -3,6 +3,10 @@ package com.kelvsyc.rifflet.civ3.domain
 import com.kelvsyc.kotlin.core.traits.integral.BitCollection
 import com.kelvsyc.kotlin.core.traits.integral.int
 import com.kelvsyc.kotlin.core.traits.integral.mutableExtensionBitFlag
+import com.kelvsyc.kotlin.core.collections.MutableEnumSet
+import com.kelvsyc.kotlin.core.collections.mutableEnumSetOf
+import com.kelvsyc.rifflet.civ3.FlavorSlot
+import com.kelvsyc.rifflet.civ3.index
 
 // --- Building.improvements (30 bits, declared once for all 4 variants) ---
 
@@ -152,3 +156,16 @@ var Wonder.increasedArmyValue: Boolean by
     BitCollection.int.mutableExtensionBitFlag({ wonders }, { wonders = it }, 16)
 var Wonder.touristAttraction: Boolean by
     BitCollection.int.mutableExtensionBitFlag({ wonders }, { wonders = it }, 17)
+
+// --- Building.flavors (7 bits, declared once for all 4 variants) ---
+
+/**
+ * This building's `FLAV` slot memberships (which of the 7 named flavor categories it belongs
+ * to), settable as a whole. Purely structural — does not resolve to real `Flavor` domain objects,
+ * no external `FlavorGroup` needed to read or write it.
+ */
+var Building.flavorSlots: MutableEnumSet<FlavorSlot>
+    get() = FlavorSlot.entries.filterTo(mutableEnumSetOf()) { (flavors shr it.index) and 1 == 1 }
+    set(value) {
+        flavors = FlavorSlot.entries.fold(0) { acc, slot -> if (slot in value) acc or (1 shl slot.index) else acc }
+    }

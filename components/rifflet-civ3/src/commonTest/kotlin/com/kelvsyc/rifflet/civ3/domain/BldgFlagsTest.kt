@@ -1,7 +1,9 @@
 package com.kelvsyc.rifflet.civ3.domain
 
+import com.kelvsyc.kotlin.core.collections.mutableEnumSetOf
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import com.kelvsyc.rifflet.civ3.FlavorSlot
 
 private fun validImprovement(): Improvement = Improvement(
     description = "", name = "Granary", civilopediaEntry = "",
@@ -61,5 +63,16 @@ class BldgFlagsTest : FunSpec({
         wonder.safeSeaTravel shouldBe false
         wonder.touristAttraction shouldBe true
         wonder.wonders shouldBe (1 shl 17)
+    }
+
+    test("flavorSlots reads and writes the full FLAV membership set, backed by flavors") {
+        val building: Building = validImprovement()
+
+        building.flavorSlots shouldBe mutableEnumSetOf<FlavorSlot>()
+
+        building.flavorSlots = mutableEnumSetOf(FlavorSlot.FLAVOR_1, FlavorSlot.FLAVOR_7)
+
+        building.flavorSlots shouldBe mutableEnumSetOf(FlavorSlot.FLAVOR_1, FlavorSlot.FLAVOR_7)
+        building.flavors shouldBe (1 or (1 shl 6))
     }
 })

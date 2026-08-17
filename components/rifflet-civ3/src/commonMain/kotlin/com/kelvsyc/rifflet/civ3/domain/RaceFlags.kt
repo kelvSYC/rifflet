@@ -3,6 +3,10 @@ package com.kelvsyc.rifflet.civ3.domain
 import com.kelvsyc.kotlin.core.traits.integral.BitCollection
 import com.kelvsyc.kotlin.core.traits.integral.int
 import com.kelvsyc.kotlin.core.traits.integral.mutableExtensionBitFlag
+import com.kelvsyc.kotlin.core.collections.MutableEnumSet
+import com.kelvsyc.kotlin.core.collections.mutableEnumSetOf
+import com.kelvsyc.rifflet.civ3.FlavorSlot
+import com.kelvsyc.rifflet.civ3.index
 
 /**
  * Settable counterparts to [com.kelvsyc.rifflet.civ3.militaristic] and its 7 sibling trait
@@ -18,15 +22,15 @@ var Race.agricultural: Boolean by BitCollection.int.mutableExtensionBitFlag({ bo
 var Race.seafaring: Boolean by BitCollection.int.mutableExtensionBitFlag({ bonuses }, { bonuses = it }, 7)
 
 /**
- * Settable counterparts to [com.kelvsyc.rifflet.civ3.flavor1] and its 6 siblings.
+ * This race's `FLAV` slot memberships (which of the 7 named flavor categories it belongs to),
+ * settable as a whole. Purely structural — does not resolve to real `Flavor` domain objects, no
+ * external `FlavorGroup` needed to read or write it.
  */
-var Race.flavor1: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 0)
-var Race.flavor2: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 1)
-var Race.flavor3: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 2)
-var Race.flavor4: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 3)
-var Race.flavor5: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 4)
-var Race.flavor6: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 5)
-var Race.flavor7: Boolean by BitCollection.int.mutableExtensionBitFlag({ flavors }, { flavors = it }, 6)
+var Race.flavorSlots: MutableEnumSet<FlavorSlot>
+    get() = FlavorSlot.entries.filterTo(mutableEnumSetOf()) { (flavors shr it.index) and 1 == 1 }
+    set(value) {
+        flavors = FlavorSlot.entries.fold(0) { acc, slot -> if (slot in value) acc or (1 shl slot.index) else acc }
+    }
 
 /**
  * Settable counterparts to [com.kelvsyc.rifflet.civ3.manageCitizens] and its 6 siblings.
