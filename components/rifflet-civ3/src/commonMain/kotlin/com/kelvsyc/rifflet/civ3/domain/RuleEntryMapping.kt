@@ -61,7 +61,9 @@ fun List<RuleEntry>.toDomain(prtos: List<Prto>, resources: List<Resource>, diffi
  * Throws [IllegalArgumentException] if any `DefaultUnits` field, [Rule.defaultMoneyResource], or
  * [Rule.defaultDifficulty] resolves to an object not present in the corresponding list argument —
  * `indexOf`-based, the same accepted structural-equality limitation as every other `toWire()` in
- * this codebase. A `null` value writes back `-1`.
+ * this codebase. A `null` value writes back `-1` for the nine standard `DefaultUnits` fields and
+ * for `defaultMoneyResource`/`defaultDifficulty`; `flagUnitType` is an exception — it writes back
+ * `null` directly since its wire field is itself `Int?` (nullable).
  */
 fun List<Rule>.toWire(prtos: List<Prto>, resources: List<Resource>, difficulties: List<Difficulty>): List<RuleEntry> = map { rule ->
     fun resolvePrto(field: String, prto: Prto?): Int = prto?.let {
