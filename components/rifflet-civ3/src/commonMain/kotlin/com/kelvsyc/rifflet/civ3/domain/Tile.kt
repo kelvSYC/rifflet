@@ -6,8 +6,8 @@ import com.kelvsyc.rifflet.civ3.GoodEntry
  * A single map tile, mutable — the domain-layer counterpart to
  * [com.kelvsyc.rifflet.civ3.TileEntry]. Carries no position: unlike [City]/[StartingLocation]/
  * [PlacedUnit]/[Colony], a tile isn't placed anywhere — it *is* a fixed map cell, and position is
- * a property of where it sits in a map structure, not of the tile's own content. A future
- * `WorldMap`/`TileGrid` wrapper type is the intended home for position-aware access.
+ * a property of where it sits in a map structure, not of the tile's own content. See [WorldMap]
+ * for position-aware access.
  *
  * @param rivers This tile's river data. See [TileRivers].
  * @param improvements This tile's worker-built features. See [TileImprovements].
