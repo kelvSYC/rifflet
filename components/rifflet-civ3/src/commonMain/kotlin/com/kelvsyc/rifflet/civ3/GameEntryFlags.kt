@@ -5,11 +5,18 @@ import com.kelvsyc.kotlin.core.traits.integral.BitCollection
 import com.kelvsyc.kotlin.core.traits.integral.extensionBitFlag
 import com.kelvsyc.kotlin.core.traits.integral.int
 
-private fun ByteString.toIntLe(): Int =
+internal fun ByteString.toIntLe(): Int =
     (this[0].toInt() and 0xFF) or
         ((this[1].toInt() and 0xFF) shl 8) or
         ((this[2].toInt() and 0xFF) shl 16) or
         ((this[3].toInt() and 0xFF) shl 24)
+
+internal fun Int.toByteStringLe(): ByteString = ByteString.of(
+    (this and 0xFF).toByte(),
+    ((this shr 8) and 0xFF).toByte(),
+    ((this shr 16) and 0xFF).toByte(),
+    ((this shr 24) and 0xFF).toByte(),
+)
 
 /**
  * Named accessors for [GameEntry.flags]'s 17 documented bits, per existing reverse-engineering

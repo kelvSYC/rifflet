@@ -6,12 +6,6 @@ import com.kelvsyc.kotlin.core.traits.integral.byte
 import com.kelvsyc.kotlin.core.traits.integral.int
 import okio.ByteString
 
-private fun ByteString.toIntLe(): Int =
-    (this[0].toInt() and 0xFF) or
-        ((this[1].toInt() and 0xFF) shl 8) or
-        ((this[2].toInt() and 0xFF) shl 16) or
-        ((this[3].toInt() and 0xFF) shl 24)
-
 /**
  * Named accessors for [TileEntry.overlayFlags]'s 8 documented bits, per existing
  * reverse-engineering documentation of the BIX/BIQ format. This field is vestigial in real
