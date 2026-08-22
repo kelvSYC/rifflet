@@ -1,11 +1,9 @@
 package com.kelvsyc.rifflet.civ3.domain
 
 import com.kelvsyc.rifflet.civ3.Gender
-import com.kelvsyc.rifflet.civ3.PrtoEntry
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceEraFilenames
 import com.kelvsyc.rifflet.civ3.RaceLeader
-import com.kelvsyc.rifflet.civ3.TechEntry
 import okio.ByteString
 
 /**
@@ -36,8 +34,7 @@ import okio.ByteString
  *   settable accessors.
  * @param governor This civilization's default Governor automation settings. See [RaceGovernor].
  * @param plurality This civilization's plurality setting.
- * @param unitTypeForKing References the wire `PrtoEntry` — `PRTO` doesn't have its own domain type
- *   yet.
+ * @param unitTypeForKing The unit type used to represent this civilization's King, if resolved.
  * @param flavors Bitmask membership in the `FLAV` section's 7 flavor slots. See `RaceFlags.kt` for
  *   named, settable accessors.
  * @param unknown 4 bytes with zero documented behavior. Preserved raw, not validated.
@@ -60,11 +57,11 @@ data class Race(
     var uniqueCivilizationCounter: Int = 0,
     var defaultColor: Int = 0,
     var uniqueColor: Int = 0,
-    var freeTechs: MutableList<TechEntry?> = MutableList(4) { null },
+    var freeTechs: MutableList<Tech?> = MutableList(4) { null },
     var bonuses: Int = 0,
     var governor: RaceGovernor = RaceGovernor(),
     var plurality: Int = 0,
-    var unitTypeForKing: PrtoEntry? = null,
+    var unitTypeForKing: Prto? = null,
     var flavors: Int = 0,
     var unknown: ByteString = ByteString.of(0, 0, 0, 0),
     var diplomacyTextIndex: Int = 0,
@@ -83,7 +80,7 @@ data class Race(
  * remaining slots `null`. A construction-time convenience only — the `toWire()` mapping function
  * never performs this normalization itself, to avoid reordering data read from a real file.
  */
-fun freeTechsOf(vararg techs: TechEntry): MutableList<TechEntry?> {
+fun freeTechsOf(vararg techs: Tech): MutableList<Tech?> {
     require(techs.size <= 4) { "freeTechsOf accepts at most 4 techs, was ${techs.size}" }
     return (techs.toList() + List(4 - techs.size) { null }).toMutableList()
 }

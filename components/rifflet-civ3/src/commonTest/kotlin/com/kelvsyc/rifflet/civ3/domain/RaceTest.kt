@@ -8,7 +8,6 @@ import com.kelvsyc.rifflet.civ3.GovtUnitSupportCosts
 import com.kelvsyc.rifflet.civ3.GovtWarWeariness
 import com.kelvsyc.rifflet.civ3.RaceCultureGroup
 import com.kelvsyc.rifflet.civ3.RaceLeader
-import com.kelvsyc.rifflet.civ3.TechEntry
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -24,10 +23,8 @@ private fun validRace(): Race = Race(
     civilizationGender = Gender.FEMALE,
 )
 
-private fun techEntry(name: String = ""): TechEntry = TechEntry(
-    name = name, civilopediaEntry = "", cost = 0, era = 0, advanceIcon = 0, x = 0, y = 0,
-    prerequisite1 = 0, prerequisite2 = 0, prerequisite3 = 0, prerequisite4 = 0,
-    flags = 0, flavors = 0, unknown = ByteString.of(0, 0, 0, 0),
+private fun tech(name: String = ""): Tech = Tech(
+    name = name, civilopediaEntry = "", cost = 0, advanceIcon = 0, x = 0, y = 0,
 )
 
 class RaceTest : FunSpec({
@@ -70,20 +67,20 @@ class RaceTest : FunSpec({
     }
 
     test("freeTechsOf front-packs fewer than 4 techs, nulls trailing") {
-        val tech = techEntry("Bronze Working")
+        val bronzeWorking = tech("Bronze Working")
 
-        freeTechsOf(tech) shouldBe listOf(tech, null, null, null)
+        freeTechsOf(bronzeWorking) shouldBe listOf(bronzeWorking, null, null, null)
         freeTechsOf() shouldBe listOf(null, null, null, null)
     }
 
     test("freeTechsOf with exactly 4 techs fills every slot") {
-        val techs = List(4) { techEntry("Tech$it") }
+        val techs = List(4) { tech("Tech$it") }
 
         freeTechsOf(techs[0], techs[1], techs[2], techs[3]) shouldBe techs
     }
 
     test("freeTechsOf throws on more than 4 techs") {
-        val techs = List(5) { techEntry("Tech$it") }
+        val techs = List(5) { tech("Tech$it") }
 
         shouldThrow<IllegalArgumentException> {
             freeTechsOf(techs[0], techs[1], techs[2], techs[3], techs[4])
