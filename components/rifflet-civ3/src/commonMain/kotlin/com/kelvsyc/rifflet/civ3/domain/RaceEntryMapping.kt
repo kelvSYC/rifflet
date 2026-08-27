@@ -1,21 +1,20 @@
 package com.kelvsyc.rifflet.civ3.domain
 
-import com.kelvsyc.rifflet.civ3.PrtoEntry
 import com.kelvsyc.rifflet.civ3.RaceEntry
 import com.kelvsyc.rifflet.civ3.RaceGovernor as WireRaceGovernor
 import com.kelvsyc.rifflet.civ3.RacePersonality as WireRacePersonality
-import com.kelvsyc.rifflet.civ3.TechEntry
 
 /**
  * Converts a parsed `RACE` section to its domain-layer form, resolving
  * [RaceEntry.personality]'s `GOVT` cross-refs against [governments] (already domain-converted —
- * see [Government]), [RaceEntry.unitTypeForKing] against [units], and each of
- * [RaceEntry.freeTechs]'s 4 slots against [techs], preserving position.
+ * see [Government]), [RaceEntry.unitTypeForKing] against [units] (already domain-converted `PRTO`
+ * — see [Prto]), and each of [RaceEntry.freeTechs]'s 4 slots against [techs] (already
+ * domain-converted `TECH` — see [Tech]), preserving position.
  */
 fun List<RaceEntry>.toDomain(
-    techs: List<TechEntry>,
+    techs: List<Tech>,
     governments: List<Government>,
-    units: List<PrtoEntry>,
+    units: List<Prto>,
 ): List<Race> = map { entry ->
     Race(
         name = entry.name,
@@ -65,9 +64,9 @@ fun List<RaceEntry>.toDomain(
  * for real files that don't front-pack their free techs (confirmed via corpus survey).
  */
 fun List<Race>.toWire(
-    techs: List<TechEntry>,
+    techs: List<Tech>,
     governments: List<Government>,
-    units: List<PrtoEntry>,
+    units: List<Prto>,
 ): List<RaceEntry> = map { race ->
     val favoriteGovernmentIndex = race.personality.favoriteGovernment?.let { government ->
         val index = governments.indexOf(government)
@@ -81,13 +80,13 @@ fun List<Race>.toWire(
     } ?: -1
     val unitTypeForKingIndex = race.unitTypeForKing?.let { unit ->
         val index = units.indexOf(unit)
-        require(index >= 0) { "Race.unitTypeForKing references a PrtoEntry not present in units" }
+        require(index >= 0) { "Race.unitTypeForKing references a Prto not present in units" }
         index
     } ?: -1
     val freeTechIndices = race.freeTechs.map { tech ->
         tech?.let {
             val index = techs.indexOf(it)
-            require(index >= 0) { "Race.freeTechs references a TechEntry not present in techs" }
+            require(index >= 0) { "Race.freeTechs references a Tech not present in techs" }
             index
         } ?: -1
     }
