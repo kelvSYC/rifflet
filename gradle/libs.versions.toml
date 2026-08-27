@@ -9,7 +9,7 @@ jsoup = "1.23.1"
 [libraries]
 # BOMs
 kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
-kotest-bom = "io.kotest:kotest-bom:6.2.3"
+kotest-bom = "io.kotest:kotest-bom:6.2.4"
 kotlin-tools-bom = "com.kelvsyc.kotlin:bom:0.5.0"
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
