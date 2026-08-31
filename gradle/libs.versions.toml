@@ -4,7 +4,7 @@ kotlin = "2.4.10"
 # Transitively pulled in at older, vulnerable versions by org.jetbrains.dokka:dokka-core; pinned here to
 # the latest patched releases to close the corresponding Dependabot alerts.
 jackson = "2.22.2"
-jsoup = "1.23.1"
+jsoup = "1.23.2"
 
 [libraries]
 # BOMs
