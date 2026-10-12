@@ -1,8 +1,9 @@
 [versions]
 dokka = "2.2.0"
 kotlin = "2.4.21"
-# Transitively pulled in at older, vulnerable versions by org.jetbrains.dokka:dokka-core; pinned here to
-# the latest patched releases to close the corresponding Dependabot alerts.
+# Transitively pulled in at older, vulnerable versions by org.jetbrains.dokka:dokka-core/dokka-base; pinned
+# here to the latest patched releases to close the corresponding Dependabot alerts.
+freemarker = "2.3.35"
 jackson = "2.22.3"
 jsoup = "1.23.2"
 
@@ -11,6 +12,7 @@ jsoup = "1.23.2"
 kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
 kotest-bom = "io.kotest:kotest-bom:6.2.5"
 kotlin-tools-bom = "com.kelvsyc.kotlin:bom:0.5.0"
+freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
