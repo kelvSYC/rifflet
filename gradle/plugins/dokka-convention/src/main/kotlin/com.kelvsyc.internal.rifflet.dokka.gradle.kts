@@ -9,12 +9,13 @@ val gitCommitHash: Provider<String> = providers.exec {
     commandLine("git", "rev-parse", "HEAD")
 }.standardOutput.asText.map { it.trim() }
 
-// dokka-core bundles its own jackson/jsoup versions with known vulnerabilities; Dokka's generator
+// dokka-core/dokka-base bundle their own jackson/jsoup/freemarker versions with known vulnerabilities; Dokka's generator
 // configurations are populated by the plugin itself rather than the project's normal dependency
 // declarations, so the platform BOM's constraints don't reach them and versions must be forced here.
 val libs = versionCatalogs.named("libs")
 val jacksonVersion = libs.findVersion("jackson").get().requiredVersion
 val jsoupVersion = libs.findVersion("jsoup").get().requiredVersion
+val freemarkerVersion = libs.findVersion("freemarker").get().requiredVersion
 configurations.all {
     resolutionStrategy.eachDependency {
         // jackson-annotations trails the other jackson-bom modules' version numbering (e.g. bom 2.22.2
@@ -28,6 +29,7 @@ configurations.all {
                 "com.fasterxml.jackson.dataformat",
             ) -> useVersion(jacksonVersion)
             requested.group == "org.jsoup" -> useVersion(jsoupVersion)
+            requested.group == "org.freemarker" -> useVersion(freemarkerVersion)
         }
     }
 }
