@@ -1,5 +1,5 @@
 [versions]
-dokka = "2.2.0"
+dokka = "2.3.0"
 kotlin = "2.4.21"
 # Transitively pulled in at older, vulnerable versions by org.jetbrains.dokka:dokka-core/dokka-base; pinned
 # here to the latest patched releases to close the corresponding Dependabot alerts.
