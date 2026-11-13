@@ -1,6 +1,7 @@
 [versions]
 dokka = "2.3.0"
 kotlin = "2.4.21"
+kotlin-tools = "0.5.2"
 # Transitively pulled in at older, vulnerable versions by org.jetbrains.dokka:dokka-core/dokka-base; pinned
 # here to the latest patched releases to close the corresponding Dependabot alerts.
 freemarker = "2.3.35"
@@ -11,7 +12,7 @@ jsoup = "1.24.1"
 # BOMs
 kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
 kotest-bom = "io.kotest:kotest-bom:6.2.6"
-kotlin-tools-bom = "com.kelvsyc.kotlin:bom:0.5.0"
+kotlin-tools-bom = { module = "com.kelvsyc.kotlin:bom", version.ref = "kotlin-tools" }
 freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
@@ -23,7 +24,9 @@ jgit = "org.eclipse.jgit:org.eclipse.jgit:7.8.1.202611041320-r"
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" } # version from BOM 'kotlin-gradle-plugins-bom'
 
 # API Dependencies
-kotlin-core = { module = "com.kelvsyc.kotlin:kotlin-core" } # version from BOM 'kotlin-tools-bom'
+# Explicit version (not just via the BOM): the internal platform is stripped from published metadata, so a
+# versionless declaration would publish an unresolvable dependency.
+kotlin-core = { module = "com.kelvsyc.kotlin:kotlin-core", version.ref = "kotlin-tools" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" } # version from BOM 'kotest-bom'
 kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared" } # version from BOM 'kotest-bom'
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine" } # version from BOM 'kotest-bom'
