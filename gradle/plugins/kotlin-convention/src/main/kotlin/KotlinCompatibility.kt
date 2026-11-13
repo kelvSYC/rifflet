@@ -1,12 +1,14 @@
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonCompilerOptions
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 /**
- * Oldest Kotlin version that consumers of the published components are expected to use.
+ * Oldest Kotlin and Java versions that consumers of the published components are expected to use.
  *
  * The Kotlin Gradle plugin version (catalog `kotlin`) only determines the compiler used to build the components. What
  * consumers need is governed by the language/API version and by the `kotlin-stdlib` version written into the
@@ -20,6 +22,15 @@ object KotlinCompatibility {
 
     /** `kotlin-stdlib` (and other core library) version declared in published metadata. */
     const val CORE_LIBRARIES_VERSION = "2.2.21"
+
+    /**
+     * Oldest Java release that consumers of the JVM artifacts are expected to run on.
+     *
+     * The JVM toolchain only selects the JDK used to build; without an explicit target, its version would also become
+     * the bytecode version of the published classes. Matches the Java release kotlin-tools guarantees, since
+     * `kotlin-core` is on every consumer's runtime classpath.
+     */
+    const val JVM_RELEASE = 21
 }
 
 /**
@@ -30,6 +41,15 @@ fun configureKotlinCompatibility(extension: KotlinProjectExtension, compilerOpti
     extension.coreLibrariesVersion = KotlinCompatibility.CORE_LIBRARIES_VERSION
     compilerOptions.apiVersion.set(KotlinCompatibility.LANGUAGE_VERSION)
     compilerOptions.languageVersion.set(KotlinCompatibility.LANGUAGE_VERSION)
+}
+
+/**
+ * Configures [compilerOptions] to emit bytecode for, and only link against the API of,
+ * [KotlinCompatibility.JVM_RELEASE].
+ */
+fun configureJvmCompatibility(compilerOptions: KotlinJvmCompilerOptions) {
+    compilerOptions.jvmTarget.set(JvmTarget.fromTarget(KotlinCompatibility.JVM_RELEASE.toString()))
+    compilerOptions.freeCompilerArgs.add("-Xjdk-release=${KotlinCompatibility.JVM_RELEASE}")
 }
 
 /**
