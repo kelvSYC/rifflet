@@ -27,7 +27,7 @@ tasks.withType<Test>().configureEach {
 pluginManager.withPlugin("org.jetbrains.dokka") {
     apply(plugin = "org.jetbrains.dokka-javadoc")
 
-    val javadocJar by tasks.registering(Jar::class) {
+    val javadocJar = tasks.register<Jar>("javadocJar") {
         archiveClassifier.set("javadoc")
         from(tasks.named("dokkaGeneratePublicationJavadoc"))
     }
