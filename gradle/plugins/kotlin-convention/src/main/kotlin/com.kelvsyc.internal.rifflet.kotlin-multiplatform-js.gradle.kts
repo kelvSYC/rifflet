@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin {
-    js(IR) {
+    js {
         nodejs()
         binaries.library()
     }

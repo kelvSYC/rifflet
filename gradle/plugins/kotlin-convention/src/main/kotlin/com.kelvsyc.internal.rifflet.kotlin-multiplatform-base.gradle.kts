@@ -23,7 +23,7 @@ kotlin {
     }
 }
 
-val checkCommonMainPlatformImports by tasks.registering {
+val checkCommonMainPlatformImports = tasks.register("checkCommonMainPlatformImports") {
     description = "Fails if any commonMain Kotlin source contains platform-specific imports."
     group = "verification"
     val rootDir: File = projectDir
