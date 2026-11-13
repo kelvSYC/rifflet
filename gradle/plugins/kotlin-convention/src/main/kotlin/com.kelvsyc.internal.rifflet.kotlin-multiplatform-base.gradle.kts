@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -7,11 +6,11 @@ plugins {
 
 val libs = versionCatalogs.named("libs")
 
+checkKotlinPluginVersion(libs)
+checkKotlinToolchainAlignment()
+
 kotlin {
-    compilerOptions {
-        apiVersion.set(KotlinVersion.KOTLIN_2_3)
-        languageVersion.set(KotlinVersion.KOTLIN_2_3)
-    }
+    configureKotlinCompatibility(this, compilerOptions)
 
     sourceSets.commonMain.dependencies {
         implementation(dependencies.platform("com.kelvsyc.internal.rifflet:platform"))
