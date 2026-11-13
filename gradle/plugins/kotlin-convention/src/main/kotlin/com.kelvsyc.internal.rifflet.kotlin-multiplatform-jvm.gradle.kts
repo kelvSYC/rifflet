@@ -9,8 +9,13 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 kotlin {
-    jvm()
+    jvm {
+        compilerOptions {
+            configureJvmCompatibility(this)
+        }
+    }
 
+    // Builds with the newest JDK; the published bytecode targets KotlinCompatibility.JVM_RELEASE instead.
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
     }
@@ -20,8 +25,18 @@ kotlin {
     }
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(KotlinCompatibility.JVM_RELEASE)
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    // Run tests on the oldest supported Java release, so the published bytecode is proven to load there.
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(KotlinCompatibility.JVM_RELEASE))
+        }
+    )
 }
 
 pluginManager.withPlugin("org.jetbrains.dokka") {

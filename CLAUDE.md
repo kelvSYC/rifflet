@@ -52,7 +52,7 @@ plugins { id("com.kelvsyc.internal.rifflet.settings") }
 
 - `kotlin-multiplatform-base` — Applies `kotlin("multiplatform")`, Kotlin consumer-compatibility settings (see below), Kotlin Gradle plugin version and toolchain alignment checks, platform BOM in `commonMain`, Kotest engine/assertions in `commonTest`, `commonMain` platform-import check
 - `kotlin-multiplatform-library` — Applies base; enables sources JAR for publication
-- `kotlin-multiplatform-jvm` — Applies base; adds JVM target, JDK 25 toolchain, `kotest-runner-junit5` in `jvmTest`, JUnit Platform test task
+- `kotlin-multiplatform-jvm` — Applies base; adds JVM target, JDK 25 toolchain with bytecode targeting `KotlinCompatibility.JVM_RELEASE` (21), `kotest-runner-junit5` in `jvmTest`, JUnit Platform test task running on a JDK 21 launcher
 - `kotlin-multiplatform-js` — Applies base; adds JS IR target with Node.js; raises the JS stdlib back to the compiler version (Kotlin/JS rejects an older stdlib klib ABI). Not currently applied by any component.
 - `dokka` — Configures Dokka HTML generation with GitHub source links resolved from git HEAD; wires `assemble` → `dokkaGeneratePublicationHtml`
 - `github-publishing` — Applies `maven-publish`; configures GitHub Packages repository using `GITHUB_ACTOR`/`GITHUB_TOKEN`; strips the internal platform BOM (`com.kelvsyc.internal.rifflet:platform`) from published POM and Gradle module metadata so that consumers don't see an unresolvable dependency. The convention plugins still declare `implementation(platform(...))` for local resolution — the stripping happens at publication time via `pom.withXml` and a `GenerateModuleMetadata` post-processing action (`StripInternalPlatform`). Because the platform is stripped, published dependencies must carry an explicit version: catalog entries use `version.ref` (e.g. `kotlin-core` → `kotlin-tools`), and dependencies on other components use the project version (`"com.kelvsyc.rifflet:<component>:$version"`). `RequireDependencyVersions` fails module metadata generation — which `check` depends on — if any published dependency is versionless. (`versionMapping { fromResolutionResult() }` would not help: Kotlin Multiplatform publications ignore it.)
@@ -66,6 +66,7 @@ Tests use [Kotest](https://kotest.io/) with JUnit Platform (JVM target only).
 The Kotlin Gradle plugin version (catalog `kotlin`) only selects the compiler. What consumers need is set by `KotlinCompatibility` in `gradle/plugins/kotlin-convention` (deliberately outside the version catalog so Dependabot leaves it alone):
 
 - `apiVersion`/`languageVersion` = 2.2, and `coreLibrariesVersion` = 2.2.x, so the `kotlin-stdlib` declared in published metadata is 2.2.x. JVM consumers can use Kotlin 2.1+ (compilers read metadata one version ahead). 2.2 is the lowest level the current Kotlin Gradle plugin does not deprecate; raise it when a Kotlin bump deprecates it.
+- JVM bytecode targets Java 21 (`JVM_RELEASE`, with `-Xjdk-release` so only the Java 21 API can be linked), although components build with JDK 25. 21 matches the Java release kotlin-tools guarantees; `kotlin-core` is on every consumer's runtime classpath, so going lower requires kotlin-tools to go lower first. Tests run on a JDK 21 launcher to prove the bytecode loads there.
 - Klibs (JS, native) carry the compiler's ABI version, so JS/native consumers need a compiler at least as new as the Kotlin Gradle plugin, whatever the language version is.
 - Transitive dependencies can raise the stdlib floor regardless: `rifflet-core` exposes `kotlin-core` via `api`, so the kotlin-tools version must also publish a 2.2.x stdlib.
 
@@ -77,7 +78,7 @@ Driven by git tags via `com.javiersc.semver`, applied through the settings plugi
 
 ### JDK Constraints
 
-The `kotlin-multiplatform-jvm` convention plugin pins the JVM toolchain to JDK 25.
+The `kotlin-multiplatform-jvm` convention plugin builds with a JDK 25 toolchain, but emits Java 21 bytecode and runs tests on JDK 21 (see Kotlin Consumer Compatibility). Both JDKs must be available (or provisionable via the foojay resolver).
 
 ### Configuration Cache
 
