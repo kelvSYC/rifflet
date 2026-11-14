@@ -53,7 +53,7 @@ plugins { id("com.kelvsyc.internal.rifflet.settings") }
 
 - `kotlin-multiplatform-base` — Applies `kotlin("multiplatform")`, Kotlin consumer-compatibility settings (see below), Kotlin Gradle plugin version and toolchain alignment checks, platform BOM in `commonMain`, Kotest engine/assertions in `commonTest`, `commonMain` platform-import check
 - `kotlin-multiplatform-library` — Applies base; enables sources JAR for publication
-- `kotlin-multiplatform-jvm` — Applies base; adds JVM target, JDK 25 toolchain, `kotest-runner-junit5` in `jvmTest`, JUnit Platform test task
+- `kotlin-multiplatform-jvm` — Applies base; adds JVM target, `JvmCompatibility` (JDK 25 toolchain, Java 17 release; see JDK Constraints), `org.gradle.jvm.version` on the JVM target, `kotest-runner-junit5` in `jvmTest`, JUnit Platform test task
 - `kotlin-multiplatform-js` — Applies base; adds JS IR target with Node.js; raises the JS stdlib back to the compiler version (Kotlin/JS rejects an older stdlib klib ABI). Not currently applied by any component.
 - `dokka` — Configures Dokka HTML generation with GitHub source links resolved from git HEAD; wires `assemble` → `dokkaGeneratePublicationHtml`
 - `github-publishing` — Applies `maven-publish`; configures GitHub Packages repository using `GITHUB_ACTOR`/`GITHUB_TOKEN`; strips the internal platform BOM (`com.kelvsyc.internal.rifflet:platform`) from published POM and Gradle module metadata so that consumers don't see an unresolvable dependency. The convention plugins still declare `implementation(platform(...))` for local resolution — the stripping happens at publication time via `pom.withXml` and a `GenerateModuleMetadata` post-processing action (`StripInternalPlatform`). Because the platform is stripped, published dependencies must carry an explicit version: catalog entries use `version.ref` (e.g. `kotlin-core` → `kotlin-tools`), and dependencies on other components use the project version (`"com.kelvsyc.rifflet:<component>:$version"`). `RequireDependencyVersions` fails module metadata generation — which `check` depends on — if any published dependency is versionless. (`versionMapping { fromResolutionResult() }` would not help: Kotlin Multiplatform publications ignore it.)
@@ -67,6 +67,7 @@ Tests use [Kotest](https://kotest.io/) with JUnit Platform (JVM target only).
 The Kotlin Gradle plugin version (catalog `kotlin`) only selects the compiler. What consumers need is set by `KotlinCompatibility` in `gradle/plugins/kotlin-convention` (deliberately outside the version catalog so Dependabot leaves it alone):
 
 - `apiVersion`/`languageVersion` = 2.2, and `coreLibrariesVersion` = 2.2.x, so the `kotlin-stdlib` declared in published metadata is 2.2.x. JVM consumers can use Kotlin 2.1+ (compilers read metadata one version ahead). 2.2 is the lowest level the current Kotlin Gradle plugin does not deprecate; raise it when a Kotlin bump deprecates it.
+- JVM consumers also need Java 17+ (see JDK Constraints).
 - Klibs (JS, native) carry the compiler's ABI version, so JS/native consumers need a compiler at least as new as the Kotlin Gradle plugin, whatever the language version is.
 - Transitive dependencies can raise the stdlib floor regardless: `rifflet-core` exposes `kotlin-core` via `api`, so the kotlin-tools version must also publish a 2.2.x stdlib.
 
@@ -78,7 +79,14 @@ Driven by git tags via `com.javiersc.semver`, applied through the settings plugi
 
 ### JDK Constraints
 
-The `kotlin-multiplatform-jvm` convention plugin pins the JVM toolchain to JDK 25.
+Published JVM artifacts require Java 17, and the components are compiled with JDK 25. `JvmCompatibility` in `gradle/plugins/kotlin-convention` sets both (deliberately outside the version catalog), and the `kotlin-multiplatform-jvm` convention plugin applies it:
+
+- Compiles with `jvmTarget = 17` and `-Xjdk-release=17`, so only the Java 17 API is available. Lowering `jvmTarget` alone is not enough: against a JDK 21+ class library, `MutableList.removeFirst()` compiles to `java.util.List.removeFirst`, which fails with `NoSuchMethodError` on Java 17.
+- Sets `options.release = 17` on Java compilation.
+- Runs tests on JDK 17 (provisioned automatically via the foojay resolver; CI installs it alongside JDK 25).
+- Sets `org.gradle.jvm.version = 17` on the JVM target. The Kotlin Gradle plugin never sets it on Kotlin Multiplatform JVM variants; without it, Gradle consumers on an older JVM resolve the components and fail at runtime with `UnsupportedClassVersionError`, and our own JVM classpaths would accept dependencies requiring a newer JVM.
+
+17 matches the Java release kotlin-tools supports; `kotlin-core` is on every consumer's runtime classpath, so going lower requires kotlin-tools to go lower first.
 
 ### Configuration Cache
 
