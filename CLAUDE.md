@@ -39,6 +39,7 @@ The root `settings.gradle.kts` composes:
 
 2. **`components/`** — Published Kotlin Multiplatform libraries (group `com.kelvsyc.rifflet`):
    - `rifflet-core` — Core IFF/RIFF parsing and writing primitives
+   - `rifflet-civ3` — Civilization III scenario and save file (`.BIC`, `.BIX`, `.BIQ`) parsing; depends on `rifflet-core`
 
 ### Component Settings Pattern
 
