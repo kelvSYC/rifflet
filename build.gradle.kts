@@ -42,3 +42,10 @@ tasks.publish {
         dependsOn(gradle.includedBuild(it).task(":$name"))
     }
 }
+
+tasks.register("publishToCompatTestRepository") {
+    description = "Publishes every component to its local compatTest repository for the consumer compatibility fixture."
+    components.forEach {
+        dependsOn(gradle.includedBuild(it).task(":publishAllPublicationsToCompatTestRepository"))
+    }
+}
