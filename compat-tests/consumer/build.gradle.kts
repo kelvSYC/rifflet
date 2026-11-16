@@ -3,20 +3,21 @@
 // The Gradle (wrapper), Kotlin and JDK versions pinned here ARE the supported floors. Change them only together with
 // KotlinCompatibility / JvmCompatibility in gradle/plugins/kotlin-convention. Excluded from Dependabot for that reason.
 //
-// Run via `./gradlew consumerCompatibilityTest` from the repository root, which publishes the components to their
-// local compatTest repositories and passes their paths in as `compatRepos`.
+// Run via `./gradlew consumerCompatibilityTest` from the repository root, which publishes the components to Maven Local
+// and passes the version it just published as `riffletVersion`.
 
 plugins {
     kotlin("jvm") version "2.1.21"
 }
 
-val compatRepos = providers.gradleProperty("compatRepos").orNull
-    ?: error("Pass -PcompatRepos=<comma-separated repository paths>; run ./gradlew consumerCompatibilityTest from the repository root")
+val riffletVersion = providers.gradleProperty("riffletVersion").orNull
+    ?: error("Pass -PriffletVersion=<version>; run ./gradlew consumerCompatibilityTest from the repository root")
 
 repositories {
-    // Rifflet must come from the freshly published local artifacts, never from GitHub Packages.
+    // Rifflet must come from the freshly published local artifacts, never from GitHub Packages. Maven Local may hold
+    // other versions too; the exact riffletVersion selects the one just published.
     exclusiveContent {
-        forRepositories(*compatRepos.split(",").map { path -> maven(file(path)) }.toTypedArray())
+        forRepository { mavenLocal() }
         filter { includeGroup("com.kelvsyc.rifflet") }
     }
     maven("https://maven.pkg.github.com/kelvSYC/kotlin-tools") {
@@ -33,8 +34,8 @@ kotlin {
 }
 
 dependencies {
-    testImplementation("com.kelvsyc.rifflet:rifflet-core:+")
-    testImplementation("com.kelvsyc.rifflet:rifflet-civ3:+")
+    testImplementation("com.kelvsyc.rifflet:rifflet-core:$riffletVersion")
+    testImplementation("com.kelvsyc.rifflet:rifflet-civ3:$riffletVersion")
     testImplementation(kotlin("test"))
 }
 

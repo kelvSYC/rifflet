@@ -67,7 +67,8 @@ Tests use [Kotest](https://kotest.io/) with JUnit Platform (JVM target only).
 
 `compat-tests/consumer` is a standalone Gradle build that uses rifflet the way the oldest supported consumer would: Gradle 8.14 (its own wrapper), `kotlin("jvm")` 2.1.21, `jvmToolchain(17)`. Its smoke tests exercise the public API of each component. It catches what unit tests inside this build cannot: published metadata, bytecode level, dependency scopes and resolution.
 
-- `./gradlew consumerCompatibilityTest` publishes each component to its own `build/compat-repo` (`compatTest` repository, wiped before every publish), then runs the fixture's `check` with the JDK 17 toolchain as `JAVA_HOME` (Gradle 8.14 cannot run on JDK 25). Rifflet is resolved only from those repositories (`exclusiveContent`). It is not part of `:check`; CI runs it after `:build`.
+- `./gradlew consumerCompatibilityTest` runs each component's `publishToMavenLocal`, then the fixture's `check` with the JDK 17 toolchain as `JAVA_HOME` (Gradle 8.14 cannot run on JDK 25). The fixture resolves rifflet only from Maven Local (`exclusiveContent`) at the exact version just published (`-PriffletVersion`); the root build applies the same `com.kelvsyc.internal.semver` settings plugin as the components to know that version. It is not part of `:check`; CI runs it after `:build`.
+- It deliberately uses `publishToMavenLocal` rather than a dedicated publishing repository: any repository in `publishing.repositories` becomes part of every component's `publish` lifecycle, and `publish` must stay the GitHub Packages release path only.
 - The fixture's pinned versions are the supported floors: change them in the same PR as `KotlinCompatibility`/`JvmCompatibility` (and `consumerCompatibilityJdk` in the root `build.gradle.kts`). `compat-tests/**` is excluded from Dependabot for that reason.
 
 ### Kotlin Consumer Compatibility
