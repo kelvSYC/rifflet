@@ -11,7 +11,7 @@ jsoup = "1.24.1"
 [libraries]
 # BOMs
 kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
-kotest-bom = "io.kotest:kotest-bom:6.2.6"
+kotest-bom = "io.kotest:kotest-bom:6.2.7"
 kotlin-tools-bom = { module = "com.kelvsyc.kotlin:bom", version.ref = "kotlin-tools" }
 freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
