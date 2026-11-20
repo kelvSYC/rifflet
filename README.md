@@ -20,7 +20,12 @@ Kotlin Multiplatform library for parsing and writing IFF (Interchange File Forma
 
 ## Platform Support
 
-Rifflet targets JVM (JDK 25) via Kotlin Multiplatform.
+Rifflet targets the JVM via Kotlin Multiplatform. Consumers need:
+
+- **Java 17** or newer at runtime
+- **Kotlin 2.1** or newer (published metadata is language/API version 2.2; `kotlin-stdlib` 2.2.21)
+
+These requirements are declared in the published Gradle metadata (`org.gradle.jvm.version`), so a Gradle build on an older JVM fails at dependency resolution rather than at runtime.
 
 ## Installation
 
@@ -54,6 +59,14 @@ dependencyResolutionManagement {
                 password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
             }
         }
+        // Rifflet depends on kotlin-core from kotlin-tools, which is published to its own GitHub Packages repository.
+        maven("https://maven.pkg.github.com/kelvSYC/kotlin-tools") {
+            name = "KotlinToolsGitHubPackages"
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
 ```
@@ -71,7 +84,7 @@ dependencies {
 
 ### Prerequisites
 
-- JDK 25 (automatically downloaded via [Foojay Toolchains](https://github.com/gradle/foojay-toolchains))
+- JDK 25 to build and JDK 17 to run tests (both automatically downloaded via [Foojay Toolchains](https://github.com/gradle/foojay-toolchains))
 - A classic GitHub PAT with `read:packages` scope (fine-grained tokens do not support GitHub Packages)
 
 ### Credentials Setup
