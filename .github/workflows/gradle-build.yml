@@ -45,6 +45,11 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Consumer compatibility test
+        run: ./gradlew --stacktrace consumerCompatibilityTest
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload KDoc
         id: upload-kdoc
         uses: actions/upload-artifact@v7

@@ -10,7 +10,7 @@ group = "com.kelvsyc.rifflet"
 kotlin {
     sourceSets.commonMain.dependencies {
         api("com.kelvsyc.rifflet:rifflet-core:$version")
-        implementation(libs.okio)
+        api(libs.okio)
         implementation(libs.kotlin.core)
     }
 }

@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: daily
+    # The consumer compatibility fixture pins the oldest supported Gradle/Kotlin/JDK on purpose.
+    exclude-paths:
+      - "compat-tests/**"
   - package-ecosystem: github-actions
     directory: /
     schedule:
