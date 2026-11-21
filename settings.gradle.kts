@@ -1,14 +1,22 @@
 pluginManagement {
-    includeBuild("gradle/plugins")
+    includeBuild("gradle/settings")
+    // Gradle resolves the included settings plugin's external dependencies with this build's plugin repositories.
+    repositories {
+        gradlePluginPortal()
+        maven("https://maven.pkg.github.com/kelvSYC/gradle-build-conventions") {
+            name = "GitHubPackagesBuildConventions"
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
 
 plugins {
-    // Lets root-build tasks (consumerCompatibilityTest) provision JDK toolchains; components get it from the settings
-    // plugin. Keep the version in step with foojay-resolver-plugin in gradle/libs.versions.toml.
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     // Gives the root project the same git-tag version as the components, so consumerCompatibilityTest can request the
-    // exact version it just published.
-    id("com.kelvsyc.internal.semver")
+    // exact version it just published, and provisions JDK toolchains for root-build tasks.
+    id("com.kelvsyc.internal.rifflet.settings")
 }
 
 rootProject.name = "rifflet"

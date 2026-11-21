@@ -1,39 +1,17 @@
+# Rifflet-specific entries only. Everything else (libraries, plugins, the platform) comes from the shared catalog
+# that the com.kelvsyc.internal.settings plugin registers as `libs`; this file is registered as the `local` catalog
+# (see gradle/settings) in every build that applies the rifflet settings plugin. The gradle/settings build itself
+# has no shared plugin applied yet, so there it is the `libs` catalog and resolves the shared settings plugin.
+# gradle-build-conventions pins the shared build conventions version once: the settings plugin's version determines
+# the shared catalog and platform versions.
 [versions]
-dokka = "2.3.0"
-kotlin = "2.4.21"
+gradle-build-conventions = "0.1.6"
 kotlin-tools = "0.5.3"
-# Transitively pulled in at older, vulnerable versions by org.jetbrains.dokka:dokka-core/dokka-base; pinned
-# here to the latest patched releases to close the corresponding Dependabot alerts.
-freemarker = "2.3.35"
-jackson = "2.23.0"
-jsoup = "1.24.1"
 
 [libraries]
-# BOMs
-kotlin-gradle-plugins-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
-kotest-bom = "io.kotest:kotest-bom:6.2.7"
-kotlin-tools-bom = { module = "com.kelvsyc.kotlin:bom", version.ref = "kotlin-tools" }
-freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
-jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
-
-# Internal
-dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-foojay-resolver-plugin = "org.gradle.toolchains.foojay-resolver:org.gradle.toolchains.foojay-resolver.gradle.plugin:1.0.0"
-jgit = "org.eclipse.jgit:org.eclipse.jgit:7.8.1.202611041320-r"
-kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" } # version from BOM 'kotlin-gradle-plugins-bom'
+conventions-settings-plugin = { module = "com.kelvsyc.internal:settings-plugin", version.ref = "gradle-build-conventions" }
 
 # API Dependencies
-# Explicit version (not just via the BOM): the internal platform is stripped from published metadata, so a
+# Explicit version (not just via the BOM): the shared platform is stripped from published metadata, so a
 # versionless declaration would publish an unresolvable dependency.
 kotlin-core = { module = "com.kelvsyc.kotlin:kotlin-core", version.ref = "kotlin-tools" }
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" } # version from BOM 'kotest-bom'
-kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared" } # version from BOM 'kotest-bom'
-kotest-framework-engine = { module = "io.kotest:kotest-framework-engine" } # version from BOM 'kotest-bom'
-kotest-property = { module = "io.kotest:kotest-property" } # version from BOM 'kotest-bom'
-kotest-runner = { module = "io.kotest:kotest-runner-junit5" } # version from BOM 'kotest-bom'
-mockk = "io.mockk:mockk:1.14.12"
-okio = "com.squareup.okio:okio:3.18.2"
-
-[plugins]
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
