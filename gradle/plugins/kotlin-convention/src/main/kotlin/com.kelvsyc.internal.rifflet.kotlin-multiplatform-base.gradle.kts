@@ -13,7 +13,7 @@ kotlin {
     configureKotlinCompatibility(this, compilerOptions)
 
     sourceSets.commonMain.dependencies {
-        implementation(dependencies.platform("com.kelvsyc.internal.rifflet:platform"))
+        implementation(dependencies.platform(libs.findLibrary("conventions-platform").get()))
     }
 
     sourceSets.commonTest.dependencies {

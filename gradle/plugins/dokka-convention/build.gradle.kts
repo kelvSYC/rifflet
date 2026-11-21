@@ -9,7 +9,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(platform("com.kelvsyc.internal.rifflet:platform"))
+    implementation(platform(libs.conventions.platform))
     implementation(libs.dokka.plugin)
     implementation(libs.kotlin.plugin)
 }

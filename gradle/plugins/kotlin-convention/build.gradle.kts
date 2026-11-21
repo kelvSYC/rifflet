@@ -9,6 +9,6 @@ kotlin {
 }
 
 dependencies {
-    implementation(platform("com.kelvsyc.internal.rifflet:platform"))
+    implementation(platform(libs.conventions.platform))
     implementation(libs.kotlin.plugin)
 }

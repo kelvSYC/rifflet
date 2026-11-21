@@ -44,24 +44,56 @@ This is a **composite build** of Kotlin Multiplatform libraries for parsing and 
 The root `settings.gradle.kts` composes:
 
 1. **`gradle/`** — Internal build infrastructure (not published):
-   - `gradle/platform` — BOM centralizing all dependency versions
-   - `gradle/settings` — Settings plugin (`com.kelvsyc.internal.rifflet.settings`) wiring platform/catalog and semver into every component build
+   - `gradle/libs.versions.toml` — Pins the shared build conventions version and holds rifflet's own catalog entries (the `local` catalog; see Shared Build Conventions)
+   - `gradle/settings` — Thin local settings plugin (`com.kelvsyc.internal.rifflet.settings`): applies the shared settings plugin, includes `gradle/plugins` and registers the `local` catalog in every build
    - `gradle/plugins/dokka-convention` — Convention plugin: `dokka` (Dokka HTML docs, GitHub source links resolved from git HEAD)
    - `gradle/plugins/kotlin-convention` — Convention plugins: `kotlin-multiplatform-base`, `kotlin-multiplatform-library`, `kotlin-multiplatform-jvm`, `kotlin-multiplatform-js`
-   - `gradle/plugins/publishing-convention` — Convention plugin: `github-publishing` (Maven publication to GitHub Packages)
-   - `gradle/plugins/semver-convention` — Settings plugin `com.kelvsyc.internal.semver`: project version from git tags
 
 2. **`components/`** — Published Kotlin Multiplatform libraries (group `com.kelvsyc.rifflet`):
    - `rifflet-core` — Core IFF/RIFF parsing and writing primitives
    - `rifflet-civ3` — Civilization III scenario and save file (`.BIC`, `.BIX`, `.BIQ`) parsing; depends on `rifflet-core`
 
+### Shared Build Conventions
+
+The catalog, platform BOM, semver versioning, repositories, toolchain resolver and publishing convention come from [gradle-build-conventions](https://github.com/kelvSYC/gradle-build-conventions) (group `com.kelvsyc.internal`, published to GitHub Packages). The settings plugin `com.kelvsyc.internal.settings` provides:
+
+- the foojay toolchain resolver and the repositories (Maven Central, GitHub Packages for gradle-build-conventions and kotlin-tools, Gradle `libs-releases` for `org.gradle.experimental`)
+- the `libs` version catalog (`com.kelvsyc.internal:catalog`) and the platform BOM (`libs.conventions.platform`), whose dependency versions are therefore not declared in this repository
+- project versions from git tags (`com.kelvsyc.internal.semver`) and default group handling
+- versionless resolution of plugin IDs in exactly the `com.kelvsyc.internal` namespace (not the local `com.kelvsyc.internal.rifflet.*` IDs, which resolve from the included `gradle/plugins` build), e.g. `com.kelvsyc.internal.github-publishing`
+
+`gradle/settings` applies it with `apply(plugin = "com.kelvsyc.internal.settings")` rather than a `plugins {}` block: generating a precompiled settings plugin's accessors applies its `plugins {}` block to a stand-in `Settings` after settings evaluation, where Gradle rejects the repositories the shared plugin declares.
+
+The shared plugin owns the `libs` catalog, so rifflet's own entries (the kotlin-tools dependency) live in `gradle/libs.versions.toml` and are exposed as the `local` catalog (`local.kotlin.core`). Gradle itself imports `gradle/libs.versions.toml` under the default name `libs` in a build whose directory contains one (the repository root), which would clash with the shared catalog, so the root build renames that default import to `local`. Inside `gradle/settings` itself, before the shared plugin is applied, the same file is registered as `libs` to resolve the shared settings plugin.
+
+The shared version is pinned once, as `gradle-build-conventions` in `gradle/libs.versions.toml`; the thin settings plugin depends on `com.kelvsyc.internal:settings-plugin` at that version, which in turn selects the catalog and platform versions. Dependabot bumps it: `.github/dependabot.yml` gives it the GitHub Packages registry of gradle-build-conventions (and, for the `kotlin-tools` version, a second registry for kotlin-tools), with the `DEPENDABOT_PACKAGES_TOKEN` Dependabot secret (a token with `read:packages`) as credentials. A manual bump is that one line.
+
+A bump PR from Dependabot completes itself (`.github/workflows/conventions-bump.yml`): it moves the Gradle wrapper to the Gradle version the new release is built for (`.github/scripts/follow-conventions-gradle.sh`, reading the release's catalog), pushes that to the PR, and enables GitHub auto-merge, so the PR merges once the required checks pass. Dependabot's release-age cooldown (`cooldown` in `.github/dependabot.yml`) exempts `com.kelvsyc.internal:*` and `com.kelvsyc.kotlin:*` (our own releases), so a conventions release gets its PR on the next run. Other Dependabot PRs are left alone (kotlin-tools bumps arrive as ordinary Dependabot PRs and are not auto-merged: the workflow only acts on gradle-build-conventions bumps), and Dependabot does not propose standalone Gradle wrapper updates: the wrapper follows the conventions. The push and the auto-merge use the `CONVENTIONS_TOKEN` personal access token, stored in both the Dependabot and Actions secrets (a run started by Dependabot sees only the former, one started by the token's own push only the latter); only those two steps get it, not the Gradle build. A push or merge made with `GITHUB_TOKEN` triggers no workflows, so neither CI on the wrapper change nor the snapshot publish after the merge would run. The shared catalog's `gradle` and `kotlin` versions apply here: keep the wrapper and the Kotlin Gradle plugin in step with them.
+
+Resolving the shared plugin requires GitHub Packages credentials even to configure the build (see Building Requires GitHub Packages Credentials). The Kotlin and Dokka convention plugins are local, in `gradle/plugins`.
+
 ### Component Settings Pattern
 
-Every component's `settings.gradle.kts`:
+Every component's `settings.gradle.kts` (as do the root and `gradle/plugins`, with the matching relative path) starts with:
 ```kotlin
-pluginManagement { includeBuild("../../gradle/settings") }
+pluginManagement {
+    includeBuild("../../gradle/settings")
+    // Gradle resolves the included settings plugin's external dependencies with this build's plugin repositories.
+    repositories {
+        gradlePluginPortal()
+        maven("https://maven.pkg.github.com/kelvSYC/gradle-build-conventions") {
+            name = "GitHubPackagesBuildConventions"
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
 plugins { id("com.kelvsyc.internal.rifflet.settings") }
 ```
+The `repositories` block is needed because the included settings plugin depends on the shared settings plugin from GitHub Packages, and Gradle resolves those dependencies with the applying build's plugin repositories. Keep the `pluginManagement { repositories { ... } }` block byte-identical in the root, `gradle/plugins` and both component settings files; the `gradle/settings` build is the one that supplies the plugin and declares its own repositories instead (see its `settings.gradle.kts`). The root build uses `includeBuild("gradle/settings")` and applies the same plugin; `gradle/plugins` uses `includeBuild("../settings")`.
 
 ### Convention Plugins
 
@@ -70,7 +102,7 @@ plugins { id("com.kelvsyc.internal.rifflet.settings") }
 - `kotlin-multiplatform-jvm` — Applies base; adds JVM target, `JvmCompatibility` (JDK 25 toolchain, Java 17 release; see JDK Constraints), `org.gradle.jvm.version` on the JVM target, `kotest-runner-junit5` in `jvmTest`, JUnit Platform test task
 - `kotlin-multiplatform-js` — Applies base; adds JS IR target with Node.js; raises the JS stdlib back to the compiler version (Kotlin/JS rejects an older stdlib klib ABI). Not currently applied by any component.
 - `dokka` — Configures Dokka HTML generation with GitHub source links resolved from git HEAD; wires `assemble` → `dokkaGeneratePublicationHtml`
-- `github-publishing` — Applies `maven-publish`; configures GitHub Packages repository using `GITHUB_ACTOR`/`GITHUB_TOKEN`; strips the internal platform BOM (`com.kelvsyc.internal.rifflet:platform`) from published POM and Gradle module metadata so that consumers don't see an unresolvable dependency. The convention plugins still declare `implementation(platform(...))` for local resolution — the stripping happens at publication time via `pom.withXml` and a `GenerateModuleMetadata` post-processing action (`StripInternalPlatform`). Because the platform is stripped, published dependencies must carry an explicit version: catalog entries use `version.ref` (e.g. `kotlin-core` → `kotlin-tools`), and dependencies on other components use the project version (`"com.kelvsyc.rifflet:<component>:$version"`). `RequireDependencyVersions` fails module metadata generation — which `check` depends on — if any published dependency is versionless. (`versionMapping { fromResolutionResult() }` would not help: Kotlin Multiplatform publications ignore it.)
+- `com.kelvsyc.internal.github-publishing` (shared) — Applies `maven-publish`; configures the GitHub Packages repository, deriving its URL from the `origin` git remote and taking credentials from the `gpr.user`/`gpr.key` Gradle properties, else `GITHUB_ACTOR`/`GITHUB_TOKEN`; strips the internal platform BOM (`com.kelvsyc.internal:platform`) from published POM and Gradle module metadata so that consumers don't see an unresolvable dependency. The convention plugins still declare `implementation(platform(...))` for local resolution. Because the platform is stripped, published dependencies must carry an explicit version: catalog entries use `version.ref` (e.g. `kotlin-core` → `kotlin-tools`), and dependencies on other components use the project version (`"com.kelvsyc.rifflet:<component>:$version"`). The shared plugin's `RequireDependencyVersions` fails module metadata generation — which `check` depends on — if any published dependency is versionless. The shared plugin also applies `versionMapping { allVariants { fromResolutionResult() } }` to every Maven publication, but the Kotlin Gradle plugin generates the Kotlin Multiplatform target publications and they do not honour that mapping, so explicit versions on published dependencies are still required.
 
 ### Testing
 
@@ -80,7 +112,7 @@ Tests use [Kotest](https://kotest.io/) with JUnit Platform (JVM target only).
 
 `compat-tests/consumer` is a standalone Gradle build that uses rifflet the way the oldest supported consumer would: Gradle 8.14 (its own wrapper), `kotlin("jvm")` 2.1.21, `jvmToolchain(17)`. Its smoke tests exercise the public API of each component. It catches what unit tests inside this build cannot: published metadata, bytecode level, dependency scopes and resolution.
 
-- `./gradlew consumerCompatibilityTest` runs each component's `publishToMavenLocal`, then the fixture's `check` with the JDK 17 toolchain as `JAVA_HOME` (Gradle 8.14 cannot run on JDK 25). The fixture resolves rifflet only from Maven Local (`exclusiveContent`) at the exact version just published (`-PriffletVersion`); the root build applies the same `com.kelvsyc.internal.semver` settings plugin as the components to know that version. It is not part of `:check`; CI runs it after `:build`.
+- `./gradlew consumerCompatibilityTest` runs each component's `publishToMavenLocal`, then the fixture's `check` with the JDK 17 toolchain as `JAVA_HOME` (Gradle 8.14 cannot run on JDK 25). The fixture resolves rifflet only from Maven Local (`exclusiveContent`) at the exact version just published (`-PriffletVersion`); the root build applies the same settings plugin as the components, hence the same semver versioning, to know that version. It is not part of `:check`; CI runs it after `:build`.
 - It deliberately uses `publishToMavenLocal` rather than a dedicated publishing repository: any repository in `publishing.repositories` becomes part of every component's `publish` lifecycle, and `publish` must stay the GitHub Packages release path only.
 - The fixture's pinned versions are the supported floors: change them in the same PR as `KotlinCompatibility`/`JvmCompatibility` (and `consumerCompatibilityJdk` in the root `build.gradle.kts`). `compat-tests/**` is excluded from Dependabot for that reason.
 
@@ -93,11 +125,11 @@ The Kotlin Gradle plugin version (catalog `kotlin`) only selects the compiler. W
 - Klibs (JS, native) carry the compiler's ABI version, so JS/native consumers need a compiler at least as new as the Kotlin Gradle plugin, whatever the language version is.
 - Transitive dependencies can raise the stdlib floor regardless: `rifflet-core` exposes `kotlin-core` via `api`, so the kotlin-tools version must also publish a 2.2.x stdlib.
 
-The applied Kotlin Gradle plugin can be silently raised above the catalog version by Gradle's embedded Kotlin (via `kotlin-dsl`) or another build plugin's stdlib requirement. The convention plugins fail the build when the applied plugin version differs from the catalog `kotlin` version (`checkKotlinPluginVersion`), so a Gradle bump that raises embedded Kotlin requires bumping the catalog in the same change. They also fail when any other `org.jetbrains.kotlin` artifact on the build script classpath differs from the plugin version (`checkKotlinToolchainAlignment`): a build plugin depending on a newer `kotlin-bom` can raise e.g. `kotlin-daemon-client` alone, which surfaces as "Could not connect to Kotlin compile daemon" followed by `OutOfMemoryError: Metaspace`.
+The applied Kotlin Gradle plugin can be silently raised above the catalog version by Gradle's embedded Kotlin (via `kotlin-dsl`) or another build plugin's stdlib requirement. The convention plugins fail the build when the applied plugin version differs from the catalog `kotlin` version (`checkKotlinPluginVersion`), so a Gradle bump that raises embedded Kotlin is fixed by a gradle-build-conventions release carrying the matching `kotlin` version, then bumping the single `gradle-build-conventions` pin (the conventions-bump workflow moves the wrapper with it), not by a local catalog edit. They also fail when any other `org.jetbrains.kotlin` artifact on the build script classpath differs from the plugin version (`checkKotlinToolchainAlignment`): a build plugin depending on a newer `kotlin-bom` can raise e.g. `kotlin-daemon-client` alone, which surfaces as "Could not connect to Kotlin compile daemon" followed by `OutOfMemoryError: Metaspace`.
 
 ### Versioning
 
-Driven by git tags via the internal semver settings plugin (`com.kelvsyc.internal.semver`, in `gradle/plugins/semver-convention`), applied through the settings plugin. Snapshot versions are published automatically on every push to `main`.
+Driven by git tags via the shared semver settings plugin (`com.kelvsyc.internal.semver`), applied through the shared settings plugin. Past the latest tag the version is an implicit `-SNAPSHOT` of the next version; uncommitted or untracked changes append `+dirty`. Snapshot versions are published automatically on every push to `main`.
 
 ### JDK Constraints
 
@@ -116,18 +148,22 @@ Enabled via `org.gradle.configuration-cache=true` in `gradle.properties`.
 
 ## Critical Gotchas
 
-### Publishing Requires Env Vars ⚠️
+### Publishing Requires Credentials ⚠️
 
-`./gradlew :publish` requires `GITHUB_ACTOR` and `GITHUB_TOKEN`. Without them, it fails.
+`./gradlew :publish` requires credentials: the `gpr.user`/`gpr.key` Gradle properties, else `GITHUB_ACTOR` and `GITHUB_TOKEN`. Without them, it fails. The publish repository URL is derived from the `origin` git remote, so `origin` must point at the GitHub repository.
+
+### Building Requires GitHub Packages Credentials ⚠️
+
+The shared build conventions (and kotlin-tools) are resolved from GitHub Packages when the build is configured, so every Gradle invocation needs credentials with `read:packages`: the `gpr.user`/`gpr.key` Gradle properties (e.g. in `~/.gradle/gradle.properties`), else the `GITHUB_ACTOR`/`GITHUB_TOKEN` environment variables. CI jobs that run Gradle need `packages: read` permission and both variables set. The consumer compatibility fixture needs the same credentials for kotlin-tools.
 
 ### Component Settings Pattern ⚠️
 
-Do not modify the `pluginManagement`/`plugins` lines in each component's `settings.gradle.kts` (see Component Settings Pattern above) — they wire up the composite build.
+Do not modify the `pluginManagement`/`plugins` blocks in each settings file (see Component Settings Pattern above) — they wire up the composite build. What must stay identical is the GitHub Packages `repositories` block inside `pluginManagement` in the root, `gradle/plugins` and component settings files. What differs by design: the `includeBuild` paths, the `gradle/settings` build's own settings (it supplies the plugin and declares its own repositories), and `gradle/plugins`' extra `dependencyResolutionManagement` (the `libs` catalog entry for `kotlin-dsl`).
 
 ## Quick Navigation
 
 - **Architecture & build hierarchy**: see Architecture above
-- **Version catalog**: `gradle/libs.versions.toml`
+- **Shared conventions pin and local catalog**: `gradle/libs.versions.toml` (the shared catalog itself comes from gradle-build-conventions)
 - **Convention plugins**: `gradle/plugins/*/src/main/kotlin/`
 - **Source code**: `components/*/src/commonMain/kotlin/`
 - **Tests**: `components/*/src/commonTest/kotlin/`
