@@ -137,7 +137,7 @@ Tests use [Kotest](https://kotest.io/) with JUnit Platform. Run `./gradlew :chec
 
 ### Versioning
 
-Versions are derived from git tags via [SemVer Gradle Plugin](https://github.com/JavierSegoviaCordoba/semver-gradle-plugin). Snapshot versions are published automatically on every push to `main`.
+Versions are derived from git tags via the shared `com.kelvsyc.internal.semver` plugin, applied through the shared settings plugin. Snapshot versions are published automatically on every push to `main`.
 
 ## License
 

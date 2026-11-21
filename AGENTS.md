@@ -93,7 +93,7 @@ pluginManagement {
 
 plugins { id("com.kelvsyc.internal.rifflet.settings") }
 ```
-The `repositories` block is needed because the included settings plugin depends on the shared settings plugin from GitHub Packages, and Gradle resolves those dependencies with the applying build's plugin repositories. Keep the block byte-identical in every settings file. The root build uses `includeBuild("gradle/settings")` and applies the same plugin; `gradle/plugins` uses `includeBuild("../settings")`.
+The `repositories` block is needed because the included settings plugin depends on the shared settings plugin from GitHub Packages, and Gradle resolves those dependencies with the applying build's plugin repositories. Keep the `pluginManagement { repositories { ... } }` block byte-identical in the root, `gradle/plugins` and both component settings files; the `gradle/settings` build is the one that supplies the plugin and declares its own repositories instead (see its `settings.gradle.kts`). The root build uses `includeBuild("gradle/settings")` and applies the same plugin; `gradle/plugins` uses `includeBuild("../settings")`.
 
 ### Convention Plugins
 
