@@ -45,7 +45,8 @@ tasks.publish {
 }
 
 // JDK that runs the consumer compatibility fixture: the oldest Java release consumers are expected to use. Keep in
-// sync with JvmCompatibility.RELEASE and with jvmToolchain(...) in compat-tests/consumer/build.gradle.kts.
+// sync with the `jvmRelease` default of the shared Kotlin conventions' `kelvsycKotlin` extension, and with
+// jvmToolchain(...) in compat-tests/consumer/build.gradle.kts.
 val consumerCompatibilityJdk = 17
 
 tasks.register<Exec>("consumerCompatibilityTest") {
