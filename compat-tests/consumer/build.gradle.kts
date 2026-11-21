@@ -1,7 +1,8 @@
 // Consumer compatibility fixture: a standalone build that uses rifflet the way the oldest supported consumer would.
 //
 // The Gradle (wrapper), Kotlin and JDK versions pinned here ARE the supported floors. Change them only together with
-// KotlinCompatibility / JvmCompatibility in gradle/plugins/kotlin-convention. Excluded from Dependabot for that reason.
+// the floors of the shared Kotlin conventions (`kelvsycKotlin` defaults in gradle-build-conventions), i.e. in the
+// conventions-bump PR that moves a floor. Excluded from Dependabot for that reason.
 //
 // Run via `./gradlew consumerCompatibilityTest` from the repository root, which publishes the components to Maven Local
 // and passes the version it just published as `riffletVersion`.

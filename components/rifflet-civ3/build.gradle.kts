@@ -1,8 +1,8 @@
 plugins {
-    id("com.kelvsyc.internal.rifflet.dokka")
+    id("com.kelvsyc.internal.dokka")
     id("com.kelvsyc.internal.github-publishing")
-    id("com.kelvsyc.internal.rifflet.kotlin-multiplatform-library")
-    id("com.kelvsyc.internal.rifflet.kotlin-multiplatform-jvm")
+    id("com.kelvsyc.internal.kotlin-multiplatform-library")
+    id("com.kelvsyc.internal.kotlin-multiplatform-jvm")
 }
 
 group = "com.kelvsyc.rifflet"
