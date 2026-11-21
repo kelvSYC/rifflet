@@ -125,7 +125,6 @@ rifflet/
   gradle/             # Internal build infrastructure (not published)
     libs.versions.toml # Shared conventions pin and rifflet's own catalog entries
     settings/         # Thin settings plugin applying the shared conventions to all builds
-    plugins/          # Convention plugins (Kotlin, Dokka)
   components/         # Published libraries
     rifflet-core/     # Core IFF/RIFF/RIFX primitives
     rifflet-civ3/     # Civilization III scenario/save file parsing and validation
