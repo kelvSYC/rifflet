@@ -1,9 +1,16 @@
 version: 2
-# The gradle-build-conventions pin (gradle/libs.versions.toml) resolves from GitHub Packages, which needs credentials.
+# The gradle-build-conventions and kotlin-tools versions (gradle/libs.versions.toml) resolve from GitHub Packages,
+# which needs credentials. kotlin-tools bumps arrive as ordinary Dependabot PRs; only gradle-build-conventions bumps
+# are handled by .github/workflows/conventions-bump.yml.
 registries:
   gradle-build-conventions:
     type: maven-repository
     url: https://maven.pkg.github.com/kelvSYC/gradle-build-conventions
+    username: kelvSYC
+    password: ${{ secrets.DEPENDABOT_PACKAGES_TOKEN }}
+  kotlin-tools:
+    type: maven-repository
+    url: https://maven.pkg.github.com/kelvSYC/kotlin-tools
     username: kelvSYC
     password: ${{ secrets.DEPENDABOT_PACKAGES_TOKEN }}
 updates:
@@ -11,15 +18,18 @@ updates:
     directory: /
     registries:
       - gradle-build-conventions
+      - kotlin-tools
     # The Gradle wrapper follows the gradle-build-conventions release (.github/workflows/conventions-bump.yml).
     ignore:
       - dependency-name: "gradle-wrapper"
     # Dependabot holds back releases younger than a few days by default, and drops versions with no release date.
-    # gradle-build-conventions releases are ours and gated by its canary and this repository's CI, so they come at once.
+    # gradle-build-conventions and kotlin-tools releases are ours (the former gated by its canary and this repository's
+    # CI), so they come at once.
     cooldown:
       default-days: 3
       exclude:
         - "com.kelvsyc.internal:*"
+        - "com.kelvsyc.kotlin:*"
     schedule:
       interval: daily
       # A fixed time (UTC), so it is predictable when a gradle-build-conventions release gets its bump PR.

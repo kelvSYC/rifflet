@@ -20,9 +20,6 @@ plugins {
 }
 
 dependencyResolutionManagement {
-    // The convention plugins depend on Gradle plugins published only to the Plugin Portal.
-    repositories.gradlePluginPortal()
-
     versionCatalogs.named("libs") {
         // Add entry for the `kotlin-dsl` plugin, using the expectedKotlinDslPluginsVersion constant
         library("kotlin-dsl-plugins", "org.gradle.kotlin", "gradle-kotlin-dsl-plugins")

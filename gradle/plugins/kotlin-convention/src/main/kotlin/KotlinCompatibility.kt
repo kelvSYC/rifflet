@@ -44,7 +44,8 @@ fun Project.checkKotlinPluginVersion(libs: VersionCatalog) {
     check(actual == expected) {
         "Kotlin Gradle plugin $actual is applied, but the version catalog declares kotlin = \"$expected\". " +
             "The plugin was likely raised by Gradle's embedded Kotlin or another build plugin's stdlib requirement; " +
-            "update the catalog to match."
+            "The compiler version comes from the shared build conventions: release a matching version there and bump the " +
+            "gradle-build-conventions pin."
     }
 }
 
