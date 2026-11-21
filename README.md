@@ -89,7 +89,7 @@ dependencies {
 
 ### Credentials Setup
 
-Rifflet depends on packages from [kotlin-tools](https://github.com/kelvSYC/kotlin-tools), which is also hosted on GitHub Packages. To build locally, add the following to `~/.gradle/gradle.properties`:
+The build resolves its shared build conventions ([gradle-build-conventions](https://github.com/kelvSYC/gradle-build-conventions)) and its dependency on [kotlin-tools](https://github.com/kelvSYC/kotlin-tools) from GitHub Packages, so every Gradle invocation, even one that only configures the build, needs credentials. Add the following to `~/.gradle/gradle.properties`:
 
 ```properties
 gpr.user=YOUR_GITHUB_USERNAME
@@ -123,9 +123,9 @@ This is a Gradle composite build with the following layout:
 ```
 rifflet/
   gradle/             # Internal build infrastructure (not published)
-    platform/         # BOM centralizing dependency versions
-    settings/         # Settings plugin shared by all components
-    plugins/          # Convention plugins (Kotlin, Dokka, publishing)
+    libs.versions.toml # Shared conventions pin and rifflet's own catalog entries
+    settings/         # Thin settings plugin applying the shared conventions to all builds
+    plugins/          # Convention plugins (Kotlin, Dokka)
   components/         # Published libraries
     rifflet-core/     # Core IFF/RIFF/RIFX primitives
     rifflet-civ3/     # Civilization III scenario/save file parsing and validation
