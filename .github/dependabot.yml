@@ -1,6 +1,6 @@
 version: 2
 # The gradle-build-conventions and kotlin-tools versions (gradle/libs.versions.toml) resolve from GitHub Packages,
-# which needs credentials. kotlin-tools bumps arrive as ordinary Dependabot PRs; only gradle-build-conventions bumps
+# which needs credentials: the DEPENDABOT_PACKAGES_TOKEN Dependabot secret, a token with read:packages. kotlin-tools bumps arrive as ordinary Dependabot PRs; only gradle-build-conventions bumps
 # are handled by .github/workflows/conventions-bump.yml.
 registries:
   gradle-build-conventions:
