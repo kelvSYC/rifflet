@@ -41,7 +41,7 @@ jobs:
           echo "conventions=true" >> "$GITHUB_OUTPUT"
       - name: Checkout
         if: steps.bump.outputs.conventions == 'true'
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.head_ref }}
           persist-credentials: false
@@ -49,7 +49,7 @@ jobs:
           filter: tree:0
       - name: Set up JDK 25
         if: steps.bump.outputs.conventions == 'true'
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           java-version: '25'
           distribution: 'zulu'

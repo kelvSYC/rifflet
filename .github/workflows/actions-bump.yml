@@ -1,0 +1,64 @@
+name: Actions bump
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+# On a Dependabot PR bumping GitHub Actions: enables GitHub auto-merge, so the PR merges once the required checks pass,
+# when every bumped action is from a trusted owner (the ALLOWED list below) and the update is a minor or patch one.
+# Major bumps and other actions are left for a manual review. Actions are pinned to a commit SHA with a full version
+# comment (`# v7.0.1`), which is what lets Dependabot classify an update as minor or patch.
+# Enabling auto-merge uses the CONVENTIONS_TOKEN personal access token, not GITHUB_TOKEN: a merge made with
+# GITHUB_TOKEN triggers no workflows, so nothing would run after the merge. The token must also be allowed to merge
+# changes to workflow files (a classic token needs the `workflow` scope; a fine-grained token needs Workflows
+# read/write), or GitHub refuses the merge. A run started by Dependabot sees only Dependabot secrets, so the token is
+# stored there as well as in the Actions secrets.
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      - name: Enable auto-merge for a low-risk bump
+        env:
+          ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          DEPENDENCIES: ${{ steps.metadata.outputs.dependency-names }}
+          HAS_TOKEN: ${{ secrets.CONVENTIONS_TOKEN != '' }}
+          GH_TOKEN: ${{ secrets.CONVENTIONS_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          # Actions whose bumps may auto-merge: whole owners (actions/*, github/*, dependabot/*), gradle/actions with
+          # its subpaths (gradle/actions/setup-gradle), and anthropics/claude-code-action.
+          is_allowed() {
+            case "$1" in
+              actions/* | github/* | dependabot/* | gradle/actions | gradle/actions/* | anthropics/claude-code-action) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          if [ "$ECOSYSTEM" != "github_actions" ]; then
+            echo "Not a GitHub Actions bump (${ECOSYSTEM}); leaving it for manual merge."
+            exit 0
+          fi
+          if [ "$UPDATE_TYPE" != "version-update:semver-minor" ] && [ "$UPDATE_TYPE" != "version-update:semver-patch" ]; then
+            echo "Update type is '${UPDATE_TYPE}', not minor or patch; leaving it for manual merge."
+            exit 0
+          fi
+          IFS=',' read -ra names <<< "${DEPENDENCIES// /}"
+          for name in "${names[@]}"; do
+            if ! is_allowed "$name"; then
+              echo "'${name}' is not in the allowed list; leaving it for manual merge."
+              exit 0
+            fi
+          done
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CONVENTIONS_TOKEN is not set in this repository's Dependabot and Actions secrets."
+            exit 1
+          fi
+          gh pr merge --auto --squash "$PR_URL"
