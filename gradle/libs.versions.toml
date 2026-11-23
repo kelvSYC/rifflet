@@ -5,7 +5,7 @@
 # gradle-build-conventions pins the shared build conventions version once: the settings plugin's version determines
 # the shared catalog and platform versions.
 [versions]
-gradle-build-conventions = "0.4.1"
+gradle-build-conventions = "0.5.0"
 kotlin-tools = "0.5.3"
 
 [libraries]
