@@ -109,6 +109,8 @@ For CI environments, set the `GITHUB_ACTOR` and `GITHUB_TOKEN` environment varia
 ./gradlew dokkaGenerate   # Generate API documentation
 ```
 
+Publishing to GitHub Packages takes the `GitHubPackagesUsername`/`GitHubPackagesPassword` Gradle properties (for example in `~/.gradle/gradle.properties`, or as `ORG_GRADLE_PROJECT_GitHubPackagesUsername`/`ORG_GRADLE_PROJECT_GitHubPackagesPassword` environment variables). Resolving dependencies still uses the credentials above.
+
 Single component:
 
 ```bash

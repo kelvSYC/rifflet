@@ -104,3 +104,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # These feed the publishing repository's credentials, resolved at execution so publishing stays
+          # configuration-cache compatible. GITHUB_ACTOR/GITHUB_TOKEN above still serve dependency resolution.
+          ORG_GRADLE_PROJECT_GitHubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_GitHubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
